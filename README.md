@@ -30,10 +30,10 @@ Aplikasi manajemen sekolah berbasis web dengan PWA yang menyediakan solusi lengk
 - Offline sync untuk absensi siswa
 
 ### 📊 Dashboard & Reports
-- Dashboard dengan statistik real-time
-- Report absensi dengan filter bulan/tahun
-- Export PDF, Excel, CSV
-- Grafik dan chart interaktif
+- Dashboard baru dengan metrik agregat (gauge): Penggunaan Absensi, KPI Absensi, Kelengkapan Data Pegawai/Siswa
+- Komponen ringkas "Absensi Hari Ini" (stepper Masuk/Keluar) untuk pengguna non-manajerial
+- Report absensi dengan filter periode, export PDF/Excel/CSV
+- Insight operasional: Missed Checkout, Non-user periode, Profil tidak lengkap
 
 ### 📋 Sistem Izin
 - Request izin: Sakit, Cuti, Dinas Luar
@@ -48,7 +48,7 @@ Aplikasi manajemen sekolah berbasis web dengan PWA yang menyediakan solusi lengk
 - **PWA**: Service Worker + Manifest
 - **Maps**: Google Maps API
 - **QR Code**: QRCode.js
-- **Charts**: Chart.js
+- **Charts**: ApexCharts (CDN)
 
 ## Installation
 
@@ -100,6 +100,8 @@ php artisan migrate
 php artisan db:seed
 ```
 
+> Catatan: repo ini menyertakan migrasi perbaikan role (normalisasi nama role + kolom `display_name`). Jika Anda mengubah nama role melalui UI dan terjadi 403, jalankan lagi `php artisan migrate` untuk menormalkan slug teknis peran.
+
 6. **Build assets**
 ```bash
 npm run build
@@ -109,6 +111,8 @@ npm run build
 ```bash
 php artisan serve
 ```
+
+> Catatan: sebagian kecil gaya UI (hover dan banner dashboard) menggunakan inline CSS sehingga tidak bergantung pada build Vite untuk berfungsi. Grafik menggunakan ApexCharts via CDN, jadi tidak memerlukan bundling.
 
 ## Demo Credentials
 
@@ -133,10 +137,15 @@ Setelah menjalankan seeder, Anda dapat login dengan:
 - `qr_codes` - QR Code aktif
 
 ### Role & Permission System
-- `roles` - Role pengguna
+- `roles` - Role pengguna (slug teknis pada kolom `name`, label tampilan pada kolom `display_name`)
 - `permissions` - Permission sistem
 - `model_has_roles` - Relasi user-role
 - `model_has_permissions` - Relasi user-permission
+
+#### Kebijakan Role
+- Slug teknis (name) untuk peran sistem bersifat terkunci: `admin`, `teacher`, `headmaster`, `tu`, `bk`, `kesiswaan`, `student`, `super-admin`.
+- UI mengizinkan perubahan `display_name` (mis. Admin, Guru, Tata Usaha, BK, Kepala Sekolah) tanpa mengubah slug.
+- Tombol normalisasi tersedia melalui migrasi perbaikan (lihat bagian setup) untuk memulihkan slug jika terlanjur berubah.
 
 ## API Endpoints
 
