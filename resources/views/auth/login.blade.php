@@ -12,9 +12,7 @@
         <div class="bg-white rounded-lg shadow-xl p-8">
             <!-- Logo/Header -->
             <div class="text-center mb-8">
-                <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="mx-auto h-16 w-auto mb-3" />
-                <h1 class="text-2xl font-bold text-gray-900">Presensia</h1>
-                <p class="text-gray-600 mt-2">Sistem Manajemen Sekolah</p>
+                <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="mx-auto h-20 md:h-24 w-auto mb-1" />
             </div>
 
             <!-- Login Form -->
