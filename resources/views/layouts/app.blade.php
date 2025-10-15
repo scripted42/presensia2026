@@ -46,7 +46,7 @@
             <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0 px-4">
-                    <img src="{{ asset('images/logo/presensia-logo.png') }}" alt="Presensia" class="h-8 w-auto mr-3" />
+                    <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="h-8 w-auto mr-3" />
                     <span class="text-xl font-bold text-gray-900">Presensia</span>
                 </div>
                 
