@@ -100,6 +100,7 @@ class SuperAdminController extends Controller
             'school_phone' => 'nullable|string',
             'school_email' => 'nullable|email',
             'school_website' => 'nullable|url',
+            'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|email|unique:users,email',
             'admin_password' => 'required|string|min:8',
@@ -108,6 +109,12 @@ class SuperAdminController extends Controller
             'secondary_color' => 'required|string',
         ]);
 
+        // Handle logo upload
+        $logoPath = null;
+        if ($request->hasFile('school_logo')) {
+            $logoPath = $request->file('school_logo')->store('schools/logos', 'public');
+        }
+
         // Create school
         $school = School::create([
             'name' => $request->school_name,
@@ -115,6 +122,7 @@ class SuperAdminController extends Controller
             'phone' => $request->school_phone,
             'email' => $request->school_email,
             'website' => $request->school_website,
+            'logo' => $logoPath,
             'is_active' => true,
         ]);
 

@@ -46,8 +46,7 @@
             <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0 px-4">
-                    <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                    <span class="text-xl font-bold text-gray-900">Presensia</span>
+                    <img src="<?php echo e(asset('assets/images/logo/presensia-logo.png')); ?>" alt="Presensia" class="h-4 w-auto" />
                 </div>
                 
                 <!-- Navigation -->
@@ -209,8 +208,7 @@
                     </div>
                     <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
                         <div class="flex-shrink-0 flex items-center px-4">
-                            <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                            <span class="text-xl font-bold text-gray-900">Presensia</span>
+                            <img src="<?php echo e(asset('assets/images/logo/presensia-logo.png')); ?>" alt="Presensia" class="h-4 w-auto" />
                         </div>
                         <nav class="mt-5 px-2 space-y-1">
                             <!-- Same navigation as desktop -->

@@ -6,8 +6,15 @@
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap">
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p class="text-gray-600">Selamat datang di sistem manajemen absensi sekolah, Presensia!</p>
+                <div class="flex items-center">
+                    @if($school->logo)
+                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-12 w-auto mr-4">
+                    @endif
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                        <p class="text-gray-600">Selamat datang di sistem manajemen absensi sekolah, Presensia!</p>
+                    </div>
+                </div>
                 <div class="mt-4 flex flex-wrap gap-3">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                         <i class="fas fa-building mr-2"></i>{{ $school->name }}

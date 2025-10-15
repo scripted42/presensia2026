@@ -15,6 +15,7 @@ class School extends Model
         'phone',
         'email',
         'website',
+        'logo',
         'settings',
         'is_active',
         'super_admin_id',
