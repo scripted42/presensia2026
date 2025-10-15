@@ -51,6 +51,12 @@ class LoginController extends Controller
                     ->withInput($request->except('password'));
             }
 
+            // Redirect super admin ke dashboard SaaS
+            $superEmail = config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'));
+            if (strtolower(Auth::user()->email) === strtolower((string) $superEmail)) {
+                return redirect()->intended(route('super-admin.index'));
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

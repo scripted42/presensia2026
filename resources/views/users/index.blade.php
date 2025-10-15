@@ -49,18 +49,25 @@
         <!-- Users Table -->
         <div class="bg-white shadow rounded-lg overflow-hidden">
             <div class="px-4 py-5 sm:p-6">
-                <!-- Page size selector -->
-                <form method="GET" action="{{ route('users.index') }}" class="mb-4 flex items-center space-x-2">
+                <!-- Page size + Search -->
+                <form method="GET" action="{{ route('users.index') }}" class="mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
                     <input type="hidden" name="type" value="{{ $type }}">
-                    <label for="per_page" class="text-sm text-gray-600">Tampilkan</label>
-                    <select name="per_page" id="per_page" onchange="this.form.submit()"
-                            class="border-gray-300 rounded-md text-sm">
-                        <option value="10" {{ ($perPageParam ?? '10') == '10' ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ ($perPageParam ?? '') == '25' ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ ($perPageParam ?? '') == '50' ? 'selected' : '' }}>50</option>
-                        <option value="all" {{ ($perPageParam ?? '') == 'all' ? 'selected' : '' }}>All</option>
-                    </select>
-                    <span class="text-sm text-gray-600">data</span>
+                    <div class="flex items-center space-x-2">
+                        <label for="per_page" class="text-sm text-gray-600">Tampilkan</label>
+                        <select name="per_page" id="per_page" onchange="this.form.submit()"
+                                class="border-gray-300 rounded-md text-sm">
+                            <option value="10" {{ ($perPageParam ?? '10') == '10' ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ ($perPageParam ?? '') == '25' ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ ($perPageParam ?? '') == '50' ? 'selected' : '' }}>50</option>
+                            <option value="all" {{ ($perPageParam ?? '') == 'all' ? 'selected' : '' }}>All</option>
+                        </select>
+                        <span class="text-sm text-gray-600">data</span>
+                    </div>
+                    <div class="flex items-center space-x-2 md:ml-auto">
+                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama, email, NIK/NIS"
+                               class="border-gray-300 rounded-md text-sm w-64" />
+                        <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm">Cari</button>
+                    </div>
                 </form>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">

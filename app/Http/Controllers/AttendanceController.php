@@ -370,6 +370,17 @@ class AttendanceController extends Controller
                       ->orWhereIn('user_id', $studentIds);
                 });
             }
+        } elseif ($user->hasRole('headmaster')) {
+            // Headmaster can see all attendance data
+            if ($type === 'employees') {
+                $query->whereHas('user', function($q) {
+                    $q->where('user_type', 'employee');
+                });
+            } elseif ($type === 'students') {
+                $query->whereHas('user', function($q) {
+                    $q->where('user_type', 'student');
+                });
+            }
         } else {
             // Other roles can only see their own attendance
             $query->where('user_id', $user->id);
@@ -487,7 +498,7 @@ class AttendanceController extends Controller
         $endDate = $startDate->copy()->endOfMonth();
 
         // Get users based on type and role
-        $query = User::query();
+        $query = User::query()->where('school_id', Auth::user()->school_id);
         
         if ($type === 'employees') {
             $query->where('user_type', 'employee');
@@ -687,7 +698,7 @@ class AttendanceController extends Controller
         $endDate = $startDate->copy()->endOfMonth();
 
         // Get users based on type and role
-        $query = User::query();
+        $query = User::query()->where('school_id', Auth::user()->school_id);
         
         if ($type === 'employees') {
             $query->where('user_type', 'employee');

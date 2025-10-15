@@ -163,6 +163,7 @@
                     <select name="role" id="role" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="admin" {{ $user->hasRole('admin') ? 'selected' : '' }}>Admin</option>
                         <option value="teacher" {{ $user->hasRole('teacher') ? 'selected' : '' }}>Guru</option>
+                        <option value="headmaster" {{ $user->hasRole('headmaster') ? 'selected' : '' }}>Kepala Sekolah</option>
                         <option value="tu" {{ $user->hasRole('tu') ? 'selected' : '' }}>Tata Usaha</option>
                         <option value="bk" {{ $user->hasRole('bk') ? 'selected' : '' }}>BK</option>
                         <option value="kesiswaan" {{ $user->hasRole('kesiswaan') ? 'selected' : '' }}>Kesiswaan</option>

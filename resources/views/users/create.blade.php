@@ -94,6 +94,7 @@
                             <option value="">Pilih Role</option>
                             <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="teacher" {{ old('role') == 'teacher' ? 'selected' : '' }}>Guru</option>
+                            <option value="headmaster" {{ old('role') == 'headmaster' ? 'selected' : '' }}>Kepala Sekolah</option>
                             <option value="tu" {{ old('role') == 'tu' ? 'selected' : '' }}>Tata Usaha</option>
                             <option value="bk" {{ old('role') == 'bk' ? 'selected' : '' }}>BK</option>
                             <option value="kesiswaan" {{ old('role') == 'kesiswaan' ? 'selected' : '' }}>Kesiswaan</option>

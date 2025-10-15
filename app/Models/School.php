@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class School extends Model
 {
@@ -17,6 +17,7 @@ class School extends Model
         'website',
         'settings',
         'is_active',
+        'super_admin_id',
     ];
 
     protected $casts = [
@@ -25,7 +26,15 @@ class School extends Model
     ];
 
     /**
-     * Get the users for the school.
+     * Get the super admin that manages this school
+     */
+    public function superAdmin()
+    {
+        return $this->belongsTo(SuperAdmin::class);
+    }
+
+    /**
+     * Get all users belonging to this school
      */
     public function users()
     {
@@ -33,7 +42,7 @@ class School extends Model
     }
 
     /**
-     * Get the classes for the school.
+     * Get all classes belonging to this school
      */
     public function classes()
     {
@@ -41,26 +50,18 @@ class School extends Model
     }
 
     /**
-     * Get the attendance settings for the school.
+     * Get tenant settings for this school
+     */
+    public function tenantSettings()
+    {
+        return $this->hasOne(TenantSetting::class);
+    }
+
+    /**
+     * Get attendance settings for this school
      */
     public function attendanceSettings()
     {
-        return $this->hasMany(AttendanceSetting::class);
-    }
-
-    /**
-     * Get the active attendance setting for the school.
-     */
-    public function activeAttendanceSetting()
-    {
-        return $this->hasOne(AttendanceSetting::class)->where('is_active', true);
-    }
-
-    /**
-     * Get the QR codes for the school.
-     */
-    public function qrCodes()
-    {
-        return $this->hasMany(QrCode::class);
+        return $this->hasOne(AttendanceSetting::class);
     }
 }

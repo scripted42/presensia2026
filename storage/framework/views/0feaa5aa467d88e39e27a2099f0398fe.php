@@ -123,7 +123,7 @@
 </div>
 
 <!-- Quick Actions -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <a href="<?php echo e(route('attendance.check-in')); ?>" class="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
         <i class="fas fa-sign-in-alt text-green-600 text-3xl mb-3"></i>
         <span class="text-lg font-medium text-green-900">Absensi Masuk</span>
@@ -136,17 +136,34 @@
         <span class="text-sm text-red-700">Scan QR Code untuk absensi keluar</span>
     </a>
 
+    <?php if(auth()->user()->hasRole('teacher')): ?>
     <a href="<?php echo e(route('attendance.student-scan')); ?>" class="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
         <i class="fas fa-qrcode text-purple-600 text-3xl mb-3"></i>
         <span class="text-lg font-medium text-purple-900">Scan Siswa</span>
         <span class="text-sm text-purple-700">Absensi siswa secara massal</span>
     </a>
+    <?php endif; ?>
 
     <a href="<?php echo e(route('attendance.reports')); ?>" class="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
         <i class="fas fa-chart-bar text-blue-600 text-3xl mb-3"></i>
         <span class="text-lg font-medium text-blue-900">Laporan</span>
         <span class="text-sm text-blue-700">Lihat laporan absensi</span>
     </a>
+
+    <!-- Leave Request Cards -->
+    <a href="<?php echo e(route('leave-requests.create')); ?>" class="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+        <i class="fas fa-calendar-times text-orange-600 text-3xl mb-3"></i>
+        <span class="text-lg font-medium text-orange-900">Izin Pribadi</span>
+        <span class="text-sm text-orange-700">Ajukan izin, cuti, sakit, dinas</span>
+    </a>
+
+    <?php if(auth()->user()->hasRole(['teacher', 'admin'])): ?>
+    <a href="<?php echo e(route('leave-requests.create', ['user_id' => 'student'])); ?>" class="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+        <i class="fas fa-user-times text-yellow-600 text-3xl mb-3"></i>
+        <span class="text-lg font-medium text-yellow-900">Izin Siswa</span>
+        <span class="text-sm text-yellow-700">Ajukan izin untuk siswa</span>
+    </a>
+    <?php endif; ?>
 </div>
 
 <!-- Recent Attendance Records -->

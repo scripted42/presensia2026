@@ -36,6 +36,23 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
+        // Create headmaster user
+        $headmaster = User::create([
+            'school_id' => $school->id,
+            'name' => 'Kepala Sekolah',
+            'email' => 'kepala@presensia.com',
+            'password' => Hash::make('password'),
+            'phone' => '081234567888',
+            'address' => 'Jl. Kepala Sekolah No. 1',
+            'birth_date' => '1975-12-01',
+            'gender' => 'L',
+            'qr_code' => Str::random(32),
+            'nik' => '1234567890123444',
+            'user_type' => 'employee',
+            'is_active' => true,
+        ]);
+        $headmaster->assignRole('headmaster');
+
         // Create teacher user
         $teacher = User::create([
             'school_id' => $school->id,

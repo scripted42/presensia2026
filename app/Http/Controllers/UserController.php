@@ -25,10 +25,24 @@ class UserController extends Controller
         $query = User::with(['school', 'roles'])
             ->where('school_id', auth()->user()->school_id)
             ->where('user_type', $type);
+
+        // Optional search: name, email, NIK/NIS
+        if ($search = trim((string) $request->get('q', ''))) {
+            $query->where(function($q) use ($search, $type) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+                if ($type === 'employee') {
+                    $q->orWhere('nik', 'like', "%{$search}%");
+                } else {
+                    $q->orWhere('nis', 'like', "%{$search}%");
+                }
+            });
+        }
             
         $users = $query->paginate($perPage)->appends([
             'type' => $type,
             'per_page' => $perPageParam,
+            'q' => $request->get('q', ''),
         ]);
         
         return view('users.index', compact('users', 'type', 'perPageParam'));
@@ -266,7 +280,7 @@ class UserController extends Controller
             if (!$rows) {
                 return redirect()->back()->withErrors(['file' => 'Sesi import habis atau data tidak ditemukan.']);
             }
-            $created = 0; $duplicates = 0; $errors = 0;
+            $created = 0; $duplicates = 0; $errors = 0; $errorDetails = [];
             foreach ($rows as $row) {
                 try {
                     // recheck duplicate by email and nik/nis
@@ -321,11 +335,17 @@ class UserController extends Controller
                     $created++;
                 } catch (\Throwable $e) {
                     $errors++;
+                    $errorDetails[] = "Error pada {$row['name']}: " . $e->getMessage();
                 }
             }
 
+            $message = "Import selesai: {$created} berhasil, {$duplicates} duplikasi, {$errors} gagal.";
+            if (!empty($errorDetails)) {
+                $message .= " Detail error: " . implode('; ', $errorDetails);
+            }
+            
             return redirect()->route('users.index', ['type' => $type])
-                ->with('success', "Import selesai: {$created} berhasil, {$duplicates} duplikasi, {$errors} gagal.");
+                ->with('success', $message);
         }
 
         // Preview phase

@@ -58,6 +58,14 @@ class RolePermissionSeeder extends Seeder
         $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->givePermissionTo(Permission::all());
 
+        $headmasterRole = Role::create(['name' => 'headmaster', 'guard_name' => 'web']);
+        $headmasterRole->givePermissionTo([
+            'view-dashboard',
+            'view-attendance', 'view-student-attendance',
+            'view-reports', 'export-reports',
+            'view-leaves', 'approve-leaves',
+        ]);
+
         $teacherRole = Role::create(['name' => 'teacher', 'guard_name' => 'web']);
         $teacherRole->givePermissionTo([
             'view-dashboard',

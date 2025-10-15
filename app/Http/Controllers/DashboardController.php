@@ -27,7 +27,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $school = $user->school;
-        $today = Carbon::today();
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         
         // Get statistics based on user role
         $stats = $this->getDashboardStats($user, $today);
@@ -60,6 +60,22 @@ class DashboardController extends Controller
                 'pending_leaves' => LeaveRequest::where('status', 'pending')->whereHas('user', function($query) use ($user) {
                     $query->where('school_id', $user->school_id);
                 })->count(),
+            ];
+        } elseif ($user->hasRole('headmaster')) {
+            // Headmaster statistics
+            $stats = [
+                'total_employees' => User::where('user_type', 'employee')->where('school_id', $user->school_id)->count(),
+                'total_students' => User::where('user_type', 'student')->where('school_id', $user->school_id)->count(),
+                'total_classes' => SchoolClass::where('school_id', $user->school_id)->count(),
+                'today_attendance' => Attendance::where('date', $today)->whereHas('user', function($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
+                })->count(),
+                'pending_leaves' => LeaveRequest::where('status', 'pending')->whereHas('user', function($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
+                })->count(),
+                'approved_leaves' => LeaveRequest::where('status', 'approved')->whereHas('user', function($query) use ($user) {
+                    $query->where('school_id', $user->school_id);
+                })->where('approved_by', $user->id)->count(),
             ];
         } elseif ($user->hasRole('teacher')) {
             // Teacher statistics
@@ -118,9 +134,12 @@ class DashboardController extends Controller
     {
         $chartData = [];
         
+        // Convert string to Carbon object for date operations
+        $todayCarbon = Carbon::parse($today);
+        
         // Simplified chart data for now
         for ($i = 6; $i >= 0; $i--) {
-            $date = $today->copy()->subDays($i);
+            $date = $todayCarbon->copy()->subDays($i);
             $chartData[] = [
                 'date' => $date->format('d/m'),
                 'status' => 'ontime',

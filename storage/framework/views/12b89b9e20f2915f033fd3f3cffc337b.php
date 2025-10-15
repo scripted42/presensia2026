@@ -256,31 +256,40 @@
         // Parse QR code to extract NIS and name
         function parseQRCode(qrCode) {
             console.log('Parsing QR Code:', qrCode);
+            const raw = String(qrCode ?? '').trim();
             try {
-                // Format QR: "NIS|Nama" atau "NIS_Nama" atau JSON
-                if (qrCode.includes('|')) {
-                    const [nis, name] = qrCode.split('|');
-                    const result = { nis: nis.trim(), name: name.trim() };
+                // Format QR: "NIS|Nama" atau "NIS_Nama"
+                if (raw.includes('|')) {
+                    const [nis, name = ''] = raw.split('|');
+                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
                     console.log('Parsed with | separator:', result);
                     return result;
-                } else if (qrCode.includes('_')) {
-                    const [nis, name] = qrCode.split('_');
-                    const result = { nis: nis.trim(), name: name.trim() };
+                }
+                if (raw.includes('_')) {
+                    const [nis, name = ''] = raw.split('_');
+                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
                     console.log('Parsed with _ separator:', result);
                     return result;
-                } else {
-                    // Try JSON format
-                    const parsed = JSON.parse(qrCode);
-                    const result = { nis: parsed.nis || parsed.NIS, name: parsed.name || parsed.nama };
+                }
+
+                // Hanya coba JSON bila string terlihat seperti JSON
+                if (/^[\[{]/.test(raw)) {
+                    const parsed = JSON.parse(raw);
+                    const result = {
+                        nis: (parsed?.nis ?? parsed?.NIS ?? '').toString(),
+                        name: (parsed?.name ?? parsed?.nama ?? '').toString()
+                    };
                     console.log('Parsed as JSON:', result);
-                    return result;
+                    if (result.nis) return result;
                 }
             } catch (e) {
-                // Fallback: treat entire QR as NIS, but don't show "Unknown"
-                const result = { nis: qrCode, name: qrCode };
-                console.log('Fallback parsing:', result);
-                return result;
+                console.warn('QR parse error, fallback to plain NIS:', e);
             }
+
+            // Fallback: anggap seluruh string adalah NIS
+            const result = { nis: raw, name: raw };
+            console.log('Fallback parsing:', result);
+            return result;
         }
 
         // Add scanned student with duplicate check and time tracking
@@ -334,10 +343,10 @@
         // Fetch student name from server
         async function fetchStudentName(nis) {
             try {
-                const response = await fetch(`/api/student/${nis}`);
+                const response = await fetch(`/api/student/${encodeURIComponent(nis)}`);
                 if (response.ok) {
                     const data = await response.json();
-                    return data.name;
+                    return data?.name ?? null;
                 }
             } catch (error) {
                 console.error('Error fetching student name:', error);

@@ -140,7 +140,7 @@
                         <p class="text-gray-600 mt-1"><?php echo e($startDate->format('F Y')); ?></p>
                     </div>
                     <div class="flex space-x-3">
-                        <a href="<?php echo e(route('attendance.index')); ?>" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <a href="<?php echo e(route('dashboard')); ?>" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
                             <i class="fas fa-arrow-left mr-2"></i>Kembali
                         </a>
                     </div>

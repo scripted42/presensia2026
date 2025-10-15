@@ -149,6 +149,24 @@
                 </div>
             </div>
             @endif
+
+            @if(isset($stats['approved_leaves']))
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Izin Disetujui</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ $stats['approved_leaves'] }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Charts and Activities -->
@@ -212,6 +230,28 @@
                                 <i class="fas fa-chart-bar text-orange-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-orange-900">Laporan</span>
                             </a>
+                            <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-calendar-times text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-900">Manajemen Izin</span>
+                            </a>
+                        @elseif($user->hasRole('headmaster'))
+                            <!-- Headmaster Menu -->
+                            <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-chart-bar text-blue-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-blue-900">Laporan Absensi</span>
+                            </a>
+                            <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-calendar-times text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-900">Persetujuan Izin</span>
+                            </a>
+                            <a href="{{ route('attendance.index') }}" class="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                                <i class="fas fa-calendar-check text-green-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-green-900">Status Absensi</span>
+                            </a>
+                            <a href="{{ route('attendance.export') }}" class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                                <i class="fas fa-download text-purple-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-purple-900">Export Laporan</span>
+                            </a>
                         @elseif($user->hasRole(['teacher', 'tu', 'bk', 'kesiswaan']))
                             <!-- Employee Menu -->
                             <a href="{{ route('attendance.check-in') }}" class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
@@ -222,23 +262,29 @@
                                 <i class="fas fa-sign-out-alt text-green-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-green-900">Absensi Keluar</span>
                             </a>
-                            <a href="{{ route('attendance.student-scan') }}" class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                                <i class="fas fa-qrcode text-purple-600 text-2xl mb-2"></i>
-                                <span class="text-sm font-medium text-purple-900">Scan Siswa</span>
-                            </a>
+                            @if($user->hasRole('teacher'))
+                                <a href="{{ route('attendance.student-scan') }}" class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                                    <i class="fas fa-qrcode text-purple-600 text-2xl mb-2"></i>
+                                    <span class="text-sm font-medium text-purple-900">Scan Siswa</span>
+                                </a>
+                            @endif
                             <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
                                 <i class="fas fa-chart-bar text-orange-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-orange-900">Laporan</span>
                             </a>
+                            <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-calendar-times text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-900">Manajemen Izin</span>
+                            </a>
                         @elseif($user->hasRole('student'))
                             <!-- Student Menu -->
-                            <a href="{{ route('attendance.index') }}" class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                                <i class="fas fa-calendar-check text-blue-600 text-2xl mb-2"></i>
-                                <span class="text-sm font-medium text-blue-900">Status Absensi</span>
-                            </a>
                             <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                                 <i class="fas fa-chart-bar text-green-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-green-900">Riwayat Absensi</span>
+                            </a>
+                            <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-calendar-times text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-900">Izin Saya</span>
                             </a>
                         @endif
                     </div>

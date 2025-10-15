@@ -5,10 +5,31 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\TenantController;
 
 // Public routes
 Route::get('/', function () {
     return redirect()->route('login');
+});
+
+// Super Admin routes (separate from main app)
+Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.admin'])->group(function () {
+    Route::get('/', [SuperAdminController::class, 'index'])->name('index');
+    Route::get('/password', [SuperAdminController::class, 'showChangePassword'])->name('password');
+    Route::put('/password', [SuperAdminController::class, 'updatePassword'])->name('password.update');
+    Route::get('/schools/create', [SuperAdminController::class, 'create'])->name('schools.create');
+    Route::post('/schools', [SuperAdminController::class, 'store'])->name('schools.store');
+    Route::get('/schools/{school}', [SuperAdminController::class, 'show'])->name('schools.show');
+    Route::get('/schools/{school}/edit', [SuperAdminController::class, 'edit'])->name('schools.edit');
+    Route::put('/schools/{school}', [SuperAdminController::class, 'update'])->name('schools.update');
+    Route::delete('/schools/{school}', [SuperAdminController::class, 'destroy'])->name('schools.destroy');
+    Route::post('/schools/{school}/toggle-status', [SuperAdminController::class, 'toggleStatus'])->name('schools.toggle-status');
+    Route::get('/schools/{school}/tenant-settings', [SuperAdminController::class, 'tenantSettings'])->name('schools.tenant-settings');
+    Route::put('/schools/{school}/tenant-settings', [SuperAdminController::class, 'updateTenantSettings'])->name('schools.tenant-settings.update');
 });
 
 // Authentication routes
@@ -20,7 +41,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Protected routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'school.isolation'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -36,15 +57,20 @@ Route::middleware('auth')->group(function () {
     
     // Attendance routes
     Route::prefix('attendance')->name('attendance.')->group(function () {
-        Route::get('/', [AttendanceController::class, 'index'])->name('index');
-        Route::get('/check-in', [AttendanceController::class, 'showCheckIn'])->name('check-in');
-        Route::post('/check-in', [AttendanceController::class, 'checkIn']);
-        Route::get('/check-out', [AttendanceController::class, 'showCheckOut'])->name('check-out');
-        Route::post('/check-out', [AttendanceController::class, 'checkOut']);
-        Route::get('/qr-code', [AttendanceController::class, 'getQrCode'])->name('qr-code');
-        Route::get('/display-qr', [AttendanceController::class, 'showDisplayQr'])->name('display-qr');
-        Route::get('/student-scan', [AttendanceController::class, 'showStudentScan'])->name('student-scan');
-        Route::post('/student-scan', [AttendanceController::class, 'scanStudent']);
+        // Hanya non-student yang boleh mengakses menu operasional absensi
+        Route::middleware('role:teacher|tu|bk|kesiswaan|admin|headmaster')->group(function () {
+            Route::get('/', [AttendanceController::class, 'index'])->name('index');
+            Route::get('/check-in', [AttendanceController::class, 'showCheckIn'])->name('check-in');
+            Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+            Route::get('/check-out', [AttendanceController::class, 'showCheckOut'])->name('check-out');
+            Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+            Route::get('/qr-code', [AttendanceController::class, 'getQrCode'])->name('qr-code')->middleware('role:admin');
+            Route::get('/display-qr', [AttendanceController::class, 'showDisplayQr'])->name('display-qr')->middleware('role:admin');
+            Route::get('/student-scan', [AttendanceController::class, 'showStudentScan'])->name('student-scan')->middleware('role:teacher');
+            Route::post('/student-scan', [AttendanceController::class, 'scanStudent'])->middleware('role:teacher');
+        });
+
+        // Laporan boleh diakses semua role termasuk student
         Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
         Route::get('/reports/export', [AttendanceController::class, 'exportReport'])->name('reports.export');
     });
@@ -53,11 +79,28 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/settings/attendance', [AttendanceController::class, 'showSettings'])->name('settings.attendance');
         Route::post('/settings/attendance', [AttendanceController::class, 'updateSettings']);
+        
+        // RBAC Management (Admin only)
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::resource('roles', RoleController::class);
+            Route::resource('permissions', PermissionController::class);
+            Route::post('/roles/assign', [RoleController::class, 'assignToUser'])->name('roles.assign');
+            Route::post('/roles/remove', [RoleController::class, 'removeFromUser'])->name('roles.remove');
+        });
     });
     
     // Export attendance report
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     Route::get('/attendance/export-detail', [AttendanceController::class, 'exportDetail'])->name('attendance.export-detail');
+    
+    // Tenant Settings (Admin only)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/tenant/settings', [TenantController::class, 'index'])->name('tenant.settings');
+        Route::put('/tenant/settings', [TenantController::class, 'update'])->name('tenant.settings.update');
+        Route::put('/tenant/branding', [TenantController::class, 'updateBranding'])->name('tenant.branding.update');
+        Route::put('/tenant/features', [TenantController::class, 'updateFeatures'])->name('tenant.features.update');
+        Route::get('/api/tenant/settings', [TenantController::class, 'getSettings'])->name('tenant.api.settings');
+    });
 
     // QR Code Management (Admin & TU)
     Route::middleware(['role:admin|tu'])->group(function () {
@@ -66,6 +109,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/qr/download-zip', [\App\Http\Controllers\QrManagementController::class, 'downloadZip'])->name('qr.zip');
         Route::get('/qr/card/{user}', [\App\Http\Controllers\QrManagementController::class, 'card'])->name('qr.card');
     });
+    
+    // Leave Request routes
+    Route::resource('leave-requests', LeaveRequestController::class);
+    Route::post('/leave-requests/{leaveRequest}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
+    Route::post('/leave-requests/{leaveRequest}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
     
     // API for student lookup
     Route::get('/api/student/{nis}', function($nis) {

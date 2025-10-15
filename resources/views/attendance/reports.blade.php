@@ -140,7 +140,7 @@
                         <p class="text-gray-600 mt-1">{{ $startDate->format('F Y') }}</p>
                     </div>
                     <div class="flex space-x-3">
-                        <a href="{{ route('attendance.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
                             <i class="fas fa-arrow-left mr-2"></i>Kembali
                         </a>
                     </div>
