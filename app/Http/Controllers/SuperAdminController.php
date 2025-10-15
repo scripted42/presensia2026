@@ -206,11 +206,34 @@ class SuperAdminController extends Controller
             'school_phone' => 'nullable|string',
             'school_email' => 'nullable|email',
             'school_website' => 'nullable|url',
+            'school_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
             'app_name' => 'required|string|max:255',
             'primary_color' => 'required|string',
             'secondary_color' => 'required|string',
             'accent_color' => 'required|string',
         ]);
+
+        // Handle logo upload/removal
+        $logoPath = $school->logo; // Keep current logo by default
+        
+        // If remove_logo is set, set logo to null
+        if ($request->has('remove_logo')) {
+            // Delete old logo file if exists
+            if ($school->logo && \Storage::disk('public')->exists($school->logo)) {
+                \Storage::disk('public')->delete($school->logo);
+            }
+            $logoPath = null;
+        }
+        
+        // If new logo is uploaded
+        if ($request->hasFile('school_logo')) {
+            // Delete old logo file if exists
+            if ($school->logo && \Storage::disk('public')->exists($school->logo)) {
+                \Storage::disk('public')->delete($school->logo);
+            }
+            // Store new logo
+            $logoPath = $request->file('school_logo')->store('schools/logos', 'public');
+        }
 
         // Update school
         $school->update([
@@ -219,6 +242,7 @@ class SuperAdminController extends Controller
             'phone' => $request->school_phone,
             'email' => $request->school_email,
             'website' => $request->school_website,
+            'logo' => $logoPath,
         ]);
 
         // Update tenant settings

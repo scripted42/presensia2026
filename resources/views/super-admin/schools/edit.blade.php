@@ -31,7 +31,7 @@
     <!-- Form -->
     <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-            <form action="{{ route('super-admin.schools.update', $school) }}" method="POST">
+            <form action="{{ route('super-admin.schools.update', $school) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 
@@ -75,6 +75,47 @@
                             <input type="url" name="school_website" id="school_website" value="{{ old('school_website', $school->website) }}" 
                                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                    placeholder="https://sekolah.sch.id">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="school_logo" class="block text-sm font-medium text-gray-700 mb-2">Logo Sekolah</label>
+                            
+                            <!-- Current Logo Display -->
+                            @if($school->logo)
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-600 mb-2">Logo saat ini:</p>
+                                    <div class="flex items-center space-x-4">
+                                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-16 w-auto border border-gray-300 rounded">
+                                        <div>
+                                            <p class="text-sm text-gray-500">File: {{ basename($school->logo) }}</p>
+                                            <button type="button" onclick="removeCurrentLogo()" class="text-red-600 hover:text-red-800 text-sm">
+                                                <i class="fas fa-trash mr-1"></i>Hapus Logo
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="current_logo" value="{{ $school->logo }}">
+                                </div>
+                            @endif
+                            
+                            <!-- Upload New Logo -->
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="school_logo" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            <span>Upload file baru</span>
+                                            <input id="school_logo" name="school_logo" type="file" accept="image/*" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">atau drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 10MB</p>
+                                </div>
+                            </div>
+                            @error('school_logo')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -137,5 +178,24 @@
         </div>
     </div>
 </div>
+
+<script>
+function removeCurrentLogo() {
+    if (confirm('Apakah Anda yakin ingin menghapus logo saat ini?')) {
+        // Add hidden input to indicate logo should be removed
+        const removeInput = document.createElement('input');
+        removeInput.type = 'hidden';
+        removeInput.name = 'remove_logo';
+        removeInput.value = '1';
+        document.querySelector('form').appendChild(removeInput);
+        
+        // Hide current logo display
+        const currentLogoDiv = document.querySelector('.mb-4');
+        if (currentLogoDiv) {
+            currentLogoDiv.style.display = 'none';
+        }
+    }
+}
+</script>
 @endsection
 
