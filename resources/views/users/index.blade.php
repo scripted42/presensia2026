@@ -110,7 +110,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $user->roles->first()->name ?? 'No Role' }}
+                                        {{ $user->roles->first()->display_name ?? $user->roles->first()->name ?? 'No Role' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

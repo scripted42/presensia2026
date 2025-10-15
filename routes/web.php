@@ -44,6 +44,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'school.isolation'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
     
     // User management (Admin, TU only)
             Route::middleware(['role:admin|tu'])->group(function () {

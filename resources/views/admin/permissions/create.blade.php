@@ -73,7 +73,7 @@
                                 <input type="checkbox" name="roles[]" value="{{ $role->id }}" 
                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                 <div class="ml-3">
-                                    <div class="text-sm font-medium text-gray-900">{{ ucfirst($role->name) }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $role->display_name ?? ucfirst($role->name) }}</div>
                                     <div class="text-xs text-gray-500">{{ $role->permissions->count() }} permissions</div>
                                 </div>
                             </label>

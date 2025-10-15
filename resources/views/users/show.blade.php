@@ -29,7 +29,7 @@
                         {{ $user->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
                     </span>
                     <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {{ $user->roles->first()->name ?? 'No Role' }}
+                        {{ $user->roles->first()->display_name ?? $user->roles->first()->name ?? 'No Role' }}
                     </span>
                 </div>
             </div>

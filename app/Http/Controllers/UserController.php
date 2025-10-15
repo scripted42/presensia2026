@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\SuperAdmin;
 use App\Models\School;
 use App\Models\SchoolClass;
 use App\Models\EmployeeProfile;
@@ -22,9 +23,16 @@ class UserController extends Controller
         $perPageParam = $request->get('per_page', '10');
         $perPage = (string) $perPageParam === 'all' ? 1000000 : max(1, (int) $perPageParam);
         
+        $superAdminEmails = SuperAdmin::pluck('email');
+
         $query = User::with(['school', 'roles'])
             ->where('school_id', auth()->user()->school_id)
-            ->where('user_type', $type);
+            ->where('user_type', $type)
+            ->whereDoesntHave('roles', function($q){
+                $q->where('name', 'super-admin');
+            })
+            ->whereNotIn('email', $superAdminEmails)
+            ->where('email', 'not like', 'superadmin@%');
 
         // Optional search: name, email, NIK/NIS
         if ($search = trim((string) $request->get('q', ''))) {

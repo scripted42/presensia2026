@@ -35,13 +35,25 @@
                 @csrf
                 @method('PUT')
                 
-                <!-- Role Name -->
+                <!-- Role Name (slug teknis - dikunci) -->
                 <div class="mb-6">
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nama Role *</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $role->name) }}" required 
-                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Masukkan nama role">
+                    <input type="text" id="name" value="{{ $role->name }}" disabled 
+                           class="block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 cursor-not-allowed"
+                           placeholder="Slug peran (terkunci)">
+                    <input type="hidden" name="name" value="{{ $role->name }}">
                     @error('name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Display Name (label tampilan) -->
+                <div class="mb-6">
+                    <label for="display_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Tampilan</label>
+                    <input type="text" name="display_name" id="display_name" value="{{ old('display_name', $role->display_name) }}"
+                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Contoh: Admin, Guru, Tata Usaha, BK, Kepala Sekolah">
+                    @error('display_name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

@@ -252,7 +252,7 @@
                                 <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
                                 <div class="ml-3">
                                     <div class="text-sm font-medium text-gray-700">{{ auth()->user()->name }}</div>
-                                    <div class="text-xs text-gray-500">{{ auth()->user()->roles->first()->name ?? 'No Role' }}</div>
+                                    <div class="text-xs text-gray-500">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</div>
                                 </div>
                             </div>
                         </div>

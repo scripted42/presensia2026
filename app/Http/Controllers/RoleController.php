@@ -42,13 +42,21 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
+            'display_name' => 'nullable|string|max:255',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 
+        // Enforce reserved role slugs
+        $reserved = ['admin','teacher','tu','bk','headmaster','kesiswaan','student','super-admin'];
+        if (in_array(strtolower($request->name), $reserved, true)) {
+            return redirect()->back()->withErrors(['name' => 'Slug role ini adalah peran sistem dan tidak boleh dibuat ulang.']);
+        }
+
         $role = Role::create([
             'name' => $request->name,
             'guard_name' => 'web',
+            'display_name' => $request->display_name,
         ]);
 
         if ($request->has('permissions')) {
@@ -92,13 +100,14 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'display_name' => 'nullable|string|max:255',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 
+        // Ignore any attempt to change slug name (even via inspector)
         $role->update([
-            'name' => $request->name,
+            'display_name' => $request->display_name,
         ]);
 
         if ($request->has('permissions')) {

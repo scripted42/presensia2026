@@ -252,7 +252,7 @@
                                 <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=<?php echo e(urlencode(auth()->user()->name)); ?>&background=3B82F6&color=fff" alt="<?php echo e(auth()->user()->name); ?>">
                                 <div class="ml-3">
                                     <div class="text-sm font-medium text-gray-700"><?php echo e(auth()->user()->name); ?></div>
-                                    <div class="text-xs text-gray-500"><?php echo e(auth()->user()->roles->first()->name ?? 'No Role'); ?></div>
+                                    <div class="text-xs text-gray-500"><?php echo e(auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role'); ?></div>
                                 </div>
                             </div>
                         </div>

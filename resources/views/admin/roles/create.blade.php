@@ -27,13 +27,24 @@
             <form action="{{ route('admin.roles.store') }}" method="POST">
                 @csrf
                 
-                <!-- Role Name -->
+                <!-- Role Name (slug teknis) -->
                 <div class="mb-6">
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nama Role *</label>
                     <input type="text" name="name" id="name" required 
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Masukkan nama role (contoh: supervisor, manager)">
                     @error('name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Display Name -->
+                <div class="mb-6">
+                    <label for="display_name" class="block text-sm font-medium text-gray-700 mb-2">Nama Tampilan</label>
+                    <input type="text" name="display_name" id="display_name"
+                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Contoh: Admin, Guru, Tata Usaha, BK, Kepala Sekolah">
+                    @error('display_name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

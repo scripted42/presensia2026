@@ -12789,3 +12789,70 @@
 #19 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #20 {main}
 "} 
+[2025-10-15 17:15:26] local.ERROR: syntax error, unexpected fully qualified name "\Database", expecting "{" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected fully qualified name \"\\Database\", expecting \"{\" at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\database\\migrations\\2025_10_16_150000_normalize_role_names.php:3)
+[stacktrace]
+#0 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(149): Illuminate\\Filesystem\\Filesystem::Illuminate\\Filesystem\\{closure}()
+#1 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(595): Illuminate\\Filesystem\\Filesystem->requireOnce('C:\\\\Users\\\\FHL\\\\.c...')
+#2 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(130): Illuminate\\Database\\Migrations\\Migrator->requireFiles(Array)
+#3 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(116): Illuminate\\Database\\Migrations\\Migrator->run(Array, Array)
+#4 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(666): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->Illuminate\\Database\\Console\\Migrations\\{closure}()
+#5 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(109): Illuminate\\Database\\Migrations\\Migrator->usingConnection(NULL, Object(Closure))
+#6 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(88): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->runMigrations()
+#7 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->handle()
+#8 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(43): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#9 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#10 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#11 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(836): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#12 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#13 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Command\\Command.php(318): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#15 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(1110): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(359): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Database\\Console\\Migrations\\MigrateCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(194): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#21 {main}
+"} 
+[2025-10-15 17:16:27] local.ERROR: syntax error, unexpected fully qualified name "\Database", expecting "{" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected fully qualified name \"\\Database\", expecting \"{\" at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\database\\migrations\\2025_10_16_150000_normalize_role_names.php:3)
+[stacktrace]
+#0 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(149): Illuminate\\Filesystem\\Filesystem::Illuminate\\Filesystem\\{closure}()
+#1 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(595): Illuminate\\Filesystem\\Filesystem->requireOnce('C:\\\\Users\\\\FHL\\\\.c...')
+#2 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(130): Illuminate\\Database\\Migrations\\Migrator->requireFiles(Array)
+#3 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(116): Illuminate\\Database\\Migrations\\Migrator->run(Array, Array)
+#4 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php(666): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->Illuminate\\Database\\Console\\Migrations\\{closure}()
+#5 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(109): Illuminate\\Database\\Migrations\\Migrator->usingConnection(NULL, Object(Closure))
+#6 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Console\\Migrations\\MigrateCommand.php(88): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->runMigrations()
+#7 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Database\\Console\\Migrations\\MigrateCommand->handle()
+#8 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(43): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#9 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#10 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#11 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(836): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#12 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#13 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Command\\Command.php(318): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#15 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(1110): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(359): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Database\\Console\\Migrations\\MigrateCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(194): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#21 {main}
+"} 
+[2025-10-15 17:17:40] local.ERROR: Command "server" is not defined.
+
+Did you mean one of these?
+    make:observer
+    serve {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"server\" is not defined.
+
+Did you mean one of these?
+    make:observer
+    serve at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php:743)
+[stacktrace]
+#0 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(301): Symfony\\Component\\Console\\Application->find('server')
+#1 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(194): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#5 {main}
+"} 
