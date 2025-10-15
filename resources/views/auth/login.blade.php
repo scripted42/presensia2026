@@ -12,9 +12,7 @@
         <div class="bg-white rounded-lg shadow-xl p-8">
             <!-- Logo/Header -->
             <div class="text-center mb-8">
-                <div class="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-graduation-cap text-white text-2xl"></i>
-                </div>
+                <img src="{{ asset('images/logo/presensia-logo.png') }}" alt="Presensia" class="mx-auto h-16 w-auto mb-3" />
                 <h1 class="text-2xl font-bold text-gray-900">Presensia</h1>
                 <p class="text-gray-600 mt-2">Sistem Manajemen Sekolah</p>
             </div>
