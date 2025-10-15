@@ -12,7 +12,8 @@
         <div class="bg-white rounded-lg shadow-xl p-8">
             <!-- Logo/Header -->
             <div class="text-center mb-8">
-                <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="mx-auto h-20 md:h-24 w-auto mb-1" />
+                <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="mx-auto h-28 md:h-36 xl:h-40 w-auto mb-2" />
+                <p class="text-gray-600 text-base md:text-lg">Sistem Manajemen Absensi Sekolah</p>
             </div>
 
             <!-- Login Form -->
