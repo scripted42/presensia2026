@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Presensia')</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -243,7 +244,7 @@
                         <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
                         
                         <!-- Logout button minimal -->
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
                             @csrf
                             <button type="submit" class="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -270,6 +271,47 @@
             sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
         }
     </script>
+    
+    <script>
+        // Handle logout with CSRF token refresh
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutForm = document.getElementById('logout-form');
+            if (logoutForm) {
+                logoutForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get fresh CSRF token
+                    fetch('/login', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).then(response => {
+                        if (response.ok) {
+                            // Update CSRF token in form
+                            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                            if (csrfToken) {
+                                const csrfInput = logoutForm.querySelector('input[name="_token"]');
+                                if (csrfInput) {
+                                    csrfInput.value = csrfToken.getAttribute('content');
+                                }
+                            }
+                            
+                            // Submit form
+                            logoutForm.submit();
+                        } else {
+                            // Fallback: submit form anyway
+                            logoutForm.submit();
+                        }
+                    }).catch(error => {
+                        console.log('CSRF refresh failed, submitting anyway:', error);
+                        logoutForm.submit();
+                    });
+                });
+            }
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 </html>
