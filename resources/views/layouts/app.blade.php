@@ -411,6 +411,16 @@
                 </div>
             </div>
 
+            <!-- Announcement Bar -->
+            @if(auth()->user()->school->tenantSettings && auth()->user()->school->tenantSettings->show_announcement && auth()->user()->school->tenantSettings->topbar_announcement)
+                <div class="bg-blue-50 border-b border-blue-200 px-4 py-2">
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-bullhorn text-blue-600 mr-2"></i>
+                        <p class="text-sm text-blue-800 text-center">{{ auth()->user()->school->tenantSettings->topbar_announcement }}</p>
+                    </div>
+                </div>
+            @endif
+
             <!-- Page content -->
             <main id="main-content" class="flex-1 relative overflow-y-auto focus:outline-none" tabindex="-1">
                 <div class="py-6">

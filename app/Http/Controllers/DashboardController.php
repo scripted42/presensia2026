@@ -26,7 +26,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $school = $user->school;
+        $school = $user->school->load('tenantSettings');
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
 
         // Optional filter role untuk agregasi: all|employee|student
