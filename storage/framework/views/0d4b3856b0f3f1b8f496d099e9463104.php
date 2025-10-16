@@ -60,36 +60,32 @@
                 </div>
                 
                 <!-- Navigation -->
-                <nav class="mt-5 flex-1 px-2 space-y-1">
+                <nav class="mt-5 flex-1 px-2 space-y-1" role="navigation" aria-label="Sidebar">
                     <!-- Dashboard - tenant or SaaS -->
                     <?php ($isSuper = strtolower(auth()->user()->email) === strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))); ?>
-                    <a href="<?php echo e($isSuper ? route('super-admin.index') : route('dashboard')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                    <a href="<?php echo e($isSuper ? route('super-admin.index') : route('dashboard')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'page' : 'false'); ?>">
                         <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
                         Dashboard
                     </a>
-
+                    
                     <!-- SUPER ADMIN MENU -->
                     <?php if($isSuper): ?>
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Super Admin</div>
                             
-                            <a href="<?php echo e(route('super-admin.schools.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-school mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('super-admin.schools.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('super-admin.schools.*') ? 'page' : 'false'); ?>">
                                 Manajemen Sekolah
                             </a>
                             
-                            <a href="<?php echo e(route('super-admin.audit-trails.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.audit-trails.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-history mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('super-admin.audit-trails.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.audit-trails.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('super-admin.audit-trails.*') ? 'page' : 'false'); ?>">
                                 Audit Trail
                             </a>
                             
-                            <a href="<?php echo e(route('super-admin.security.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('super-admin.security.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('super-admin.security.*') ? 'page' : 'false'); ?>">
                                 Security Monitoring
                             </a>
                             
-                    <a href="<?php echo e(route('super-admin.security.banned-ips')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                        <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                    <a href="<?php echo e(route('super-admin.security.banned-ips')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'page' : 'false'); ?>">
                         Banned IPs
                     </a>
                     
@@ -102,23 +98,19 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Manajemen Data</div>
                             
-                            <a href="<?php echo e(route('users.index', ['type' => 'employee'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.*') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-user-tie mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('users.index', ['type' => 'employee'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.*') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.*') && request('type') == 'employee' ? 'page' : 'false'); ?>">
                                 Data Pegawai
                             </a>
                             
-                            <a href="<?php echo e(route('users.create', ['type' => 'employee'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.create') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-user-plus mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('users.create', ['type' => 'employee'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.create') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.create') && request('type') == 'employee' ? 'page' : 'false'); ?>">
                                 Tambah Pegawai
                             </a>
                             
-                            <a href="<?php echo e(route('users.index', ['type' => 'student'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.*') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-user-graduate mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('users.index', ['type' => 'student'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.*') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.*') && request('type') == 'student' ? 'page' : 'false'); ?>">
                                 Data Siswa
                             </a>
                             
-                            <a href="<?php echo e(route('users.create', ['type' => 'student'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.create') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-user-plus mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('users.create', ['type' => 'student'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.create') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.create') && request('type') == 'student' ? 'page' : 'false'); ?>">
                                 Tambah Siswa
                             </a>
                         </div>
@@ -129,39 +121,33 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Absensi</div>
                             
-                            <a href="<?php echo e(route('attendance.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-calendar-check mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('attendance.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.index') ? 'page' : 'false'); ?>">
                                 Status Absensi
                             </a>
                             
                             <?php if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin'])): ?>
-                                <a href="<?php echo e(route('attendance.check-in')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.check-in') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                    <i class="fas fa-sign-in-alt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                <a href="<?php echo e(route('attendance.check-in')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.check-in') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.check-in') ? 'page' : 'false'); ?>">
                                     Absensi Masuk
                                 </a>
                                 
                                 <?php if(auth()->user()->hasRole('admin')): ?>
-                                    <a href="<?php echo e(route('attendance.display-qr')); ?>" target="_blank" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                                        <i class="fas fa-qrcode mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                    <a href="<?php echo e(route('attendance.display-qr')); ?>" target="_blank" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900" aria-current="false">
                                         QR Code Absensi
                                     </a>
                                 <?php endif; ?>
                                 
-                                <a href="<?php echo e(route('attendance.check-out')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.check-out') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                    <i class="fas fa-sign-out-alt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                <a href="<?php echo e(route('attendance.check-out')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.check-out') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.check-out') ? 'page' : 'false'); ?>">
                                     Absensi Keluar
                                 </a>
                                 
                                 <?php if(auth()->user()->hasRole(['teacher','admin'])): ?>
-                                    <a href="<?php echo e(route('attendance.student-scan')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.student-scan') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                        <i class="fas fa-qrcode mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                    <a href="<?php echo e(route('attendance.student-scan')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.student-scan') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.student-scan') ? 'page' : 'false'); ?>">
                                         Scan Siswa
                                     </a>
                                 <?php endif; ?>
                             <?php endif; ?>
                             
-                            <a href="<?php echo e(route('attendance.reports')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-chart-bar mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <a href="<?php echo e(route('attendance.reports')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.reports') ? 'page' : 'false'); ?>">
                                 Laporan Absensi
                             </a>
                         </div>
@@ -172,10 +158,13 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Izin & Cuti</div>
                             
-                            <a href="<?php echo e(route('leave-requests.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-calendar-times mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                            <?php ($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0)); ?>
+                            <a href="<?php echo e(route('leave-requests.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('leave-requests.*') ? 'page' : 'false'); ?>">
                                 <?php if(auth()->user()->hasRole('headmaster')): ?>
                                     Persetujuan Izin
+                                    <?php if($pendingApprovals > 0): ?>
+                                        <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800"><?php echo e($pendingApprovals); ?></span>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     Manajemen Izin
                                 <?php endif; ?>
@@ -189,12 +178,10 @@
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Siswa</div>
                             
                             <a href="<?php echo e(route('attendance.reports')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-chart-bar mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Riwayat Absensi
                             </a>
-
+                            
                             <a href="<?php echo e(route('leave-requests.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-calendar-times mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Izin Saya
                             </a>
                         </div>
@@ -206,27 +193,22 @@
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pengaturan</div>
                             
                             <a href="<?php echo e(route('settings.attendance')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('settings.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-cog mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Pengaturan Absensi
                             </a>
-
+                            
                             <a href="<?php echo e(route('qr.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('qr.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-qrcode mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 QR Code Management
                             </a>
                             
                             <a href="<?php echo e(route('admin.roles.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('admin.roles.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Manajemen Role
                             </a>
                             
                             <a href="<?php echo e(route('admin.permissions.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('admin.permissions.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-key mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Manajemen Permission
                             </a>
                             
                             <a href="<?php echo e(route('tenant.settings')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('tenant.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-palette mr-3 text-gray-400 group-hover:text-gray-500"></i>
                                 Kustomisasi Aplikasi
                             </a>
                         </div>

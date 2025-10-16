@@ -46,24 +46,28 @@
             border-color: #3B82F6; /* blue-500 */
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* ring */
         }
+        /* Accessibility helpers */
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+        .skip-link:focus{position:static;width:auto;height:auto;margin:8px;clip:auto;padding:8px 12px;background:#1f2937;color:#fff;border-radius:6px}
     </style>
     @stack('styles')
 </head>
 <body class="bg-gray-50">
+    <a href="#main-content" class="sr-only skip-link">Lewati ke konten</a>
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="hidden md:flex md:w-64 md:flex-col">
-            <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200">
+            <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200" role="complementary">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0 px-4">
                     <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="h-4 w-auto" />
                 </div>
                 
                 <!-- Navigation -->
-                <nav class="mt-5 flex-1 px-2 space-y-1">
+                <nav class="mt-5 flex-1 px-2 space-y-1" role="navigation" aria-label="Sidebar">
                     <!-- Dashboard - tenant or SaaS -->
                     @php($isSuper = strtolower(auth()->user()->email) === strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                    <a href="{{ $isSuper ? route('super-admin.index') : route('dashboard') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ $isSuper ? route('super-admin.index') : route('dashboard') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'page' : 'false' }}">
                         <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
                         Dashboard
                     </a>
@@ -73,19 +77,19 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Super Admin</div>
                             
-                            <a href="{{ route('super-admin.schools.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('super-admin.schools.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('super-admin.schools.*') ? 'page' : 'false' }}">
                                 Manajemen Sekolah
                             </a>
                             
-                            <a href="{{ route('super-admin.audit-trails.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.audit-trails.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('super-admin.audit-trails.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.audit-trails.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('super-admin.audit-trails.*') ? 'page' : 'false' }}">
                                 Audit Trail
                             </a>
                             
-                            <a href="{{ route('super-admin.security.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('super-admin.security.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('super-admin.security.*') ? 'page' : 'false' }}">
                                 Security Monitoring
                             </a>
                             
-                    <a href="{{ route('super-admin.security.banned-ips') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ route('super-admin.security.banned-ips') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('super-admin.security.banned-ips') ? 'page' : 'false' }}">
                         Banned IPs
                     </a>
                     
@@ -98,19 +102,19 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Manajemen Data</div>
                             
-                            <a href="{{ route('users.index', ['type' => 'employee']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.*') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('users.index', ['type' => 'employee']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.*') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('users.*') && request('type') == 'employee' ? 'page' : 'false' }}">
                                 Data Pegawai
                             </a>
                             
-                            <a href="{{ route('users.create', ['type' => 'employee']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.create') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('users.create', ['type' => 'employee']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.create') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('users.create') && request('type') == 'employee' ? 'page' : 'false' }}">
                                 Tambah Pegawai
                             </a>
                             
-                            <a href="{{ route('users.index', ['type' => 'student']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.*') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('users.index', ['type' => 'student']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.*') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('users.*') && request('type') == 'student' ? 'page' : 'false' }}">
                                 Data Siswa
                             </a>
                             
-                            <a href="{{ route('users.create', ['type' => 'student']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.create') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('users.create', ['type' => 'student']) }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('users.create') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('users.create') && request('type') == 'student' ? 'page' : 'false' }}">
                                 Tambah Siswa
                             </a>
                         </div>
@@ -121,33 +125,33 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Absensi</div>
                             
-                            <a href="{{ route('attendance.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('attendance.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
                                 Status Absensi
                             </a>
                             
                             @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
-                                <a href="{{ route('attendance.check-in') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <a href="{{ route('attendance.check-in') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
                                     Absensi Masuk
                                 </a>
                                 
                                 @if(auth()->user()->hasRole('admin'))
-                                    <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                                    <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900" aria-current="false">
                                         QR Code Absensi
                                     </a>
                                 @endif
                                 
-                                <a href="{{ route('attendance.check-out') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <a href="{{ route('attendance.check-out') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
                                     Absensi Keluar
                                 </a>
                                 
                                 @if(auth()->user()->hasRole(['teacher','admin']))
-                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
                                         Scan Siswa
                                     </a>
                                 @endif
                             @endif
                             
-                            <a href="{{ route('attendance.reports') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <a href="{{ route('attendance.reports') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
                                 Laporan Absensi
                             </a>
                         </div>
@@ -158,9 +162,13 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Izin & Cuti</div>
                             
-                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            @php($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0))
+                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('leave-requests.*') ? 'page' : 'false' }}">
                                 @if(auth()->user()->hasRole('headmaster'))
                                     Persetujuan Izin
+                                    @if($pendingApprovals > 0)
+                                        <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">{{ $pendingApprovals }}</span>
+                                    @endif
                                 @else
                                     Manajemen Izin
                                 @endif
@@ -214,12 +222,12 @@
         </div>
 
         <!-- Mobile sidebar -->
-        <div class="md:hidden" id="mobile-sidebar" style="display: none;">
+        <div class="md:hidden" id="mobile-sidebar" style="display: none;" role="dialog" aria-modal="true" aria-label="Menu">
             <div class="fixed inset-0 flex z-40">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
                 <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
                     <div class="absolute top-0 right-0 -mr-12 pt-2">
-                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <button onclick="toggleMobileSidebar()" aria-label="Tutup sidebar" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                             <i class="fas fa-times text-white"></i>
                         </button>
                     </div>
@@ -243,8 +251,8 @@
         <!-- Main content -->
         <div class="flex flex-col w-0 flex-1 overflow-hidden">
             <!-- Top navigation -->
-            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
-                <button onclick="toggleMobileSidebar()" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow" role="banner">
+                <button onclick="toggleMobileSidebar()" aria-label="Buka sidebar" aria-controls="mobile-sidebar" aria-expanded="false" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
                     <i class="fas fa-bars"></i>
                 </button>
                 
@@ -271,7 +279,7 @@
             </div>
 
             <!-- Page content -->
-            <main class="flex-1 relative overflow-y-auto focus:outline-none">
+            <main id="main-content" class="flex-1 relative overflow-y-auto focus:outline-none" tabindex="-1">
                 <div class="py-6">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                         @yield('content')
