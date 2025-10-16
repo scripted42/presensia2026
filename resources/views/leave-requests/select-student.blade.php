@@ -21,14 +21,23 @@
         </div>
     </div>
 
-    <!-- Students List -->
+    <!-- Search & Students List -->
     <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6">
+            <div class="mb-4">
+                <div class="relative">
+                    <input type="text" id="studentSearch" placeholder="Cari nama / NIS / email siswa..." class="w-full border rounded-md pl-9 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" />
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fas fa-search"></i></span>
+                </div>
+            </div>
             @if($students->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($students as $student)
                         <a href="{{ route('leave-requests.create', ['user_id' => $student->id]) }}" 
-                           class="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors">
+                           class="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors student-card" 
+                           data-name="{{ strtolower($student->name) }}" 
+                           data-nis="{{ strtolower($student->nis ?? '') }}"
+                           data-email="{{ strtolower($student->email ?? '') }}">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
                                     <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -59,4 +68,20 @@
 </div>
 @endsection
 
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const q = document.getElementById('studentSearch');
+  const cards = Array.from(document.querySelectorAll('.student-card'));
+  q?.addEventListener('input', function(){
+    const term = (q.value || '').trim().toLowerCase();
+    cards.forEach(card => {
+      const haystack = (card.dataset.name + ' ' + card.dataset.nis + ' ' + card.dataset.email).trim();
+      card.style.display = haystack.includes(term) ? '' : 'none';
+    });
+  });
+});
+</script>
+@endpush
 

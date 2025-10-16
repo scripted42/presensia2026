@@ -136,7 +136,7 @@
         <span class="text-sm text-red-700">Scan QR Code untuk absensi keluar</span>
     </a>
 
-    <?php if(auth()->user()->hasRole('teacher')): ?>
+    <?php if(auth()->user()->hasRole(['teacher','admin'])): ?>
     <a href="<?php echo e(route('attendance.student-scan')); ?>" class="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
         <i class="fas fa-qrcode text-purple-600 text-3xl mb-3"></i>
         <span class="text-lg font-medium text-purple-900">Scan Siswa</span>
