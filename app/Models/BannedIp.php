@@ -11,6 +11,7 @@ class BannedIp extends Model
         'school_id',
         'ip_address',
         'mac_address',
+        'username',
         'ban_type',
         'reason',
         'description',
@@ -93,6 +94,14 @@ class BannedIp extends Model
     }
 
     /**
+     * Scope for username bans
+     */
+    public function scopeUsername($query)
+    {
+        return $query->where('ban_type', 'username');
+    }
+
+    /**
      * Check if ban is expired
      */
     public function isExpired()
@@ -121,7 +130,8 @@ class BannedIp extends Model
             'temporary' => 'Temporary',
             'permanent' => 'Permanent',
             'ip_range' => 'IP Range',
-            'mac' => 'MAC Address'
+            'mac' => 'MAC Address',
+            'username' => 'Username'
         ];
 
         return $types[$this->ban_type] ?? ucfirst($this->ban_type);

@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('banned_ips', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('school_id')->nullable();
-            $table->string('ip_address');
+            $table->string('ip_address')->nullable();
             $table->string('mac_address')->nullable();
-            $table->string('ban_type'); // temporary, permanent, ip_range, mac
+            $table->string('username')->nullable();
+            $table->string('ban_type'); // temporary, permanent, ip_range, mac, username
             $table->string('reason');
             $table->text('description')->nullable();
             $table->timestamp('banned_at');
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->foreign('banned_by')->references('id')->on('users')->onDelete('set null');
             $table->index(['ip_address', 'is_active']);
             $table->index(['mac_address', 'is_active']);
+            $table->index(['username', 'is_active']);
             $table->index(['ban_type', 'is_active']);
             $table->index(['expires_at', 'is_active']);
         });

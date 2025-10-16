@@ -94,9 +94,10 @@ class SecurityController extends Controller
     public function banIp(Request $request)
     {
         $request->validate([
-            'ip_address' => 'required|ip',
+            'ip_address' => 'nullable|ip',
             'mac_address' => 'nullable|string',
-            'ban_type' => 'required|in:temporary,permanent,ip_range,mac',
+            'username' => 'nullable|string',
+            'ban_type' => 'required|in:temporary,permanent,ip_range,mac,username',
             'reason' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_hours' => 'required_if:ban_type,temporary|integer|min:1|max:8760', // Max 1 year
@@ -112,6 +113,7 @@ class SecurityController extends Controller
             'school_id' => $request->school_id,
             'ip_address' => $request->ip_address,
             'mac_address' => $request->mac_address,
+            'username' => $request->username,
             'ban_type' => $request->ban_type,
             'reason' => $request->reason,
             'description' => $request->description,
@@ -121,7 +123,7 @@ class SecurityController extends Controller
             'banned_by' => Auth::id()
         ]);
 
-        return redirect()->back()->with('success', 'IP address has been banned successfully.');
+        return redirect()->back()->with('success', 'Ban berhasil ditambahkan.');
     }
 
     /**
