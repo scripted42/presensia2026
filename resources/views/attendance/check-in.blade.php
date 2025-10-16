@@ -36,7 +36,7 @@
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <h2 class="text-lg font-medium text-gray-900 mb-3">Scan QR</h2>
-                <div id="scanner" class="w-full h-48 bg-gray-100 rounded flex items-center justify-center">
+                <div id="scanner" class="w-full h-72 md:h-80 bg-gray-100 rounded-lg flex items-center justify-center">
                     <div class="text-center text-gray-500 text-sm"> Kamera akan aktif saat tombol scan ditekan </div>
                 </div>
                 <div class="grid grid-cols-1 gap-2 mt-3">
