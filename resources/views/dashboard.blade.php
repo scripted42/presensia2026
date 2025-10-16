@@ -9,6 +9,10 @@
                 <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
                 <div class="absolute inset-0 bg-gradient-to-r from-white/90 to-transparent"></div>
             @endif
+            <!-- School Photo Background -->
+            @if($school->tenantSettings && $school->tenantSettings->school_photo)
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->school_photo) }}'); opacity: {{ ($school->tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
+            @endif
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap relative z-10">
                 <div class="flex items-center">
                     @if($school->logo)
@@ -35,29 +39,12 @@
                     </span>
                 </div>
                 <!-- Decorative image on the right -->
-                @if($school->tenantSettings && $school->tenantSettings->school_photo)
-                    <div class="relative welcome-hero-image">
-                        <img src="{{ asset('storage/' . $school->tenantSettings->school_photo) }}" 
-                             alt="Foto Sekolah" 
-                             loading="lazy"
-                             style="opacity: {{ ($school->tenantSettings->school_photo_opacity ?? 10) / 100 }}"
-                             class="absolute inset-0 w-full h-full object-cover rounded-lg" />
-                        <!-- Fallback image behind -->
-                        <img src="{{ asset('assets/images/banner/siswa.png') }}" 
-                             alt="Siswa" 
-                             loading="lazy"
-                             class="w-full h-full object-cover rounded-lg"
-                             data-fallback1="{{ url('assets/images/banner/siswa.png') }}"
-                             data-fallback2="/assets/images/banner/siswa.png" />
-                    </div>
-                @else
-                    <img src="{{ asset('assets/images/banner/siswa.png') }}" 
-                         alt="Siswa" 
-                         loading="lazy"
-                         class="welcome-hero-image"
-                         data-fallback1="{{ url('assets/images/banner/siswa.png') }}"
-                         data-fallback2="/assets/images/banner/siswa.png" />
-                @endif
+                <img src="{{ asset('assets/images/banner/siswa.png') }}" 
+                     alt="Siswa" 
+                     loading="lazy"
+                     class="welcome-hero-image"
+                     data-fallback1="{{ url('assets/images/banner/siswa.png') }}"
+                     data-fallback2="/assets/images/banner/siswa.png" />
             </div>
         </div>
 
