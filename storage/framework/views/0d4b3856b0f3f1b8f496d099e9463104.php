@@ -69,8 +69,11 @@
         <div class="hidden md:flex md:w-64 md:flex-col desktop-sidebar" id="desktop-sidebar" aria-label="Sidebar">
             <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200" role="complementary">
                 <!-- Logo -->
-                <div class="flex items-center flex-shrink-0 px-4">
+                <div class="flex items-center flex-shrink-0 px-4 justify-between">
                     <img src="<?php echo e(asset('assets/images/logo/presensia-logo.png')); ?>" alt="Presensia" class="h-4 w-auto" />
+                    <button type="button" onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" class="hidden md:inline-flex items-center justify-center h-7 w-7 rounded hover:bg-gray-100 text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-angles-left"></i>
+                    </button>
                 </div>
                 
                 <!-- Navigation -->
@@ -255,7 +258,7 @@
         </div>
 
         <!-- Icon rail (collapsed) -->
-        <div class="sidebar-rail hidden md:flex md:flex-col bg-white border-r border-gray-200" aria-label="Collapsed Sidebar" style="width:56px">
+        <div class="sidebar-rail md:flex md:flex-col bg-white border-r border-gray-200" aria-label="Collapsed Sidebar" style="width:56px">
             <div class="pt-5 flex flex-col items-center space-y-3">
                 <a href="<?php echo e(route('dashboard')); ?>" class="rail-item text-gray-500 hover:text-gray-800" title="Dashboard" aria-label="Dashboard">
                     <i class="fas fa-home"></i>
