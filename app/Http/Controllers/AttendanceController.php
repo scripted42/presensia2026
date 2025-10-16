@@ -417,7 +417,7 @@ class AttendanceController extends Controller
             $cursor = $leave->start_date->copy();
             $to = $leave->end_date->copy();
             while ($cursor->lte($to)) {
-                if ($cursor->betweenIncluded($startDate, $endDate)) {
+                if ($cursor->gte($startDate) && $cursor->lte($endDate)) {
                     $leaveByUserDate[$leave->user_id][$cursor->format('Y-m-d')] = $leave->type; // sick|permit|duty|leave
                 }
                 $cursor->addDay();

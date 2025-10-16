@@ -208,8 +208,11 @@
                             <?php for($day = 1; $day <= $endDate->day; $day++): ?>
                             <?php
                                 $date = \Carbon\Carbon::create($year, $month, $day);
-                                $attendance = $userAttendances->where(function($item) use ($date) { return $item->date->format('Y-m-d') === $date->format('Y-m-d'); })->first();
-                                $status = $attendance ? $attendance->status : 'alpha';
+                                $dateKey = $date->format('Y-m-d');
+                                $attendance = $userAttendances->where(function($item) use ($dateKey) { return $item->date->format('Y-m-d') === $dateKey; })->first();
+                                // Overlay approved leave if no attendance record
+                                $overlayLeave = isset($leaveByUserDate[$userId][$dateKey]) ? $leaveByUserDate[$userId][$dateKey] : null;
+                                $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
                                 $colors = [ 'ontime'=>'bg-green-100 text-green-800 border-green-200', 'late'=>'bg-yellow-100 text-yellow-800 border-yellow-200', 'sick'=>'bg-orange-100 text-orange-800 border-orange-200', 'permit'=>'bg-orange-100 text-orange-800 border-orange-200', 'duty'=>'bg-orange-100 text-orange-800 border-orange-200', 'leave'=>'bg-orange-100 text-orange-800 border-orange-200', 'alpha'=>'bg-red-100 text-red-800 border-red-200' ];
                             ?>
