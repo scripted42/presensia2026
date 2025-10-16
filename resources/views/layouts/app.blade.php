@@ -301,12 +301,18 @@
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('mobile-sidebar');
             sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
+            // Notify listeners (e.g., maps) that layout changed
+            window.dispatchEvent(new Event('sidebarToggled'));
         }
     </script>
     
     <script>
         // Handle logout with CSRF token refresh
         document.addEventListener('DOMContentLoaded', function() {
+            // Ensure mobile sidebar is hidden by default on load
+            const mSidebar = document.getElementById('mobile-sidebar');
+            if (mSidebar) { mSidebar.style.display = 'none'; }
+
             const logoutForm = document.getElementById('logout-form');
             if (logoutForm) {
                 logoutForm.addEventListener('submit', function(e) {
