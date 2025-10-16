@@ -14,6 +14,12 @@ class TenantSetting extends Model
         'app_name',
         'app_logo',
         'app_favicon',
+        'banner_image',
+        'banner_text',
+        'school_photo',
+        'school_photo_opacity',
+        'topbar_announcement',
+        'show_announcement',
         'primary_color',
         'secondary_color',
         'accent_color',
@@ -28,6 +34,7 @@ class TenantSetting extends Model
         'features' => 'array',
         'custom_fields' => 'array',
         'is_active' => 'boolean',
+        'show_announcement' => 'boolean',
     ];
 
     /**

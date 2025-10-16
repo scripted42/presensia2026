@@ -85,6 +85,62 @@ class TenantController extends Controller
     }
 
     /**
+     * Update banner and layout settings
+     */
+    public function updateBanner(Request $request)
+    {
+        $user = Auth::user();
+        $school = $user->school;
+        
+        $request->validate([
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+            'banner_text' => 'nullable|string|max:255',
+            'school_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+            'school_photo_opacity' => 'nullable|integer|min:0|max:100',
+            'topbar_announcement' => 'nullable|string|max:500',
+            'show_announcement' => 'nullable|boolean',
+        ]);
+
+        $tenantSettings = $school->tenantSettings;
+        
+        $data = [
+            'banner_text' => $request->banner_text,
+            'school_photo_opacity' => $request->school_photo_opacity ?? 10,
+            'topbar_announcement' => $request->topbar_announcement,
+            'show_announcement' => $request->has('show_announcement'),
+        ];
+
+        // Handle banner image upload
+        if ($request->hasFile('banner_image')) {
+            $bannerPath = $request->file('banner_image')->store('tenant/banners', 'public');
+            $data['banner_image'] = $bannerPath;
+        }
+
+        // Handle school photo upload
+        if ($request->hasFile('school_photo')) {
+            $schoolPhotoPath = $request->file('school_photo')->store('tenant/school-photos', 'public');
+            $data['school_photo'] = $schoolPhotoPath;
+        }
+
+        if ($tenantSettings) {
+            $tenantSettings->update($data);
+        } else {
+            $data['school_id'] = $school->id;
+            $data['app_name'] = $school->name;
+            $data['primary_color'] = '#3B82F6';
+            $data['secondary_color'] = '#1E40AF';
+            $data['accent_color'] = '#F59E0B';
+            $data['branding'] = TenantSetting::getDefaultBranding();
+            $data['features'] = TenantSetting::getDefaultFeatures();
+            $data['is_active'] = true;
+            TenantSetting::create($data);
+        }
+
+        return redirect()->route('tenant.settings')
+            ->with('success', 'Pengaturan banner dan layout berhasil diperbarui.');
+    }
+
+    /**
      * Update branding settings
      */
     public function updateBranding(Request $request)

@@ -130,6 +130,7 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/tenant/settings', [TenantController::class, 'index'])->name('tenant.settings');
         Route::put('/tenant/settings', [TenantController::class, 'update'])->name('tenant.settings.update');
+        Route::put('/tenant/banner', [TenantController::class, 'updateBanner'])->name('tenant.banner.update');
         Route::put('/tenant/branding', [TenantController::class, 'updateBranding'])->name('tenant.branding.update');
         Route::put('/tenant/features', [TenantController::class, 'updateFeatures'])->name('tenant.features.update');
         Route::get('/api/tenant/settings', [TenantController::class, 'getSettings'])->name('tenant.api.settings');

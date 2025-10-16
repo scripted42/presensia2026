@@ -24,6 +24,10 @@
                     <i class="fas fa-palette mr-2"></i>
                     Branding
                 </button>
+                <button onclick="showTab('banner')" id="banner-tab" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-image mr-2"></i>
+                    Banner & Layout
+                </button>
                 <button onclick="showTab('features')" id="features-tab" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
                     <i class="fas fa-cogs mr-2"></i>
                     Fitur
@@ -80,6 +84,122 @@
                                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <i class="fas fa-save mr-2"></i>
                             Simpan Branding
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banner & Layout Tab -->
+    <div id="banner-content" class="tab-content hidden">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Banner & Layout</h3>
+                <form action="{{ route('tenant.banner.update') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    
+                    <!-- Banner Settings -->
+                    <div class="mb-8">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Banner Utama</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="banner_image" class="block text-sm font-medium text-gray-700 mb-2">Gambar Banner</label>
+                                <input type="file" name="banner_image" id="banner_image" accept="image/*" onchange="previewBanner(this)"
+                                       class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                @if($tenantSettings->banner_image ?? false)
+                                    <p class="mt-1 text-sm text-gray-500">Banner saat ini: {{ $tenantSettings->banner_image }}</p>
+                                @endif
+                            </div>
+                            
+                            <div>
+                                <label for="banner_text" class="block text-sm font-medium text-gray-700 mb-2">Teks Banner</label>
+                                <input type="text" name="banner_text" id="banner_text" value="{{ old('banner_text', $tenantSettings->banner_text ?? '') }}"
+                                       class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Teks yang akan ditampilkan di banner">
+                            </div>
+                        </div>
+                        
+                        <!-- Banner Preview -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preview Banner:</label>
+                            <div class="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300" id="banner-preview">
+                                <div class="absolute inset-0 flex items-center justify-center text-gray-500">
+                                    <div class="text-center">
+                                        <i class="fas fa-image text-4xl mb-2"></i>
+                                        <p>Preview banner akan muncul di sini</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- School Photo Settings -->
+                    <div class="mb-8">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Foto Sekolah (Overlay Banner)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="school_photo" class="block text-sm font-medium text-gray-700 mb-2">Foto Sekolah</label>
+                                <input type="file" name="school_photo" id="school_photo" accept="image/*" onchange="previewSchoolPhoto(this)"
+                                       class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                @if($tenantSettings->school_photo ?? false)
+                                    <p class="mt-1 text-sm text-gray-500">Foto sekolah saat ini: {{ $tenantSettings->school_photo }}</p>
+                                @endif
+                            </div>
+                            
+                            <div>
+                                <label for="school_photo_opacity" class="block text-sm font-medium text-gray-700 mb-2">Transparansi (%)</label>
+                                <input type="range" name="school_photo_opacity" id="school_photo_opacity" min="0" max="100" value="{{ old('school_photo_opacity', $tenantSettings->school_photo_opacity ?? 10) }}"
+                                       class="block w-full" oninput="updateOpacity(this.value)">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>0%</span>
+                                    <span id="opacity-value">{{ $tenantSettings->school_photo_opacity ?? 10 }}%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- School Photo Preview -->
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preview Foto Sekolah:</label>
+                            <div class="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300" id="school-photo-preview">
+                                <div class="absolute inset-0 flex items-center justify-center text-gray-500">
+                                    <div class="text-center">
+                                        <i class="fas fa-school text-2xl mb-1"></i>
+                                        <p class="text-sm">Preview foto sekolah akan muncul di sini</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Topbar Announcement -->
+                    <div class="mb-8">
+                        <h4 class="text-md font-medium text-gray-900 mb-4">Pengumuman Topbar</h4>
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label for="topbar_announcement" class="block text-sm font-medium text-gray-700 mb-2">Teks Pengumuman</label>
+                                <textarea name="topbar_announcement" id="topbar_announcement" rows="3"
+                                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="Masukkan teks pengumuman yang akan ditampilkan di topbar...">{{ old('topbar_announcement', $tenantSettings->topbar_announcement ?? '') }}</textarea>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" name="show_announcement" id="show_announcement" value="1" {{ ($tenantSettings->show_announcement ?? false) ? 'checked' : '' }}
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="show_announcement" class="ml-2 block text-sm text-gray-900">
+                                    Tampilkan pengumuman di topbar
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-save mr-2"></i>
+                            Simpan Pengaturan Banner
                         </button>
                     </div>
                 </form>
@@ -253,6 +373,41 @@ document.getElementById('secondary_color').addEventListener('input', function() 
 document.getElementById('accent_color').addEventListener('input', function() {
     document.getElementById('accent-preview').style.backgroundColor = this.value;
 });
+
+// Banner preview function
+function previewBanner(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('banner-preview');
+            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" alt="Banner preview">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// School photo preview function
+function previewSchoolPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('school-photo-preview');
+            const opacity = document.getElementById('school_photo_opacity').value;
+            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" style="opacity: ${opacity/100}" alt="School photo preview">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Update opacity function
+function updateOpacity(value) {
+    document.getElementById('opacity-value').textContent = value + '%';
+    const preview = document.getElementById('school-photo-preview');
+    const img = preview.querySelector('img');
+    if (img) {
+        img.style.opacity = value/100;
+    }
+}
 </script>
 @endsection
 
