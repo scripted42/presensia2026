@@ -23,6 +23,9 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.ad
     Route::get('/', [SuperAdminController::class, 'index'])->name('index');
     Route::get('/password', [SuperAdminController::class, 'showChangePassword'])->name('password');
     Route::put('/password', [SuperAdminController::class, 'updatePassword'])->name('password.update');
+    
+    // Schools routes
+    Route::get('/schools', [SuperAdminController::class, 'index'])->name('schools.index');
     Route::get('/schools/create', [SuperAdminController::class, 'create'])->name('schools.create');
     Route::post('/schools', [SuperAdminController::class, 'store'])->name('schools.store');
     Route::get('/schools/{school}', [SuperAdminController::class, 'show'])->name('schools.show');
