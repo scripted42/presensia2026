@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\User;
+use App\Models\LeaveRequest;
 use App\Models\QrCode;
 use App\Models\AttendanceSetting;
 use Carbon\Carbon;
@@ -387,8 +388,43 @@ class AttendanceController extends Controller
         }
         
         $attendances = $query->get()->groupBy('user_id');
+
+        // Build map of approved leaves per user per date within month range
+        $userIds = $attendances->keys();
+        if ($userIds->isEmpty()) {
+            // If no attendance found (e.g., empty month), still prepare userIds based on role/type to allow leave overlay
+            $userIds = User::where('school_id', $user->school_id)
+                ->when($type === 'employees', function($q){ $q->where('user_type', 'employee'); })
+                ->when($type === 'students', function($q){ $q->where('user_type', 'student'); })
+                ->pluck('id');
+        }
+
+        $approvedLeaves = LeaveRequest::whereIn('user_id', $userIds)
+            ->where('status', 'approved')
+            ->where(function($q) use ($startDate, $endDate) {
+                // overlap with month range
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                  ->orWhereBetween('end_date', [$startDate, $endDate])
+                  ->orWhere(function($q2) use ($startDate, $endDate){
+                      $q2->where('start_date', '<=', $startDate)
+                         ->where('end_date', '>=', $endDate);
+                  });
+            })
+            ->get();
+
+        $leaveByUserDate = [];
+        foreach ($approvedLeaves as $leave) {
+            $cursor = $leave->start_date->copy();
+            $to = $leave->end_date->copy();
+            while ($cursor->lte($to)) {
+                if ($cursor->betweenIncluded($startDate, $endDate)) {
+                    $leaveByUserDate[$leave->user_id][$cursor->format('Y-m-d')] = $leave->type; // sick|permit|duty|leave
+                }
+                $cursor->addDay();
+            }
+        }
         
-        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user'));
+        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user', 'leaveByUserDate'));
     }
 
     /**

@@ -3,8 +3,8 @@
 <?php $__env->startPush('styles'); ?>
 <style>
     @media (min-width: 768px) {
-        .freeze-no { position: sticky !important; left: 0 !important; z-index: 100 !important; background: white !important; min-width: 48px !important; }
-        .freeze-name { position: sticky !important; left: 45px !important; z-index: 100 !important; background: white !important; min-width: 200px !important; }
+        .freeze-no { position: sticky !important; left: 0 !important; z-index: 101 !important; background: white !important; min-width: 48px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
+        .freeze-name { position: sticky !important; left: 48px !important; z-index: 100 !important; background: white !important; min-width: 200px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
     }
     @media (max-width: 767px) {
         .attendance-table { font-size: 12px !important; }
@@ -170,8 +170,8 @@
                 <table class="min-w-full divide-y divide-gray-200 attendance-table">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">No.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12 freeze-no">No.</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] freeze-name">
                                 <?php if($type === 'employees'): ?>
                                     Pegawai
                                 <?php elseif($type === 'students'): ?>
@@ -189,8 +189,8 @@
                         <?php $__empty_1 = true; $__currentLoopData = $attendances; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $userId => $userAttendances): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php $user = $userAttendances->first()->user; $userTypeLabel = $user->user_type === 'student' ? 'Siswa' : 'Pegawai'; ?>
                         <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-4 text-center text-sm text-gray-600"><?php echo e($loop->iteration); ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-4 text-center text-sm text-gray-600 freeze-no"><?php echo e($loop->iteration); ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap freeze-name">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
                                         <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=<?php echo e(urlencode($user->name)); ?>&background=<?php echo e($user->user_type === 'student' ? '10B981' : '3B82F6'); ?>&color=fff" alt="<?php echo e($user->name); ?>">

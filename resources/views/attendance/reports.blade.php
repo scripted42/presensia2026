@@ -5,8 +5,8 @@
 @push('styles')
 <style>
     @media (min-width: 768px) {
-        .freeze-no { position: sticky !important; left: 0 !important; z-index: 100 !important; background: white !important; min-width: 48px !important; }
-        .freeze-name { position: sticky !important; left: 45px !important; z-index: 100 !important; background: white !important; min-width: 200px !important; }
+        .freeze-no { position: sticky !important; left: 0 !important; z-index: 101 !important; background: white !important; min-width: 48px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
+        .freeze-name { position: sticky !important; left: 48px !important; z-index: 100 !important; background: white !important; min-width: 200px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
     }
     @media (max-width: 767px) {
         .attendance-table { font-size: 12px !important; }
@@ -171,8 +171,8 @@
                 <table class="min-w-full divide-y divide-gray-200 attendance-table">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">No.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12 freeze-no">No.</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] freeze-name">
                                 @if($type === 'employees')
                                     Pegawai
                                 @elseif($type === 'students')
@@ -190,8 +190,8 @@
                         @forelse($attendances as $userId => $userAttendances)
                         @php $user = $userAttendances->first()->user; $userTypeLabel = $user->user_type === 'student' ? 'Siswa' : 'Pegawai'; @endphp
                         <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-4 text-center text-sm text-gray-600">{{ $loop->iteration }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-4 text-center text-sm text-gray-600 freeze-no">{{ $loop->iteration }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap freeze-name">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
                                         <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->user_type === 'student' ? '10B981' : '3B82F6' }}&color=fff" alt="{{ $user->name }}">
@@ -209,8 +209,11 @@
                             @for($day = 1; $day <= $endDate->day; $day++)
                             @php
                                 $date = \Carbon\Carbon::create($year, $month, $day);
-                                $attendance = $userAttendances->where(function($item) use ($date) { return $item->date->format('Y-m-d') === $date->format('Y-m-d'); })->first();
-                                $status = $attendance ? $attendance->status : 'alpha';
+                                $dateKey = $date->format('Y-m-d');
+                                $attendance = $userAttendances->where(function($item) use ($dateKey) { return $item->date->format('Y-m-d') === $dateKey; })->first();
+                                // Overlay approved leave if no attendance record
+                                $overlayLeave = isset($leaveByUserDate[$userId][$dateKey]) ? $leaveByUserDate[$userId][$dateKey] : null;
+                                $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
                                 $colors = [ 'ontime'=>'bg-green-100 text-green-800 border-green-200', 'late'=>'bg-yellow-100 text-yellow-800 border-yellow-200', 'sick'=>'bg-orange-100 text-orange-800 border-orange-200', 'permit'=>'bg-orange-100 text-orange-800 border-orange-200', 'duty'=>'bg-orange-100 text-orange-800 border-orange-200', 'leave'=>'bg-orange-100 text-orange-800 border-orange-200', 'alpha'=>'bg-red-100 text-red-800 border-red-200' ];
                             @endphp
