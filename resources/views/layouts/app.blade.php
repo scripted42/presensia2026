@@ -53,6 +53,12 @@
         /* Desktop sidebar collapse */
         .desktop-sidebar{transition:width .2s ease;}
         body.desktop-sidebar-collapsed #desktop-sidebar{display:none !important;}
+        /* Icon rail when collapsed */
+        .sidebar-rail{display:none}
+        body.desktop-sidebar-collapsed .sidebar-rail{display:flex}
+        .rail-tooltip{position:absolute;left:56px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#111827;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .12s ease}
+        .rail-item{position:relative}
+        .rail-item:hover .rail-tooltip{opacity:1}
     </style>
     @stack('styles')
 </head>
@@ -245,6 +251,46 @@
                         </div>
                     @endif
                 </nav>
+            </div>
+        </div>
+
+        <!-- Icon rail (collapsed) -->
+        <div class="sidebar-rail hidden md:flex md:flex-col bg-white border-r border-gray-200" aria-label="Collapsed Sidebar" style="width:56px">
+            <div class="pt-5 flex flex-col items-center space-y-3">
+                <a href="{{ route('dashboard') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Dashboard" aria-label="Dashboard">
+                    <i class="fas fa-home"></i>
+                    <span class="rail-tooltip">Dashboard</span>
+                </a>
+                @if(auth()->user()->hasRole(['teacher','tu','bk','kesiswaan','admin','headmaster']))
+                <a href="{{ route('attendance.index') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Status Absensi" aria-label="Status Absensi">
+                    <i class="fas fa-list-check"></i>
+                    <span class="rail-tooltip">Status Absensi</span>
+                </a>
+                <a href="{{ route('attendance.check-in') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Absensi Masuk" aria-label="Absensi Masuk">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span class="rail-tooltip">Absensi Masuk</span>
+                </a>
+                <a href="{{ route('attendance.check-out') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Absensi Keluar" aria-label="Absensi Keluar">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="rail-tooltip">Absensi Keluar</span>
+                </a>
+                @if(auth()->user()->hasRole(['teacher','admin']))
+                <a href="{{ route('attendance.student-scan') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Scan Siswa" aria-label="Scan Siswa">
+                    <i class="fas fa-qrcode"></i>
+                    <span class="rail-tooltip">Scan Siswa</span>
+                </a>
+                @endif
+                <a href="{{ route('attendance.reports') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Laporan Absensi" aria-label="Laporan Absensi">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="rail-tooltip">Laporan</span>
+                </a>
+                @endif
+                @if(auth()->user()->hasRole(['admin','headmaster']))
+                <a href="{{ route('leave-requests.index') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Izin & Cuti" aria-label="Izin & Cuti">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="rail-tooltip">Izin & Cuti</span>
+                </a>
+                @endif
             </div>
         </div>
 
