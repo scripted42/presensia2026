@@ -168,5 +168,23 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Refresh CSRF token on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/login', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    console.log('CSRF token refreshed');
+                }
+            }).catch(error => {
+                console.log('CSRF token refresh failed:', error);
+            });
+        });
+    </script>
 </body>
 </html>
