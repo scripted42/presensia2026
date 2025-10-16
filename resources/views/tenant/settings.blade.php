@@ -117,7 +117,7 @@
                         <div class="mt-4">
                             <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h5>
                             <div class="relative bg-gray-100 rounded-lg p-4" style="height: 200px;">
-                                <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded">
+                                <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded bg-cover bg-center bg-no-repeat">
                                     <div id="photo-drag-handle" class="absolute w-8 h-8 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white text-xs font-bold shadow-lg" 
                                          style="left: {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? '10%' : (($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? '90%' : '50%') }}; top: {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? '10%' : (($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? '90%' : '50%') }};">
                                         <i class="fas fa-arrows-alt"></i>
@@ -312,6 +312,19 @@ function previewSchoolPhoto(input) {
             const preview = document.getElementById('school-photo-preview');
             const opacity = document.getElementById('school_photo_opacity').value;
             preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" style="opacity: ${opacity/100}" alt="School photo preview">`;
+
+            // Also set background in the interactive drag area so user can position directly
+            const area = document.getElementById('photo-position-area');
+            if (area) {
+                area.style.backgroundImage = `url('${e.target.result}')`;
+                // Reset to current position controls
+                const posX = document.getElementById('school_photo_position_x').value;
+                const posY = document.getElementById('school_photo_position_y').value;
+                area.style.backgroundPosition = `${posX} ${posY}`;
+                const scale = document.getElementById('school_photo_scale').value;
+                area.style.backgroundSize = `${scale}%`;
+                area.style.backgroundRepeat = 'no-repeat';
+            }
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -333,6 +346,13 @@ document.addEventListener('DOMContentLoaded', function() {
     dragArea = document.getElementById('photo-position-area');
     
     if (dragHandle && dragArea) {
+        // Initialize background image of drag area if existing photo
+        @if($tenantSettings->school_photo)
+            dragArea.style.backgroundImage = "url('{{ asset('storage/' . $tenantSettings->school_photo) }}')";
+            dragArea.style.backgroundPosition = "{{ $tenantSettings->school_photo_position_x ?? 'center' }} {{ $tenantSettings->school_photo_position_y ?? 'center' }}";
+            dragArea.style.backgroundSize = "{{ $tenantSettings->school_photo_scale ?? 100 }}%";
+            dragArea.style.backgroundRepeat = 'no-repeat';
+        @endif
         // Mouse events
         dragHandle.addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', drag);
@@ -413,6 +433,7 @@ function updateScale(value) {
 function updatePreview() {
     const preview = document.getElementById('school-photo-preview');
     const img = preview.querySelector('img');
+    const area = document.getElementById('photo-position-area');
     if (img) {
         const opacity = document.getElementById('school_photo_opacity').value;
         const positionX = document.getElementById('school_photo_position_x').value;
@@ -436,6 +457,13 @@ function updatePreview() {
         
         // Apply scale
         img.style.transform = `scale(${scale/100})`;
+    }
+    if (area && area.style.backgroundImage) {
+        const positionX = document.getElementById('school_photo_position_x').value;
+        const positionY = document.getElementById('school_photo_position_y').value;
+        const scale = document.getElementById('school_photo_scale').value;
+        area.style.backgroundPosition = `${positionX} ${positionY}`;
+        area.style.backgroundSize = `${scale}%`;
     }
 }
 
