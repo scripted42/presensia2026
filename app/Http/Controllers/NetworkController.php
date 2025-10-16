@@ -74,8 +74,8 @@ class NetworkController extends Controller
         }
 
         // Get traffic by hour for the last 24 hours
-        $trafficByHour = $query->where('created_at', '>=', now()->subHours(24))
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as requests')
+        $trafficByHour = $query->where('audit_trails.created_at', '>=', now()->subHours(24))
+            ->selectRaw('HOUR(audit_trails.created_at) as hour, COUNT(audit_trails.id) as requests')
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
@@ -83,15 +83,15 @@ class NetworkController extends Controller
 
         // Get traffic by school
         $trafficBySchool = $query->join('schools', 'audit_trails.school_id', '=', 'schools.id')
-            ->selectRaw('schools.name, COUNT(*) as requests')
+            ->selectRaw('schools.name, COUNT(audit_trails.id) as requests')
             ->groupBy('schools.name')
             ->orderBy('requests', 'desc')
             ->limit(10)
             ->get();
 
         // Get traffic by IP
-        $trafficByIp = $query->selectRaw('ip_address, COUNT(*) as requests')
-            ->groupBy('ip_address')
+        $trafficByIp = $query->selectRaw('audit_trails.ip_address, COUNT(audit_trails.id) as requests')
+            ->groupBy('audit_trails.ip_address')
             ->orderBy('requests', 'desc')
             ->limit(10)
             ->get();
@@ -109,9 +109,9 @@ class NetworkController extends Controller
     private function getConnectionStatistics()
     {
         // Get unique IPs in last 24 hours
-        $uniqueIps = AuditTrail::where('created_at', '>=', now()->subHours(24))
-            ->distinct('ip_address')
-            ->count('ip_address');
+        $uniqueIps = AuditTrail::where('audit_trails.created_at', '>=', now()->subHours(24))
+            ->distinct('audit_trails.ip_address')
+            ->count('audit_trails.ip_address');
 
         // Get top countries (simulated)
         $topCountries = [
