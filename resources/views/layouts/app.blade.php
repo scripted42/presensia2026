@@ -51,7 +51,7 @@
         .skip-link:focus{position:static;width:auto;height:auto;margin:8px;clip:auto;padding:8px 12px;background:#1f2937;color:#fff;border-radius:6px}
         /* Desktop sidebar collapse */
         .desktop-sidebar{transition:width .2s ease;}
-        .desktop-sidebar-collapsed .desktop-sidebar{display:none;}
+        body.desktop-sidebar-collapsed #desktop-sidebar{display:none !important;}
     </style>
     @stack('styles')
 </head>
@@ -258,7 +258,7 @@
                 <button onclick="toggleMobileSidebar()" aria-label="Buka sidebar" aria-controls="mobile-sidebar" aria-expanded="false" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
                     <i class="fas fa-bars"></i>
                 </button>
-                <button onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" class="ml-2 px-3 text-gray-500 hover:text-gray-700 hidden md:inline-flex items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                <button type="button" id="desktop-collapse-btn" onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" aria-pressed="false" class="ml-2 px-3 text-gray-500 hover:text-gray-700 hidden md:inline-flex items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                     <i class="fas fa-columns"></i>
                 </button>
                 
@@ -303,12 +303,14 @@
         function toggleDesktopSidebar(){
             const key = 'desktopSidebarCollapsed';
             const collapsed = document.body.classList.toggle('desktop-sidebar-collapsed');
+            const btn = document.getElementById('desktop-collapse-btn');
+            if (btn) btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
             try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch(e) {}
         }
         (function(){
             try{
                 const collapsed = localStorage.getItem('desktopSidebarCollapsed') === '1';
-                if (collapsed) { document.body.classList.add('desktop-sidebar-collapsed'); }
+                if (collapsed) { document.body.classList.add('desktop-sidebar-collapsed'); const btn=document.getElementById('desktop-collapse-btn'); if(btn) btn.setAttribute('aria-pressed','true'); }
             }catch(e){}
         })();
     </script>
