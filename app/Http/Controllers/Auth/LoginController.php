@@ -70,10 +70,16 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        // Debug: Log before logout
+        \Log::info('Logout attempt for user: ' . auth()->user()->email ?? 'No user');
+        
         Auth::logout();
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Debug: Log after logout
+        \Log::info('Logout completed, redirecting to login');
         
         return redirect()->route('login');
     }
