@@ -49,6 +49,9 @@
         /* Accessibility helpers */
         .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
         .skip-link:focus{position:static;width:auto;height:auto;margin:8px;clip:auto;padding:8px 12px;background:#1f2937;color:#fff;border-radius:6px}
+        /* Desktop sidebar collapse */
+        .desktop-sidebar{transition:width .2s ease;}
+        .desktop-sidebar-collapsed .desktop-sidebar{display:none;}
     </style>
     @stack('styles')
 </head>
@@ -56,7 +59,7 @@
     <a href="#main-content" class="sr-only skip-link">Lewati ke konten</a>
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <div class="hidden md:flex md:w-64 md:flex-col">
+        <div class="hidden md:flex md:w-64 md:flex-col desktop-sidebar" id="desktop-sidebar" aria-label="Sidebar">
             <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200" role="complementary">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0 px-4">
@@ -255,6 +258,9 @@
                 <button onclick="toggleMobileSidebar()" aria-label="Buka sidebar" aria-controls="mobile-sidebar" aria-expanded="false" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
                     <i class="fas fa-bars"></i>
                 </button>
+                <button onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" class="ml-2 px-3 text-gray-500 hover:text-gray-700 hidden md:inline-flex items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                    <i class="fas fa-columns"></i>
+                </button>
                 
                 <div class="flex-1 px-4 flex justify-end">
                     <div class="flex items-center space-x-3">
@@ -294,6 +300,17 @@
             const sidebar = document.getElementById('mobile-sidebar');
             sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
         }
+        function toggleDesktopSidebar(){
+            const key = 'desktopSidebarCollapsed';
+            const collapsed = document.body.classList.toggle('desktop-sidebar-collapsed');
+            try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch(e) {}
+        }
+        (function(){
+            try{
+                const collapsed = localStorage.getItem('desktopSidebarCollapsed') === '1';
+                if (collapsed) { document.body.classList.add('desktop-sidebar-collapsed'); }
+            }catch(e){}
+        })();
     </script>
     
     <script>

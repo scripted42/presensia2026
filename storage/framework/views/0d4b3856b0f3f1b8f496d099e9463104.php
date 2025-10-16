@@ -46,14 +46,18 @@
             border-color: #3B82F6; /* blue-500 */
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* ring */
         }
+        /* Accessibility helpers */
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+        .skip-link:focus{position:static;width:auto;height:auto;margin:8px;clip:auto;padding:8px 12px;background:#1f2937;color:#fff;border-radius:6px}
     </style>
     <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-50">
+    <a href="#main-content" class="sr-only skip-link">Lewati ke konten</a>
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="hidden md:flex md:w-64 md:flex-col">
-            <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200">
+            <div class="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200" role="complementary">
                 <!-- Logo -->
                 <div class="flex items-center flex-shrink-0 px-4">
                     <img src="<?php echo e(asset('assets/images/logo/presensia-logo.png')); ?>" alt="Presensia" class="h-4 w-auto" />
@@ -218,12 +222,12 @@
         </div>
 
         <!-- Mobile sidebar -->
-        <div class="md:hidden" id="mobile-sidebar" style="display: none;">
+        <div class="md:hidden" id="mobile-sidebar" style="display: none;" role="dialog" aria-modal="true" aria-label="Menu">
             <div class="fixed inset-0 flex z-40">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
                 <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
                     <div class="absolute top-0 right-0 -mr-12 pt-2">
-                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <button onclick="toggleMobileSidebar()" aria-label="Tutup sidebar" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                             <i class="fas fa-times text-white"></i>
                         </button>
                     </div>
@@ -247,8 +251,8 @@
         <!-- Main content -->
         <div class="flex flex-col w-0 flex-1 overflow-hidden">
             <!-- Top navigation -->
-            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
-                <button onclick="toggleMobileSidebar()" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow" role="banner">
+                <button onclick="toggleMobileSidebar()" aria-label="Buka sidebar" aria-controls="mobile-sidebar" aria-expanded="false" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
                     <i class="fas fa-bars"></i>
                 </button>
                 
@@ -275,7 +279,7 @@
             </div>
 
             <!-- Page content -->
-            <main class="flex-1 relative overflow-y-auto focus:outline-none">
+            <main id="main-content" class="flex-1 relative overflow-y-auto focus:outline-none" tabindex="-1">
                 <div class="py-6">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                         <?php echo $__env->yieldContent('content'); ?>
