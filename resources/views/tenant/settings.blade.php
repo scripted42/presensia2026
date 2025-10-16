@@ -118,16 +118,11 @@
                             <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h5>
                             <div class="relative bg-gray-100 rounded-lg p-4" style="height: 240px;">
                                 <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded overflow-hidden">
-                                    <!-- Background layer for photo (controls opacity/scale/position) -->
-                                    <div id="photo-bg" class="absolute inset-0 bg-no-repeat bg-cover" style="opacity: {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
+                                    <!-- Background layer for photo (controls opacity/scale/position) - now draggable -->
+                                    <div id="photo-bg" class="absolute inset-0 bg-no-repeat bg-cover cursor-move" style="opacity: {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
                                     
-                                    <!-- Drag handle -->
-                                    <div id="photo-drag-handle" class="absolute z-10 w-8 h-8 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white text-xs font-bold shadow-lg" 
-                                         style="left: {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? '10%' : (($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? '90%' : '50%') }}; top: {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? '10%' : (($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? '90%' : '50%') }}; transform: translate(-50%, -50%);">
-                                        <i class="fas fa-arrows-alt"></i>
-                                    </div>
                                     <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm pointer-events-none">
-                                        Drag lingkaran biru untuk mengatur posisi foto
+                                        Drag foto untuk mengatur posisi
                                     </div>
                                 </div>
                             </div>
@@ -326,31 +321,28 @@ function updateOpacity(value) {
 
 // Drag and drop functionality
 let isDragging = false;
-let dragHandle = null;
 let dragArea = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    dragHandle = document.getElementById('photo-drag-handle');
     dragArea = document.getElementById('photo-position-area');
     const bg = document.getElementById('photo-bg');
     
-    if (dragHandle && dragArea) {
+    if (dragArea && bg) {
         // Initialize background image of drag area if existing photo
         @if($tenantSettings->school_photo)
-            if (bg) {
-                bg.style.backgroundImage = "url('{{ asset('storage/' . $tenantSettings->school_photo) }}')";
-                bg.style.backgroundPosition = "{{ $tenantSettings->school_photo_position_x ?? 'center' }} {{ $tenantSettings->school_photo_position_y ?? 'center' }}";
-                bg.style.backgroundSize = "{{ $tenantSettings->school_photo_scale ?? 100 }}%";
-                bg.style.opacity = {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};
-            }
+            bg.style.backgroundImage = "url('{{ asset('storage/' . $tenantSettings->school_photo) }}')";
+            bg.style.backgroundPosition = "{{ $tenantSettings->school_photo_position_x ?? 'center' }} {{ $tenantSettings->school_photo_position_y ?? 'center' }}";
+            bg.style.backgroundSize = "{{ $tenantSettings->school_photo_scale ?? 100 }}%";
+            bg.style.opacity = {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};
         @endif
-        // Mouse events
-        dragHandle.addEventListener('mousedown', startDrag);
+        
+        // Make the photo background draggable
+        bg.addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', stopDrag);
         
         // Touch events for mobile
-        dragHandle.addEventListener('touchstart', startDrag);
+        bg.addEventListener('touchstart', startDrag);
         document.addEventListener('touchmove', drag);
         document.addEventListener('touchend', stopDrag);
     }
@@ -359,7 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function startDrag(e) {
     isDragging = true;
     e.preventDefault();
-    dragHandle.style.cursor = 'grabbing';
+    const bg = document.getElementById('photo-bg');
+    if (bg) bg.style.cursor = 'grabbing';
 }
 
 function drag(e) {
@@ -383,9 +376,8 @@ function drag(e) {
 
 function stopDrag() {
     isDragging = false;
-    if (dragHandle) {
-        dragHandle.style.cursor = 'move';
-    }
+    const bg = document.getElementById('photo-bg');
+    if (bg) bg.style.cursor = 'move';
 }
 
 function updatePositionFromDrag(x, y) {
