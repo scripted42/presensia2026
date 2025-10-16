@@ -32,11 +32,11 @@
                 <div id="map" style="width:100%;min-height:320px;height:50vh;border-radius:12px;overflow:hidden;background:#eef2ff"></div>
             </div>
         </div>
-        <!-- Scanner/Status -->
-        <div class="bg-white shadow rounded-lg">
+        <!-- Scanner/Status (full width below on large screens) -->
+        <div class="bg-white shadow rounded-lg lg:col-span-3">
             <div class="px-4 py-5 sm:p-6">
                 <h2 class="text-lg font-medium text-gray-900 mb-3">Scan QR</h2>
-                <div id="scanner" class="w-full h-72 md:h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div id="scanner" class="w-full h-80 md:h-96 bg-gray-100 rounded-lg flex items-center justify-center">
                     <div class="text-center text-gray-500 text-sm"> Kamera akan aktif saat tombol scan ditekan </div>
                 </div>
                 <div class="grid grid-cols-1 gap-2 mt-3">
