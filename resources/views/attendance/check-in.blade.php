@@ -24,16 +24,16 @@
     </div>
 
     <!-- Map + Scanner + Status -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Map -->
-        <div class="bg-white shadow rounded-lg lg:col-span-2">
+        <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <h2 class="text-lg font-medium text-gray-900 mb-3">Lokasi Absensi</h2>
                 <div id="map" style="width:100%;min-height:320px;height:50vh;border-radius:12px;overflow:hidden;background:#eef2ff"></div>
             </div>
         </div>
         <!-- Scanner/Status (match map width/height) -->
-        <div class="bg-white shadow rounded-lg lg:col-span-2">
+        <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <h2 class="text-lg font-medium text-gray-900 mb-3">Scan QR</h2>
                 <div id="scanner" class="w-full bg-gray-100 rounded-lg flex items-center justify-center" style="min-height:320px;height:50vh;">
