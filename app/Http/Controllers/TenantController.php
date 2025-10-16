@@ -142,8 +142,18 @@ class TenantController extends Controller
             TenantSetting::create($data);
         }
 
+        $message = 'Pengaturan banner dan layout berhasil diperbarui.';
+        
+        // Add specific messages for uploaded files
+        if ($request->hasFile('banner_image')) {
+            $message .= ' Banner berhasil diupload.';
+        }
+        if ($request->hasFile('school_photo')) {
+            $message .= ' Foto sekolah berhasil diupload.';
+        }
+        
         return redirect()->route('tenant.settings')
-            ->with('success', 'Pengaturan banner dan layout berhasil diperbarui.');
+            ->with('success', $message);
     }
 
     /**

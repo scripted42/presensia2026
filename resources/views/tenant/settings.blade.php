@@ -4,6 +4,20 @@
 
 @section('content')
 <div>
+    <!-- Success Message -->
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">{{ session('success') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+    
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
@@ -119,7 +133,7 @@
                             <div class="relative bg-gray-100 rounded-lg p-4" style="height: 240px;">
                                 <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded overflow-hidden">
                                     <!-- Background layer for photo (controls opacity/scale/position) - now draggable -->
-                                    <div id="photo-bg" class="absolute inset-0 bg-no-repeat bg-cover cursor-move" style="opacity: {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
+                                    <div id="photo-bg" class="absolute inset-0 bg-no-repeat bg-cover cursor-move transition-all duration-150 ease-out" style="opacity: {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
                                     
                                     <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm pointer-events-none">
                                         Drag foto untuk mengatur posisi
@@ -328,6 +342,10 @@ function updateOpacity(value) {
 // Drag and drop functionality
 let isDragging = false;
 let dragArea = null;
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let currentY = 0;
 
 function initializeDrag() {
     dragArea = document.getElementById('photo-position-area');
@@ -341,6 +359,8 @@ function initializeDrag() {
         // Add new event listeners
         bg.addEventListener('mousedown', startDrag);
         bg.addEventListener('touchstart', startDrag);
+        
+        console.log('Drag functionality initialized');
     }
 }
 
@@ -374,6 +394,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form && saveButton && saveText) {
         form.addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            
+            // Check if files are selected
+            const bannerFile = document.getElementById('banner_image').files[0];
+            const schoolPhotoFile = document.getElementById('school_photo').files[0];
+            
+            if (bannerFile) {
+                console.log('Banner file selected:', bannerFile.name, bannerFile.size);
+            }
+            if (schoolPhotoFile) {
+                console.log('School photo file selected:', schoolPhotoFile.name, schoolPhotoFile.size);
+            }
+            
             saveButton.disabled = true;
             saveText.textContent = 'Menyimpan...';
             saveButton.classList.add('opacity-75', 'cursor-not-allowed');
@@ -384,10 +417,20 @@ document.addEventListener('DOMContentLoaded', function() {
 function startDrag(e) {
     isDragging = true;
     e.preventDefault();
+    
     const bg = document.getElementById('photo-bg');
     if (bg) {
         bg.style.cursor = 'grabbing';
-        console.log('Drag started on photo');
+        
+        // Get initial position
+        const rect = dragArea.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        
+        startX = clientX - rect.left;
+        startY = clientY - rect.top;
+        
+        console.log('Drag started on photo at:', startX, startY);
     }
 }
 
@@ -400,10 +443,15 @@ function drag(e) {
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     
+    // Calculate relative position within the drag area
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
     
-    console.log('Dragging to:', x, y);
+    // Update background position smoothly
+    const bg = document.getElementById('photo-bg');
+    if (bg) {
+        bg.style.backgroundPosition = `${x}% ${y}%`;
+    }
     
     // Update position values
     updatePositionFromDrag(x, y);
