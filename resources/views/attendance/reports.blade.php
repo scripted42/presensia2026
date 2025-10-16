@@ -109,30 +109,7 @@
         </div>
     </div>
 
-    <!-- Legend -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Keterangan Status</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="flex items-center">
-                    <div class="w-4 h-4 rounded mr-2" style="background-color: #10b981 !important;"></div>
-                    <span class="text-sm text-gray-700">Ontime</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 rounded mr-2" style="background-color: #eab308 !important;"></div>
-                    <span class="text-sm text-gray-700">Terlambat</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 rounded mr-2" style="background-color: #f97316 !important;"></div>
-                    <span class="text-sm text-gray-700">Izin/Sakit/Cuti/Dinas Luar</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 rounded mr-2" style="background-color: #ef4444 !important;"></div>
-                    <span class="text-sm text-gray-700">Alpha</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Data Type Info -->
     @if($type !== 'all')
