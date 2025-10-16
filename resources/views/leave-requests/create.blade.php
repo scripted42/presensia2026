@@ -3,10 +3,10 @@
 @section('title', 'Ajukan Izin - Presensia')
 
 @section('content')
-<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+<div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
+        <div class="p-4 sm:p-6">
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Ajukan Izin</h1>
@@ -23,7 +23,7 @@
 
     <!-- Form -->
     <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
+        <div class="p-4 sm:p-6">
             <form action="{{ route('leave-requests.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
@@ -66,7 +66,7 @@
                 </div>
 
                 <!-- Date Range -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai *</label>
                         <input type="date" name="start_date" id="start_date" required 

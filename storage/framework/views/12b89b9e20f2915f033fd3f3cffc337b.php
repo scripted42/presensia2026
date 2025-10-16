@@ -1,45 +1,6 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Absensi Siswa - Presensia</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                        <span class="text-xl font-bold text-gray-900">Presensia</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <a href="<?php echo e(route('dashboard')); ?>" class="text-sm text-gray-700 hover:text-gray-900">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="<?php echo e(route('attendance.index')); ?>" class="text-sm text-gray-700 hover:text-gray-900">
-                        <i class="fas fa-calendar-check mr-1"></i>Absensi
-                    </a>
-                    <span class="text-sm text-gray-700">Selamat datang, <strong><?php echo e(auth()->user()->name); ?></strong></span>
-                    <form method="POST" action="<?php echo e(route('logout')); ?>" class="inline">
-                        <?php echo csrf_field(); ?>
-                        <button type="submit" class="text-sm text-gray-700 hover:text-gray-900">
-                            <i class="fas fa-sign-out-alt mr-1"></i>Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+<?php $__env->startSection('title', 'Scan Absensi Siswa - Presensia'); ?>
 
-    <!-- Main Content -->
+<?php $__env->startSection('content'); ?>
     <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
@@ -141,7 +102,10 @@
         </div>
 
     </div>
+<?php $__env->stopSection(); ?>
 
+<?php $__env->startPush('scripts'); ?>
+    <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
     <script>
         let scannedStudents = [];
         let qrScanner = null;
@@ -494,7 +458,7 @@
             }
         });
     </script>
-</body>
-</html>
+<?php $__env->stopPush(); ?>
 
-<?php /**PATH C:\Users\FHL\.cursor\presensia-v2\starter-kit\resources\views/attendance/student-scan.blade.php ENDPATH**/ ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\FHL\.cursor\presensia-v2\starter-kit\resources\views/attendance/student-scan.blade.php ENDPATH**/ ?>
