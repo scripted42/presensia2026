@@ -18,6 +18,20 @@
         </div>
     @endif
     
+    <!-- Error Message -->
+    @if(session('error'))
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+    
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
@@ -401,10 +415,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const schoolPhotoFile = document.getElementById('school_photo').files[0];
             
             if (bannerFile) {
-                console.log('Banner file selected:', bannerFile.name, bannerFile.size);
+                console.log('Banner file selected:', bannerFile.name, bannerFile.size, 'Type:', bannerFile.type);
             }
             if (schoolPhotoFile) {
-                console.log('School photo file selected:', schoolPhotoFile.name, schoolPhotoFile.size);
+                console.log('School photo file selected:', schoolPhotoFile.name, schoolPhotoFile.size, 'Type:', schoolPhotoFile.type);
+            }
+            
+            // Check form data
+            const formData = new FormData(form);
+            console.log('Form data entries:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(key, ':', value.name, value.size, value.type);
+                } else {
+                    console.log(key, ':', value);
+                }
             }
             
             saveButton.disabled = true;

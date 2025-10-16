@@ -92,6 +92,15 @@ class TenantController extends Controller
         $user = Auth::user();
         $school = $user->school;
         
+        // Debug: Log request data
+        \Log::info('UpdateBanner Request Data:', [
+            'has_banner_image' => $request->hasFile('banner_image'),
+            'has_school_photo' => $request->hasFile('school_photo'),
+            'banner_text' => $request->banner_text,
+            'school_photo_opacity' => $request->school_photo_opacity,
+            'all_files' => $request->allFiles()
+        ]);
+        
         $request->validate([
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
             'banner_text' => 'nullable|string|max:255',
@@ -118,14 +127,26 @@ class TenantController extends Controller
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
-            $bannerPath = $request->file('banner_image')->store('tenant/banners', 'public');
-            $data['banner_image'] = $bannerPath;
+            try {
+                $bannerPath = $request->file('banner_image')->store('tenant/banners', 'public');
+                $data['banner_image'] = $bannerPath;
+                \Log::info('Banner uploaded successfully:', ['path' => $bannerPath]);
+            } catch (\Exception $e) {
+                \Log::error('Banner upload failed:', ['error' => $e->getMessage()]);
+                return redirect()->back()->with('error', 'Gagal mengupload banner: ' . $e->getMessage());
+            }
         }
 
         // Handle school photo upload
         if ($request->hasFile('school_photo')) {
-            $schoolPhotoPath = $request->file('school_photo')->store('tenant/school-photos', 'public');
-            $data['school_photo'] = $schoolPhotoPath;
+            try {
+                $schoolPhotoPath = $request->file('school_photo')->store('tenant/school-photos', 'public');
+                $data['school_photo'] = $schoolPhotoPath;
+                \Log::info('School photo uploaded successfully:', ['path' => $schoolPhotoPath]);
+            } catch (\Exception $e) {
+                \Log::error('School photo upload failed:', ['error' => $e->getMessage()]);
+                return redirect()->back()->with('error', 'Gagal mengupload foto sekolah: ' . $e->getMessage());
+            }
         }
 
         if ($tenantSettings) {
