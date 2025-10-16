@@ -113,6 +113,43 @@
                             </div>
                         </div>
                         
+                        <!-- Photo Position Controls -->
+                        <div class="mt-4">
+                            <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto</h5>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="school_photo_position_x" class="block text-sm font-medium text-gray-700 mb-2">Posisi Horizontal</label>
+                                    <select name="school_photo_position_x" id="school_photo_position_x" onchange="updatePosition()" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="left" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? 'selected' : '' }}>Kiri</option>
+                                        <option value="center" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'center' ? 'selected' : '' }}>Tengah</option>
+                                        <option value="right" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? 'selected' : '' }}>Kanan</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="school_photo_position_y" class="block text-sm font-medium text-gray-700 mb-2">Posisi Vertikal</label>
+                                    <select name="school_photo_position_y" id="school_photo_position_y" onchange="updatePosition()" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="top" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? 'selected' : '' }}>Atas</option>
+                                        <option value="center" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'center' ? 'selected' : '' }}>Tengah</option>
+                                        <option value="bottom" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? 'selected' : '' }}>Bawah</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Photo Scale Control -->
+                        <div class="mt-4">
+                            <label for="school_photo_scale" class="block text-sm font-medium text-gray-700 mb-2">Skala Foto (%)</label>
+                            <input type="range" name="school_photo_scale" id="school_photo_scale" min="50" max="200" value="{{ old('school_photo_scale', $tenantSettings->school_photo_scale ?? 100) }}"
+                                   class="block w-full" oninput="updateScale(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>50%</span>
+                                <span id="scale-value">{{ $tenantSettings->school_photo_scale ?? 100 }}%</span>
+                                <span>200%</span>
+                            </div>
+                        </div>
+                        </div>
+                        
                         <!-- School Photo Preview -->
                         <div class="mt-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Preview Foto Sekolah:</label>
@@ -285,10 +322,47 @@ function previewSchoolPhoto(input) {
 // Update opacity function
 function updateOpacity(value) {
     document.getElementById('opacity-value').textContent = value + '%';
+    updatePreview();
+}
+
+// Update position function
+function updatePosition() {
+    updatePreview();
+}
+
+// Update scale function
+function updateScale(value) {
+    document.getElementById('scale-value').textContent = value + '%';
+    updatePreview();
+}
+
+// Update preview with all settings
+function updatePreview() {
     const preview = document.getElementById('school-photo-preview');
     const img = preview.querySelector('img');
     if (img) {
-        img.style.opacity = value/100;
+        const opacity = document.getElementById('school_photo_opacity').value;
+        const positionX = document.getElementById('school_photo_position_x').value;
+        const positionY = document.getElementById('school_photo_position_y').value;
+        const scale = document.getElementById('school_photo_scale').value;
+        
+        // Apply opacity
+        img.style.opacity = opacity/100;
+        
+        // Apply position
+        let backgroundPosition = '';
+        if (positionX === 'left') backgroundPosition += 'left ';
+        else if (positionX === 'right') backgroundPosition += 'right ';
+        else backgroundPosition += 'center ';
+        
+        if (positionY === 'top') backgroundPosition += 'top';
+        else if (positionY === 'bottom') backgroundPosition += 'bottom';
+        else backgroundPosition += 'center';
+        
+        img.style.objectPosition = backgroundPosition;
+        
+        // Apply scale
+        img.style.transform = `scale(${scale/100})`;
     }
 }
 

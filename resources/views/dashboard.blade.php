@@ -11,7 +11,20 @@
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
-                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->school_photo) }}'); opacity: {{ ($school->tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
+                @php
+                    $positionX = $school->tenantSettings->school_photo_position_x ?? 'center';
+                    $positionY = $school->tenantSettings->school_photo_position_y ?? 'center';
+                    $scale = $school->tenantSettings->school_photo_scale ?? 100;
+                    $opacity = $school->tenantSettings->school_photo_opacity ?? 10;
+                    
+                    $backgroundPosition = $positionX . ' ' . $positionY;
+                @endphp
+                <div class="absolute inset-0 bg-cover" 
+                     style="background-image: url('{{ asset('storage/' . $school->tenantSettings->school_photo) }}'); 
+                            background-position: {{ $backgroundPosition }};
+                            opacity: {{ $opacity / 100 }};
+                            transform: scale({{ $scale / 100 }});
+                            transform-origin: center;"></div>
             @endif
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap relative z-10">
                 <div class="flex items-center">

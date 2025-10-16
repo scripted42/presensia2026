@@ -13637,3 +13637,7 @@ Did you mean one of these?
 [2025-10-16 16:09:26] local.INFO: Logout completed, redirecting to login  
 [2025-10-16 16:10:08] local.INFO: Logout attempt for user: guru@presensia.com  
 [2025-10-16 16:10:08] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 16:38:05] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-16 16:38:05] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 16:40:41] local.INFO: Logout attempt for user: superadmin@presensia.co.id  
+[2025-10-16 16:40:41] local.INFO: Logout completed, redirecting to login  
