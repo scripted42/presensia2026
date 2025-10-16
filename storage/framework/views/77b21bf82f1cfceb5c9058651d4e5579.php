@@ -103,7 +103,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #10b981 !important;"></div>
-                    <span class="text-sm text-gray-700">Tepat Waktu</span>
+                    <span class="text-sm text-gray-700">Ontime</span>
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #eab308 !important;"></div>
@@ -115,7 +115,7 @@
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #ef4444 !important;"></div>
-                    <span class="text-sm text-gray-700">Alpa</span>
+                    <span class="text-sm text-gray-700">Alpha</span>
                 </div>
             </div>
         </div>
@@ -167,7 +167,7 @@
 
             <!-- Simple Table without Freeze Pane -->
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 attendance-table">
+                <table class="min-w-full attendance-table">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12 freeze-no">No.</th>
@@ -188,9 +188,9 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php $__empty_1 = true; $__currentLoopData = $attendances; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $userId => $userAttendances): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php $user = $userAttendances->first()->user; $userTypeLabel = $user->user_type === 'student' ? 'Siswa' : 'Pegawai'; ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-4 text-center text-sm text-gray-600 freeze-no"><?php echo e($loop->iteration); ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap freeze-name">
+                        <tr>
+                            <td class="px-2 py-1 text-center text-sm text-gray-600 freeze-no"><?php echo e($loop->iteration); ?></td>
+                            <td class="px-3 py-1 whitespace-nowrap freeze-name">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
                                         <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=<?php echo e(urlencode($user->name)); ?>&background=<?php echo e($user->user_type === 'student' ? '10B981' : '3B82F6'); ?>&color=fff" alt="<?php echo e($user->name); ?>">
@@ -224,14 +224,14 @@
                                     'leave'  => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
                                     'alpha'  => ['bg' => '#ef4444', 'border' => '#ef4444', 'text' => '#ffffff'],
                                 ];
-                                $labels = [ 'ontime'=>'Tepat Waktu', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpa' ];
+                                $labels = [ 'ontime'=>'Ontime', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpha' ];
                                 $style = $badgeMap[$status] ?? $badgeMap['alpha'];
                             ?>
-                            <td class="px-2 py-4 text-center">
-                                <div class="rounded-lg border-2 p-2 min-h-[60px] flex flex-col justify-center" style="background-color: <?php echo e($style['bg']); ?>; border-color: <?php echo e($style['border']); ?>; color: <?php echo e($style['text']); ?>;">
-                                    <div class="text-xs font-semibold text-center"><?php echo e($labels[$status] ?? 'Alpa'); ?></div>
+                            <td class="px-1 py-1 text-center">
+                                <div class="rounded border p-1 min-h-[36px] flex flex-col justify-center" style="background-color: <?php echo e($style['bg']); ?>; border-color: <?php echo e($style['border']); ?>; color: <?php echo e($style['text']); ?>;">
+                                    <div class="text-[10px] font-semibold text-center leading-tight"><?php echo e($labels[$status] ?? 'Alpha'); ?></div>
                                     <?php if($attendance && in_array($status, ['ontime', 'late']) && $time): ?>
-                                        <div class="text-xs text-center mt-1 opacity-90"><?php echo e($time); ?></div>
+                                        <div class="text-[10px] text-center mt-0.5 opacity-90 leading-tight"><?php echo e($time); ?></div>
                                     <?php endif; ?>
                                 </div>
                             </td>

@@ -13,6 +13,18 @@
         .attendance-table th, .attendance-table td { padding: 4px 2px !important; white-space: nowrap !important; }
         .date-column { min-width: 60px !important; max-width: 60px !important; }
     }
+    /* Compact overall */
+    .attendance-table { font-size: 12px; }
+    .attendance-table th { padding: 6px 6px; }
+    .attendance-table td { padding: 6px 4px; }
+
+    /* Minimal pill badges */
+    .att-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:9999px; border-width:1px; border-style:solid; font-size:10px; line-height:1; font-weight:600; min-width:64px; }
+    .att-ontime { color:#065f46; background:#ecfdf5; border-color:#10b981; }
+    .att-late { color:#92400e; background:#fffbeb; border-color:#eab308; }
+    .att-leave { color:#9a3412; background:#fff7ed; border-color:#f97316; }
+    .att-alpha { color:#991b1b; background:#fef2f2; border-color:#ef4444; }
+    .att-time { font-size:10px; margin-top:2px; opacity:.85; }
 </style>
 @endpush
 
@@ -229,10 +241,18 @@
                                 $style = $badgeMap[$status] ?? $badgeMap['alpha'];
                             @endphp
                             <td class="px-1 py-1 text-center">
-                                <div class="rounded border p-1 min-h-[36px] flex flex-col justify-center" style="background-color: {{ $style['bg'] }}; border-color: {{ $style['border'] }}; color: {{ $style['text'] }};">
-                                    <div class="text-[10px] font-semibold text-center leading-tight">{{ $labels[$status] ?? 'Alpha' }}</div>
+                                @php
+                                    $badgeClass = match($status){
+                                        'ontime' => 'att-badge att-ontime',
+                                        'late' => 'att-badge att-late',
+                                        'sick','permit','duty','leave' => 'att-badge att-leave',
+                                        default => 'att-badge att-alpha'
+                                    };
+                                @endphp
+                                <div>
+                                    <span class="{{ $badgeClass }}">{{ $labels[$status] ?? 'Alpha' }}</span>
                                     @if($attendance && in_array($status, ['ontime', 'late']) && $time)
-                                        <div class="text-[10px] text-center mt-0.5 opacity-90 leading-tight">{{ $time }}</div>
+                                        <div class="att-time">{{ $time }}</div>
                                     @endif
                                 </div>
                             </td>
