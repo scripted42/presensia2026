@@ -78,8 +78,11 @@
                     <!-- SUPER ADMIN MENU -->
                     <?php if($isSuper): ?>
                         <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Super Admin</div>
-                            
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-super-admin')">
+                                <span>Super Admin</span>
+                                <span id="chev-group-super-admin">▾</span>
+                            </button>
+                            <div id="group-super-admin" class="mt-1 space-y-1">
                             <a href="<?php echo e(route('super-admin.schools.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('super-admin.schools.*') ? 'page' : 'false'); ?>">
                                 Manajemen Sekolah
                             </a>
@@ -96,14 +99,18 @@
                         Banned IPs
                     </a>
                     
-                    
+                            </div>
                         </div>
                     <?php endif; ?>
 
                     <!-- 1. MANAJEMEN DATA (Admin Only) -->
                     <?php if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))): ?>
                         <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Manajemen Data</div>
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-manajemen-data')">
+                                <span>Manajemen Data</span>
+                                <span id="chev-group-manajemen-data">▾</span>
+                            </button>
+                            <div id="group-manajemen-data" class="mt-1 space-y-1">
                             
                             <a href="<?php echo e(route('users.index', ['type' => 'employee'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.*') && request('type') == 'employee' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.*') && request('type') == 'employee' ? 'page' : 'false'); ?>">
                                 Data Pegawai
@@ -120,13 +127,18 @@
                             <a href="<?php echo e(route('users.create', ['type' => 'student'])); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('users.create') && request('type') == 'student' ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('users.create') && request('type') == 'student' ? 'page' : 'false'); ?>">
                                 Tambah Siswa
                             </a>
+                            </div>
                         </div>
                     <?php endif; ?>
 
                     <!-- 2. ABSENSI (All roles except student) -->
                     <?php if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))): ?>
                         <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Absensi</div>
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
+                                <span>Absensi</span>
+                                <span id="chev-group-absensi">▾</span>
+                            </button>
+                            <div id="group-absensi" class="mt-1 space-y-1">
                             
                             <a href="<?php echo e(route('attendance.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.index') ? 'page' : 'false'); ?>">
                                 Status Absensi
@@ -157,13 +169,18 @@
                             <a href="<?php echo e(route('attendance.reports')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('attendance.reports') ? 'page' : 'false'); ?>">
                                 Laporan Absensi
                             </a>
+                            </div>
                         </div>
                     <?php endif; ?>
 
                     <!-- 3. IZIN & CUTI (All roles except student) -->
                     <?php if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))): ?>
                         <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Izin & Cuti</div>
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
+                                <span>Izin & Cuti</span>
+                                <span id="chev-group-izin">▾</span>
+                            </button>
+                            <div id="group-izin" class="mt-1 space-y-1">
                             
                             <?php ($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0)); ?>
                             <a href="<?php echo e(route('leave-requests.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>" aria-current="<?php echo e(request()->routeIs('leave-requests.*') ? 'page' : 'false'); ?>">
@@ -176,6 +193,7 @@
                                     Manajemen Izin
                                 <?php endif; ?>
                             </a>
+                            </div>
                         </div>
                     <?php endif; ?>
 
@@ -197,7 +215,11 @@
                     <!-- 5. PENGATURAN (Admin Only) -->
                     <?php if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))): ?>
                         <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pengaturan</div>
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-settings')">
+                                <span>Pengaturan</span>
+                                <span id="chev-group-settings">▾</span>
+                            </button>
+                            <div id="group-settings" class="mt-1 space-y-1">
                             
                             <a href="<?php echo e(route('settings.attendance')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('settings.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
                                 Pengaturan Absensi
@@ -218,6 +240,7 @@
                             <a href="<?php echo e(route('tenant.settings')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('tenant.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
                                 Kustomisasi Aplikasi
                             </a>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </nav>
@@ -307,10 +330,25 @@
             if (btn) btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
             try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch(e) {}
         }
+        function toggleSidebarGroup(id){
+            const key = 'sbgrp:' + id;
+            const el = document.getElementById(id);
+            const chev = document.getElementById('chev-' + id);
+            if (!el) return;
+            const hidden = el.classList.toggle('hidden');
+            if (chev) chev.textContent = hidden ? '▸' : '▾';
+            try { localStorage.setItem(key, hidden ? '0' : '1'); } catch(e) {}
+        }
         (function(){
             try{
                 const collapsed = localStorage.getItem('desktopSidebarCollapsed') === '1';
                 if (collapsed) { document.body.classList.add('desktop-sidebar-collapsed'); const btn=document.getElementById('desktop-collapse-btn'); if(btn) btn.setAttribute('aria-pressed','true'); }
+                // restore groups
+                ['group-super-admin','group-manajemen-data','group-absensi','group-izin','group-settings'].forEach(id=>{
+                    const val = localStorage.getItem('sbgrp:' + id);
+                    const el = document.getElementById(id); const chev = document.getElementById('chev-' + id);
+                    if (el && val === '0') { el.classList.add('hidden'); if (chev) chev.textContent = '▸'; }
+                });
             }catch(e){}
         })();
     </script>
