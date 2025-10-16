@@ -49,14 +49,16 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.ad
     // Security routes
     Route::prefix('security')->name('security.')->group(function () {
         Route::get('/', [SecurityController::class, 'index'])->name('index');
-        Route::get('/{securityLog}', [SecurityController::class, 'show'])->name('show');
+        // Define specific routes FIRST to avoid being captured by parameter routes
         Route::get('/banned-ips', [SecurityController::class, 'bannedIps'])->name('banned-ips');
         Route::post('/ban-ip', [SecurityController::class, 'banIp'])->name('ban-ip');
-        Route::post('/unban-ip/{bannedIp}', [SecurityController::class, 'unbanIp'])->name('unban-ip');
-        Route::post('/block/{securityLog}', [SecurityController::class, 'blockSecurityLog'])->name('block');
+        Route::post('/unban-ip/{bannedIp}', [SecurityController::class, 'unbanIp'])->whereNumber('bannedIp')->name('unban-ip');
+        Route::post('/block/{securityLog}', [SecurityController::class, 'blockSecurityLog'])->whereNumber('securityLog')->name('block');
         Route::get('/export/csv', [SecurityController::class, 'exportSecurityLogs'])->name('export');
         Route::get('/statistics/data', [SecurityController::class, 'statistics'])->name('statistics');
         Route::get('/alerts/data', [SecurityController::class, 'alerts'])->name('alerts');
+        // Parameter route LAST
+        Route::get('/{securityLog}', [SecurityController::class, 'show'])->whereNumber('securityLog')->name('show');
     });
     
     // Network Monitoring routes
