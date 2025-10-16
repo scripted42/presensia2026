@@ -12856,3 +12856,13 @@ Did you mean one of these?
 #4 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #5 {main}
 "} 
+[2025-10-16 03:42:26] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-16 03:42:26] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 03:42:45] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-16 03:42:45] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 03:52:20] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-16 03:52:20] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 03:53:10] local.INFO: Logout attempt for user: bk@presensia.com  
+[2025-10-16 03:53:10] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 03:53:55] local.INFO: Logout attempt for user: admin@smpn10surabaya.co.id  
+[2025-10-16 03:53:55] local.INFO: Logout completed, redirecting to login  

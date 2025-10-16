@@ -10,6 +10,8 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\AuditTrailController;
+use App\Http\Controllers\SecurityController;
 
 // Public routes
 Route::get('/', function () {
@@ -30,6 +32,28 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.ad
     Route::post('/schools/{school}/toggle-status', [SuperAdminController::class, 'toggleStatus'])->name('schools.toggle-status');
     Route::get('/schools/{school}/tenant-settings', [SuperAdminController::class, 'tenantSettings'])->name('schools.tenant-settings');
     Route::put('/schools/{school}/tenant-settings', [SuperAdminController::class, 'updateTenantSettings'])->name('schools.tenant-settings.update');
+    
+    // Audit Trail routes
+    Route::prefix('audit-trails')->name('audit-trails.')->group(function () {
+        Route::get('/', [AuditTrailController::class, 'index'])->name('index');
+        Route::get('/school/{schoolId}', [AuditTrailController::class, 'school'])->name('school');
+        Route::get('/{auditTrail}', [AuditTrailController::class, 'show'])->name('show');
+        Route::get('/export/csv', [AuditTrailController::class, 'export'])->name('export');
+        Route::get('/statistics/data', [AuditTrailController::class, 'statistics'])->name('statistics');
+    });
+    
+    // Security routes
+    Route::prefix('security')->name('security.')->group(function () {
+        Route::get('/', [SecurityController::class, 'index'])->name('index');
+        Route::get('/{securityLog}', [SecurityController::class, 'show'])->name('show');
+        Route::get('/banned-ips', [SecurityController::class, 'bannedIps'])->name('banned-ips');
+        Route::post('/ban-ip', [SecurityController::class, 'banIp'])->name('ban-ip');
+        Route::post('/unban-ip/{bannedIp}', [SecurityController::class, 'unbanIp'])->name('unban-ip');
+        Route::post('/block/{securityLog}', [SecurityController::class, 'blockSecurityLog'])->name('block');
+        Route::get('/export/csv', [SecurityController::class, 'exportSecurityLogs'])->name('export');
+        Route::get('/statistics/data', [SecurityController::class, 'statistics'])->name('statistics');
+        Route::get('/alerts/data', [SecurityController::class, 'alerts'])->name('alerts');
+    });
 });
 
 // Authentication routes
