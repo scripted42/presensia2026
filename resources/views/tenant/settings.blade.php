@@ -113,28 +113,26 @@
                             </div>
                         </div>
                         
-                        <!-- Photo Position Controls -->
+                        <!-- Interactive Photo Position Controls -->
                         <div class="mt-4">
-                            <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto</h5>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="school_photo_position_x" class="block text-sm font-medium text-gray-700 mb-2">Posisi Horizontal</label>
-                                    <select name="school_photo_position_x" id="school_photo_position_x" onchange="updatePosition()" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="left" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? 'selected' : '' }}>Kiri</option>
-                                        <option value="center" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'center' ? 'selected' : '' }}>Tengah</option>
-                                        <option value="right" {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? 'selected' : '' }}>Kanan</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label for="school_photo_position_y" class="block text-sm font-medium text-gray-700 mb-2">Posisi Vertikal</label>
-                                    <select name="school_photo_position_y" id="school_photo_position_y" onchange="updatePosition()" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="top" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? 'selected' : '' }}>Atas</option>
-                                        <option value="center" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'center' ? 'selected' : '' }}>Tengah</option>
-                                        <option value="bottom" {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? 'selected' : '' }}>Bawah</option>
-                                    </select>
+                            <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h5>
+                            <div class="relative bg-gray-100 rounded-lg p-4" style="height: 200px;">
+                                <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded">
+                                    <div id="photo-drag-handle" class="absolute w-8 h-8 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white text-xs font-bold shadow-lg" 
+                                         style="left: {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? '10%' : (($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? '90%' : '50%') }}; top: {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? '10%' : (($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? '90%' : '50%') }};">
+                                        <i class="fas fa-arrows-alt"></i>
+                                    </div>
+                                    <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                                        Drag lingkaran biru untuk mengatur posisi foto
+                                    </div>
                                 </div>
                             </div>
+                            <div class="mt-2 text-xs text-gray-500">
+                                Posisi: <span id="position-display">Tengah, Tengah</span>
+                            </div>
+                            <!-- Hidden inputs for form submission -->
+                            <input type="hidden" name="school_photo_position_x" id="school_photo_position_x" value="{{ $tenantSettings->school_photo_position_x ?? 'center' }}">
+                            <input type="hidden" name="school_photo_position_y" id="school_photo_position_y" value="{{ $tenantSettings->school_photo_position_y ?? 'center' }}">
                         </div>
                         
                         <!-- Photo Scale Control -->
@@ -325,8 +323,83 @@ function updateOpacity(value) {
     updatePreview();
 }
 
-// Update position function
-function updatePosition() {
+// Drag and drop functionality
+let isDragging = false;
+let dragHandle = null;
+let dragArea = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    dragHandle = document.getElementById('photo-drag-handle');
+    dragArea = document.getElementById('photo-position-area');
+    
+    if (dragHandle && dragArea) {
+        // Mouse events
+        dragHandle.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDrag);
+        
+        // Touch events for mobile
+        dragHandle.addEventListener('touchstart', startDrag);
+        document.addEventListener('touchmove', drag);
+        document.addEventListener('touchend', stopDrag);
+    }
+});
+
+function startDrag(e) {
+    isDragging = true;
+    e.preventDefault();
+    dragHandle.style.cursor = 'grabbing';
+}
+
+function drag(e) {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    
+    const rect = dragArea.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+    
+    dragHandle.style.left = x + '%';
+    dragHandle.style.top = y + '%';
+    
+    // Update position values
+    updatePositionFromDrag(x, y);
+}
+
+function stopDrag() {
+    isDragging = false;
+    if (dragHandle) {
+        dragHandle.style.cursor = 'move';
+    }
+}
+
+function updatePositionFromDrag(x, y) {
+    // Convert percentage to position values
+    let positionX = 'center';
+    let positionY = 'center';
+    
+    if (x < 30) positionX = 'left';
+    else if (x > 70) positionX = 'right';
+    
+    if (y < 30) positionY = 'top';
+    else if (y > 70) positionY = 'bottom';
+    
+    // Update hidden inputs
+    document.getElementById('school_photo_position_x').value = positionX;
+    document.getElementById('school_photo_position_y').value = positionY;
+    
+    // Update display
+    const display = document.getElementById('position-display');
+    if (display) {
+        const xText = positionX === 'left' ? 'Kiri' : (positionX === 'right' ? 'Kanan' : 'Tengah');
+        const yText = positionY === 'top' ? 'Atas' : (positionY === 'bottom' ? 'Bawah' : 'Tengah');
+        display.textContent = `${xText}, ${yText}`;
+    }
+    
     updatePreview();
 }
 
@@ -365,6 +438,19 @@ function updatePreview() {
         img.style.transform = `scale(${scale/100})`;
     }
 }
+
+// Initialize position display on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const positionX = document.getElementById('school_photo_position_x').value;
+    const positionY = document.getElementById('school_photo_position_y').value;
+    const display = document.getElementById('position-display');
+    
+    if (display) {
+        const xText = positionX === 'left' ? 'Kiri' : (positionX === 'right' ? 'Kanan' : 'Tengah');
+        const yText = positionY === 'top' ? 'Atas' : (positionY === 'bottom' ? 'Bawah' : 'Tengah');
+        display.textContent = `${xText}, ${yText}`;
+    }
+});
 
 // Remove banner function
 function removeBanner() {
