@@ -71,3 +71,4 @@ class TenantSetting extends Model
     }
 }
 
+

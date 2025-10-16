@@ -268,3 +268,4 @@ document.getElementById('accent_color').addEventListener('input', function() {
 </script>
 @endsection
 
+

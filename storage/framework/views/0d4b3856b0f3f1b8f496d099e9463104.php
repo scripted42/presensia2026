@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title><?php echo $__env->yieldContent('title', 'Presensia'); ?></title>
+    <!-- Resource Hints: speed up hard refresh by preconnecting to CDNs -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -79,10 +88,15 @@
                                 Security Monitoring
                             </a>
                             
-                            <a href="<?php echo e(route('super-admin.security.banned-ips')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
-                                <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                                Banned IPs
-                            </a>
+                    <a href="<?php echo e(route('super-admin.security.banned-ips')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                        <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                        Banned IPs
+                    </a>
+                    
+                    <a href="<?php echo e(route('super-admin.network.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.network.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                        <i class="fas fa-network-wired mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                        Network Monitoring
+                    </a>
                         </div>
                     <?php endif; ?>
 

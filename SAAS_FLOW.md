@@ -193,3 +193,4 @@ public function index()
 3. **Admin Sekolah** kustomisasi aplikasi sekolah mereka
 4. **User Sekolah** login dan melihat aplikasi dengan branding sekolah mereka
 
+
