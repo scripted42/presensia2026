@@ -134,6 +134,25 @@
                         @enderror
                     </div>
 
+                    @if(session('captcha_required'))
+                    <div>
+                        <label for="captcha" class="block text-xs font-medium text-foreground mb-1">
+                            {{ session('captcha_question', 'Captcha') }}
+                        </label>
+                        <input 
+                            type="text" 
+                            id="captcha" 
+                            name="captcha" 
+                            class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary @error('captcha') border-red-500 @enderror"
+                            placeholder="Jawaban"
+                            required
+                        >
+                        @error('captcha')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    @endif
+
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <input 

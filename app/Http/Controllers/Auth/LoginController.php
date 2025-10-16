@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
@@ -29,6 +30,7 @@ class LoginController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'captcha' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -40,8 +42,43 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
+        $ipAddress = (string) $request->ip();
+        $emailLower = strtolower((string) $request->input('email'));
+        $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $emailLower);
+        $banKey = 'login:ban:' . sha1($ipAddress . '|' . $emailLower);
+        $attempts = (int) Cache::get($attemptKey, 0);
+
+        // Check temporary ban (30 minutes)
+        if (Cache::has($banKey)) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.'])
+                ->withInput($request->except('password'))
+                ->with('captcha_required', true)
+                ->with('captcha_question', session('captcha_question'));
+        }
+
+        // Enforce CAPTCHA after 3 failed attempts
+        if ($attempts >= 3) {
+            $expected = session('captcha_answer');
+            $captchaInput = trim((string) $request->input('captcha'));
+            if ($expected === null || $captchaInput === '' || (string) $expected !== $captchaInput) {
+                // ensure captcha question exists
+                $this->generateCaptchaQuestion($request);
+                return redirect()->back()
+                    ->withErrors(['captcha' => 'Captcha salah atau belum diisi.'])
+                    ->withInput($request->except('password'))
+                    ->with('captcha_required', true)
+                    ->with('captcha_question', session('captcha_question'));
+            }
+        }
+
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+
+            // Reset attempts and captcha on success
+            Cache::forget($attemptKey);
+            Cache::forget($banKey);
+            $request->session()->forget(['captcha_required', 'captcha_question', 'captcha_answer']);
             
             // Check if user is active
             if (!Auth::user()->is_active) {
@@ -60,9 +97,26 @@ class LoginController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
+        // On failed login: increment attempts
+        $attempts++;
+        // attempts window: 30 minutes
+        Cache::put($attemptKey, $attempts, now()->addMinutes(30));
+
+        // Prepare captcha after threshold
+        if ($attempts >= 3) {
+            $this->generateCaptchaQuestion($request);
+        }
+
+        // Temporary ban after 10 failed attempts within window
+        if ($attempts >= 10) {
+            Cache::put($banKey, true, now()->addMinutes(30));
+        }
+
         return redirect()->back()
             ->withErrors(['email' => 'Email atau password salah.'])
-            ->withInput($request->except('password'));
+            ->withInput($request->except('password'))
+            ->with('captcha_required', $attempts >= 3)
+            ->with('captcha_question', session('captcha_question'));
     }
 
     /**
@@ -82,5 +136,15 @@ class LoginController extends Controller
         \Log::info('Logout completed, redirecting to login');
         
         return redirect()->route('login');
+    }
+
+    private function generateCaptchaQuestion(Request $request): void
+    {
+        // Simple math captcha (1-9) + (1-9)
+        $a = random_int(1, 9);
+        $b = random_int(1, 9);
+        $request->session()->put('captcha_question', "Berapa hasil $a + $b ?");
+        $request->session()->put('captcha_answer', (string) ($a + $b));
+        $request->session()->put('captcha_required', true);
     }
 }
