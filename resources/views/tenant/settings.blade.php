@@ -49,12 +49,22 @@
                                 <label for="banner_image" class="block text-sm font-medium text-gray-700 mb-2">Gambar Banner</label>
                                 <input type="file" name="banner_image" id="banner_image" accept="image/*" onchange="previewBanner(this)"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                @if($tenantSettings->banner_image ?? false)
+                                
+                                <!-- Debug info -->
+                                <div class="mt-1 text-xs text-gray-400">
+                                    Debug: banner_image = {{ $tenantSettings->banner_image ?? 'null' }}
+                                </div>
+                                
+                                @if($tenantSettings->banner_image)
                                     <div class="mt-2 flex items-center justify-between">
                                         <p class="text-sm text-gray-500">Banner saat ini: {{ basename($tenantSettings->banner_image) }}</p>
                                         <button type="button" onclick="removeBanner()" class="text-red-600 hover:text-red-800 text-sm font-medium">
                                             <i class="fas fa-trash mr-1"></i>Hapus
                                         </button>
+                                    </div>
+                                @else
+                                    <div class="mt-2 text-sm text-gray-400">
+                                        Belum ada banner yang diupload
                                     </div>
                                 @endif
                             </div>
@@ -89,12 +99,22 @@
                                 <label for="school_photo" class="block text-sm font-medium text-gray-700 mb-2">Foto Sekolah</label>
                                 <input type="file" name="school_photo" id="school_photo" accept="image/*" onchange="previewSchoolPhoto(this)"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                @if($tenantSettings->school_photo ?? false)
+                                
+                                <!-- Debug info -->
+                                <div class="mt-1 text-xs text-gray-400">
+                                    Debug: school_photo = {{ $tenantSettings->school_photo ?? 'null' }}
+                                </div>
+                                
+                                @if($tenantSettings->school_photo)
                                     <div class="mt-2 flex items-center justify-between">
                                         <p class="text-sm text-gray-500">Foto sekolah saat ini: {{ basename($tenantSettings->school_photo) }}</p>
                                         <button type="button" onclick="removeSchoolPhoto()" class="text-red-600 hover:text-red-800 text-sm font-medium">
                                             <i class="fas fa-trash mr-1"></i>Hapus
                                         </button>
+                                    </div>
+                                @else
+                                    <div class="mt-2 text-sm text-gray-400">
+                                        Belum ada foto sekolah yang diupload
                                     </div>
                                 @endif
                             </div>
