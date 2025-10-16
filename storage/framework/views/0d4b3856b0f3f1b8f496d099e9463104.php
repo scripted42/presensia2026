@@ -231,34 +231,21 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 
-                <div class="flex-1 px-4 flex justify-between">
-                    <div class="flex-1 flex">
-                        <div class="w-full flex md:ml-0">
-                            <div class="relative w-full text-gray-400 focus-within:text-gray-600">
-                                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                                    <i class="fas fa-search"></i>
-                                </div>
-                                <input class="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent" placeholder="Search..." type="search">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="ml-4 flex items-center md:ml-6">
-                        <!-- User menu -->
-                        <div class="ml-3 relative">
-                            <div class="flex items-center">
-                                <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=<?php echo e(urlencode(auth()->user()->name)); ?>&background=3B82F6&color=fff" alt="<?php echo e(auth()->user()->name); ?>">
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-gray-700"><?php echo e(auth()->user()->name); ?></div>
-                                    <div class="text-xs text-gray-500"><?php echo e(auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role'); ?></div>
-                                </div>
-                            </div>
+                <div class="flex-1 px-4 flex justify-end">
+                    <div class="flex items-center space-x-3">
+                        <!-- User info minimal -->
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-900"><?php echo e(auth()->user()->name); ?></div>
+                            <div class="text-xs text-gray-500"><?php echo e(auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role'); ?></div>
                         </div>
                         
-                        <!-- Logout button -->
-                        <form method="POST" action="<?php echo e(route('logout')); ?>" class="ml-3">
+                        <!-- Avatar -->
+                        <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=<?php echo e(urlencode(auth()->user()->name)); ?>&background=3B82F6&color=fff" alt="<?php echo e(auth()->user()->name); ?>">
+                        
+                        <!-- Logout button minimal -->
+                        <form method="POST" action="<?php echo e(route('logout')); ?>">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <button type="submit" class="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <i class="fas fa-sign-out-alt"></i>
                             </button>
                         </form>

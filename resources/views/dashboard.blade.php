@@ -8,7 +8,7 @@
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap">
                 <div class="flex items-center">
                     @if($school->logo)
-                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-12 w-auto mr-4">
+                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-20 w-auto mr-4">
                     @endif
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
@@ -119,14 +119,14 @@
                             <div class="label">Masuk</div>
                             <div class="time">{{ $inVal }}</div>
                         </div>
-                        @unless($user->hasRole('student'))
+                        @if($user->user_type !== 'student')
                         <div class="att-connector {{ $step2Done ? 'done' : ($step1Done ? 'half' : '') }}"></div>
                         <div class="att-step {{ $step2Done ? 'done' : '' }}">
                             <div class="dot"></div>
                             <div class="label">Keluar</div>
                             <div class="time">{{ $outVal }}</div>
                         </div>
-                        @endunless
+                        @endif
                     </div>
                     @endif
                 </div>
