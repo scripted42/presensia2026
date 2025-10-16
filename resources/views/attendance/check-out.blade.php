@@ -29,7 +29,7 @@
         <div class="bg-white shadow rounded-lg lg:col-span-2">
             <div class="px-4 py-5 sm:p-6">
                 <h2 class="text-lg font-medium text-gray-900 mb-3">Lokasi Absensi</h2>
-                <div id="map" style="width:100%;min-height:320px;height:50vh;border-radius:12px;overflow:hidden;background:#eef2ff"></div>
+                <div id="map" style="width:100%;height:360px;border-radius:12px;overflow:hidden;background:#eef2ff"></div>
             </div>
         </div>
         <!-- Scanner/Status -->
@@ -100,12 +100,6 @@
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(updateRadiusStatus);
     }
-
-    function triggerMapResize() {
-        try { leafletMap && leafletMap.invalidateSize(); } catch (e) {}
-    }
-    window.addEventListener('resize', triggerMapResize);
-    window.addEventListener('sidebarToggled', triggerMapResize);
 
     // Real-time clock update
     function updateClock() {
