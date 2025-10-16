@@ -17,6 +17,37 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Inspired by Bedimcode responsive sidebar dark/light [1] */
+        :root{
+            --first-color:#3B82F6; /* blue-500 */
+            --text-color:#374151; /* gray-700 */
+            --body-color:#F9FAFB; /* gray-50 */
+            --container-color:#FFFFFF;
+            --hover-color:#EEF2FF; /* indigo-50 */
+        }
+        body.dark-theme{
+            --text-color:#D1D5DB; /* gray-300 */
+            --body-color:#0F172A; /* slate-900 */
+            --container-color:#111827; /* gray-900 */
+            --hover-color:#1F2937; /* gray-800 */
+        }
+        body{background:var(--body-color)}
+        /* Sidebar look & active indicator */
+        nav[aria-label='Sidebar'] a{
+            color:var(--text-color);
+            border-radius:12px;
+            position:relative;
+        }
+        nav[aria-label='Sidebar'] a:hover{background:var(--hover-color)}
+        nav[aria-label='Sidebar'] a[aria-current='page']{
+            background:rgba(59,130,246,0.12);
+        }
+        /* Active indicator bar */
+        nav[aria-label='Sidebar'] a[aria-current='page']::before{
+            content:'';position:absolute;left:-10px;top:10px;bottom:10px;width:3px;background:var(--first-color);border-radius:8px;
+        }
+        /* Section divider subtle */
+        .sb-divider{height:1px;background:rgba(107,114,128,.15);margin:12px 8px}
         /* Perjelas area input form agar lebih nyaman dipandang */
         form input[type="text"],
         form input[type="email"],
@@ -147,33 +178,33 @@
                             </button>
                             <div id="group-absensi" class="mt-1 space-y-1">
                             
-                            <a href="{{ route('attendance.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
+                            <a href="{{ route('attendance.index') }}" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'text-blue-900' : 'hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
                                 Status Absensi
                             </a>
                             
                             @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
-                                <a href="{{ route('attendance.check-in') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
+                            <a href="{{ route('attendance.check-in') }}" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'text-blue-900' : 'hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
                                     Absensi Masuk
                                 </a>
                                 
                                 @if(auth()->user()->hasRole('admin'))
-                                    <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900" aria-current="false">
+                                <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900" aria-current="false">
                                         QR Code Absensi
                                     </a>
                                 @endif
                                 
-                                <a href="{{ route('attendance.check-out') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
+                            <a href="{{ route('attendance.check-out') }}" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'text-blue-900' : 'hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
                                     Absensi Keluar
                                 </a>
                                 
                                 @if(auth()->user()->hasRole(['teacher','admin']))
-                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
+                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'text-blue-900' : 'hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
                                         Scan Siswa
                                     </a>
                                 @endif
                             @endif
                             
-                            <a href="{{ route('attendance.reports') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
+                            <a href="{{ route('attendance.reports') }}" class="group flex items-center px-3 py-3 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : 'hover:text-gray-900' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
                                 Laporan Absensi
                             </a>
                             </div>
