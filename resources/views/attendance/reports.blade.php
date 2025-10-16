@@ -104,7 +104,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #10b981 !important;"></div>
-                    <span class="text-sm text-gray-700">Ontime</span>
+                    <span class="text-sm text-gray-700">Tepat Waktu</span>
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #eab308 !important;"></div>
@@ -112,11 +112,11 @@
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #f97316 !important;"></div>
-                    <span class="text-sm text-gray-700">Sakit/Izin/Cuti/Dinas</span>
+                    <span class="text-sm text-gray-700">Izin/Sakit/Cuti/Dinas Luar</span>
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #ef4444 !important;"></div>
-                    <span class="text-sm text-gray-700">Alpha</span>
+                    <span class="text-sm text-gray-700">Alpa</span>
                 </div>
             </div>
         </div>
@@ -216,10 +216,11 @@
                                 $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
                                 $colors = [ 'ontime'=>'bg-green-100 text-green-800 border-green-200', 'late'=>'bg-yellow-100 text-yellow-800 border-yellow-200', 'sick'=>'bg-orange-100 text-orange-800 border-orange-200', 'permit'=>'bg-orange-100 text-orange-800 border-orange-200', 'duty'=>'bg-orange-100 text-orange-800 border-orange-200', 'leave'=>'bg-orange-100 text-orange-800 border-orange-200', 'alpha'=>'bg-red-100 text-red-800 border-red-200' ];
+                                $labels = [ 'ontime'=>'Tepat Waktu', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpa' ];
                             @endphp
                             <td class="px-2 py-4 text-center">
                                 <div class="rounded-lg border-2 {{ $colors[$status] ?? 'bg-red-100 text-red-800 border-red-200' }} p-2 min-h-[60px] flex flex-col justify-center">
-                                    <div class="text-xs font-semibold text-center">{{ ucfirst($status) }}</div>
+                                    <div class="text-xs font-semibold text-center">{{ $labels[$status] ?? 'Alpa' }}</div>
                                     @if($attendance && in_array($status, ['ontime', 'late']) && $time)
                                         <div class="text-xs text-center mt-1 opacity-75">{{ $time }}</div>
                                     @endif

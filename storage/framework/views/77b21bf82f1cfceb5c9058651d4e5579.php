@@ -218,13 +218,9 @@
                             ?>
                             <td class="px-2 py-4 text-center">
                                 <div class="rounded-lg border-2 <?php echo e($colors[$status] ?? 'bg-red-100 text-red-800 border-red-200'); ?> p-2 min-h-[60px] flex flex-col justify-center">
-                                    <?php if($attendance): ?>
-                                        <div class="text-xs font-semibold text-center"><?php echo e(ucfirst($status)); ?></div>
-                                        <?php if(in_array($status, ['ontime', 'late']) && $time): ?>
-                                            <div class="text-xs text-center mt-1 opacity-75"><?php echo e($time); ?></div>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <div class="text-xs font-semibold text-center">Alpha</div>
+                                    <div class="text-xs font-semibold text-center"><?php echo e(ucfirst($status)); ?></div>
+                                    <?php if($attendance && in_array($status, ['ontime', 'late']) && $time): ?>
+                                        <div class="text-xs text-center mt-1 opacity-75"><?php echo e($time); ?></div>
                                     <?php endif; ?>
                                 </div>
                             </td>
