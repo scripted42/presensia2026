@@ -14,8 +14,7 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
-                        <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                        <span class="text-xl font-bold text-gray-900">Presensia</span>
+                        <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="h-4 w-auto" />
                     </div>
                 </div>
                 
