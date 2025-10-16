@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\AuditTrailController;
 use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\NetworkController;
 
 // Public routes
 Route::get('/', function () {
@@ -56,6 +57,13 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.ad
         Route::get('/export/csv', [SecurityController::class, 'exportSecurityLogs'])->name('export');
         Route::get('/statistics/data', [SecurityController::class, 'statistics'])->name('statistics');
         Route::get('/alerts/data', [SecurityController::class, 'alerts'])->name('alerts');
+    });
+    
+    // Network Monitoring routes
+    Route::prefix('network')->name('network.')->group(function () {
+        Route::get('/', [NetworkController::class, 'index'])->name('index');
+        Route::get('/realtime', [NetworkController::class, 'realtime'])->name('realtime');
+        Route::get('/alerts', [NetworkController::class, 'alerts'])->name('alerts');
     });
 });
 

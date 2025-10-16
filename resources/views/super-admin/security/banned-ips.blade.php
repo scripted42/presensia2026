@@ -23,6 +23,11 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to Security
                     </a>
+                    <a href="{{ route('super-admin.index') }}" 
+                       class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-home mr-2"></i>
+                        Dashboard
+                    </a>
                 </div>
             </div>
         </div>

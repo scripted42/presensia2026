@@ -79,10 +79,15 @@
                                 Security Monitoring
                             </a>
                             
-                            <a href="{{ route('super-admin.security.banned-ips') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                                <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
-                                Banned IPs
-                            </a>
+                    <a href="{{ route('super-admin.security.banned-ips') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                        Banned IPs
+                    </a>
+                    
+                    <a href="{{ route('super-admin.network.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('super-admin.network.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-network-wired mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                        Network Monitoring
+                    </a>
                         </div>
                     @endif
 

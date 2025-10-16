@@ -28,24 +28,119 @@
         </div>
     </div>
 
-    <!-- Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
+    <!-- Quick Access Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Audit Trail Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.audit-trails.index') }}'">
             <div class="p-5">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <i class="fas fa-school text-blue-600 text-2xl"></i>
+                        <i class="fas fa-history text-blue-600 text-2xl"></i>
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Sekolah</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ $analytics['total_schools'] }}</dd>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Audit Trail</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="audit-total">-</dd>
+                            <dd class="text-xs text-gray-500">Total Activities</dd>
                         </dl>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Security Monitoring Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.security.index') }}'">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-shield-alt text-red-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Security Monitoring</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="security-total">-</dd>
+                            <dd class="text-xs text-gray-500">Total Attacks</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banned IPs Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.security.banned-ips') }}'">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-ban text-orange-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Banned IPs</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="banned-total">-</dd>
+                            <dd class="text-xs text-gray-500">Active Bans</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Monitoring Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.network.index') }}'">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-network-wired text-purple-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Network Monitoring</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="network-traffic">-</dd>
+                            <dd class="text-xs text-gray-500">Current Traffic</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schools Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.schools.index') }}'">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-school text-green-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Schools</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $analytics['total_schools'] }}</dd>
+                            <dd class="text-xs text-gray-500">Total Schools</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-database text-indigo-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Database</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $analytics['database_stats']['total_size_gb'] }} GB</dd>
+                            <dd class="text-xs text-gray-500">Total Size</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
                 <div class="flex items-center">
@@ -54,24 +149,8 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total User</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
                             <dd class="text-lg font-medium text-gray-900">{{ number_format($analytics['total_users']) }}</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-database text-purple-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Database Size</dt>
-                            <dd class="text-lg font-medium text-gray-900">{{ $analytics['database_stats']['total_size_gb'] }} GB</dd>
                         </dl>
                     </div>
                 </div>
@@ -86,8 +165,40 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Sekolah Aktif</dt>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Active Schools</dt>
                             <dd class="text-lg font-medium text-gray-900">{{ $analytics['active_schools'] }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Critical Attacks</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="critical-attacks">-</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-blue-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Recent Activity</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="recent-activity">-</dd>
                         </dl>
                     </div>
                 </div>
@@ -398,6 +509,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const chart = new ApexCharts(document.querySelector("#school-usage-chart"), schoolChart);
     chart.render();
+
+    // Load real-time data for dashboard cards
+    loadDashboardData();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadDashboardData, 30000);
 });
+
+function loadDashboardData() {
+    // Load audit trail statistics
+    fetch('{{ route("super-admin.audit-trails.statistics") }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('audit-total').textContent = data.total_actions || 0;
+        })
+        .catch(error => console.error('Error loading audit data:', error));
+
+    // Load security statistics
+    fetch('{{ route("super-admin.security.statistics") }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('security-total').textContent = data.total_attacks || 0;
+            document.getElementById('critical-attacks').textContent = data.critical_attacks || 0;
+        })
+        .catch(error => console.error('Error loading security data:', error));
+
+    // Load banned IPs count
+    fetch('{{ route("super-admin.security.banned-ips") }}')
+        .then(response => response.text())
+        .then(html => {
+            // Extract count from the page (this is a simple approach)
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const bannedCount = doc.querySelectorAll('tbody tr').length;
+            document.getElementById('banned-total').textContent = bannedCount;
+        })
+        .catch(error => console.error('Error loading banned IPs:', error));
+
+    // Load network data
+    fetch('{{ route("super-admin.network.realtime") }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('network-traffic').textContent = data.requests_per_second + ' req/s';
+        })
+        .catch(error => console.error('Error loading network data:', error));
+
+    // Load recent activity
+    fetch('{{ route("super-admin.audit-trails.statistics") }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('recent-activity').textContent = data.recent_activity || 0;
+        })
+        .catch(error => console.error('Error loading recent activity:', error));
+}
 </script>
 @endsection

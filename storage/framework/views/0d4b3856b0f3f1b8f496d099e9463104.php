@@ -54,10 +54,37 @@
                 <nav class="mt-5 flex-1 px-2 space-y-1">
                     <!-- Dashboard - tenant or SaaS -->
                     <?php ($isSuper = strtolower(auth()->user()->email) === strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))); ?>
-                    <a href="<?php echo e($isSuper ? route('super-admin.index') : route('dashboard')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs($isSuper ? 'super-admin.*' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                    <a href="<?php echo e($isSuper ? route('super-admin.index') : route('dashboard')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
                         <i class="fas fa-home mr-3 text-gray-400 group-hover:text-gray-500"></i>
                         Dashboard
                     </a>
+
+                    <!-- SUPER ADMIN MENU -->
+                    <?php if($isSuper): ?>
+                        <div class="space-y-1">
+                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Super Admin</div>
+                            
+                            <a href="<?php echo e(route('super-admin.schools.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.schools.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                                <i class="fas fa-school mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                Manajemen Sekolah
+                            </a>
+                            
+                            <a href="<?php echo e(route('super-admin.audit-trails.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.audit-trails.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                                <i class="fas fa-history mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                Audit Trail
+                            </a>
+                            
+                            <a href="<?php echo e(route('super-admin.security.index')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                                <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                Security Monitoring
+                            </a>
+                            
+                            <a href="<?php echo e(route('super-admin.security.banned-ips')); ?>" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md <?php echo e(request()->routeIs('super-admin.security.banned-ips') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'); ?>">
+                                <i class="fas fa-ban mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                Banned IPs
+                            </a>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- 1. MANAJEMEN DATA (Admin Only) -->
                     <?php if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com')))): ?>
