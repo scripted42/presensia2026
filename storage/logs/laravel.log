@@ -13621,3 +13621,11 @@ Did you mean one of these?
 #58 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\FHL\\\\.c...')
 #59 {main}
 "} 
+[2025-10-16 14:27:39] local.INFO: Logout attempt for user: superadmin@presensia.co.id  
+[2025-10-16 14:27:39] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 14:32:25] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-16 14:32:25] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 14:33:46] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-16 14:33:47] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 14:34:02] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-16 14:34:02] local.INFO: Logout completed, redirecting to login  

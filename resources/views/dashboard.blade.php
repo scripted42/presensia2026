@@ -431,7 +431,7 @@
                                 <i class="fas fa-download text-purple-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-purple-900">Export Laporan</span>
                             </a>
-                        @elseif($user->hasRole(['teacher', 'tu', 'bk', 'kesiswaan']))
+                        @elseif($user->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
                             <!-- Employee Menu -->
                             <a href="{{ route('attendance.check-in') }}" class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                                 <i class="fas fa-sign-in-alt text-blue-600 text-2xl mb-2"></i>
@@ -441,7 +441,7 @@
                                 <i class="fas fa-sign-out-alt text-green-600 text-2xl mb-2"></i>
                                 <span class="text-sm font-medium text-green-900">Absensi Keluar</span>
                             </a>
-                            @if($user->hasRole('teacher'))
+                            @if($user->hasRole(['teacher','admin']))
                                 <a href="{{ route('attendance.student-scan') }}" class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                                     <i class="fas fa-qrcode text-purple-600 text-2xl mb-2"></i>
                                     <span class="text-sm font-medium text-purple-900">Scan Siswa</span>
