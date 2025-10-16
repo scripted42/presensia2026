@@ -141,6 +141,61 @@ class TenantController extends Controller
     }
 
     /**
+     * Remove banner or school photo
+     */
+    public function removeImage(Request $request, $type)
+    {
+        $user = Auth::user();
+        $school = $user->school;
+        $tenantSettings = $school->tenantSettings;
+        
+        if (!$tenantSettings) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengaturan tenant tidak ditemukan'
+            ], 404);
+        }
+
+        try {
+            if ($type === 'banner') {
+                // Delete banner file if exists
+                if ($tenantSettings->banner_image && \Storage::disk('public')->exists($tenantSettings->banner_image)) {
+                    \Storage::disk('public')->delete($tenantSettings->banner_image);
+                }
+                $tenantSettings->update(['banner_image' => null]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Banner berhasil dihapus'
+                ]);
+                
+            } elseif ($type === 'school_photo') {
+                // Delete school photo file if exists
+                if ($tenantSettings->school_photo && \Storage::disk('public')->exists($tenantSettings->school_photo)) {
+                    \Storage::disk('public')->delete($tenantSettings->school_photo);
+                }
+                $tenantSettings->update(['school_photo' => null]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Foto sekolah berhasil dihapus'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Tipe gambar tidak valid'
+            ], 400);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update branding settings
      */
     public function updateBranding(Request $request)

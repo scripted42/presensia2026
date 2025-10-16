@@ -50,7 +50,12 @@
                                 <input type="file" name="banner_image" id="banner_image" accept="image/*" onchange="previewBanner(this)"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 @if($tenantSettings->banner_image ?? false)
-                                    <p class="mt-1 text-sm text-gray-500">Banner saat ini: {{ $tenantSettings->banner_image }}</p>
+                                    <div class="mt-2 flex items-center justify-between">
+                                        <p class="text-sm text-gray-500">Banner saat ini: {{ basename($tenantSettings->banner_image) }}</p>
+                                        <button type="button" onclick="removeBanner()" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                        </button>
+                                    </div>
                                 @endif
                             </div>
                             
@@ -85,7 +90,12 @@
                                 <input type="file" name="school_photo" id="school_photo" accept="image/*" onchange="previewSchoolPhoto(this)"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 @if($tenantSettings->school_photo ?? false)
-                                    <p class="mt-1 text-sm text-gray-500">Foto sekolah saat ini: {{ $tenantSettings->school_photo }}</p>
+                                    <div class="mt-2 flex items-center justify-between">
+                                        <p class="text-sm text-gray-500">Foto sekolah saat ini: {{ basename($tenantSettings->school_photo) }}</p>
+                                        <button type="button" onclick="removeSchoolPhoto()" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                        </button>
+                                    </div>
                                 @endif
                             </div>
                             
@@ -277,6 +287,56 @@ function updateOpacity(value) {
     const img = preview.querySelector('img');
     if (img) {
         img.style.opacity = value/100;
+    }
+}
+
+// Remove banner function
+function removeBanner() {
+    if (confirm('Apakah Anda yakin ingin menghapus banner?')) {
+        fetch('{{ route("tenant.banner.remove", ["type" => "banner"]) }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal menghapus banner: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus banner');
+        });
+    }
+}
+
+// Remove school photo function
+function removeSchoolPhoto() {
+    if (confirm('Apakah Anda yakin ingin menghapus foto sekolah?')) {
+        fetch('{{ route("tenant.banner.remove", ["type" => "school_photo"]) }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal menghapus foto sekolah: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus foto sekolah');
+        });
     }
 }
 </script>
