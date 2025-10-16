@@ -20,7 +20,155 @@ class SuperAdminController extends Controller
         $schools = School::with(['superAdmin', 'tenantSettings', 'users'])->get();
         $superAdmins = SuperAdmin::with('schools')->get();
         
-        return view('super-admin.dashboard', compact('schools', 'superAdmins'));
+        // Analytics data
+        $analytics = $this->getAnalyticsData($schools);
+        
+        return view('super-admin.dashboard', compact('schools', 'superAdmins', 'analytics'));
+    }
+    
+    /**
+     * Get analytics data for dashboard
+     */
+    private function getAnalyticsData($schools)
+    {
+        // Total users across all schools
+        $totalUsers = $schools->sum('users_count');
+        
+        // Database size estimation (simplified calculation)
+        $databaseStats = $this->calculateDatabaseStats($schools);
+        
+        // School usage analytics
+        $schoolAnalytics = $schools->map(function($school) {
+            $userCount = $school->users_count ?? 0;
+            $isActive = $school->is_active;
+            $createdAt = $school->created_at;
+            
+            // Calculate usage score (0-100)
+            $usageScore = min(100, ($userCount / 1000) * 100); // Assuming 1000 users = 100% usage
+            
+            return [
+                'id' => $school->id,
+                'name' => $school->name,
+                'user_count' => $userCount,
+                'is_active' => $isActive,
+                'usage_score' => $usageScore,
+                'created_at' => $createdAt,
+                'database_size_mb' => $this->estimateSchoolDatabaseSize($school)
+            ];
+        });
+        
+        // Top schools by user count
+        $topSchools = $schoolAnalytics->sortByDesc('user_count')->take(5);
+        
+        // Schools with high database usage
+        $highUsageSchools = $schoolAnalytics->where('usage_score', '>', 80)->sortByDesc('usage_score');
+        
+        // Recommendations
+        $recommendations = $this->generateRecommendations($schoolAnalytics, $databaseStats);
+        
+        return [
+            'total_users' => $totalUsers,
+            'total_schools' => $schools->count(),
+            'active_schools' => $schools->where('is_active', true)->count(),
+            'database_stats' => $databaseStats,
+            'school_analytics' => $schoolAnalytics,
+            'top_schools' => $topSchools,
+            'high_usage_schools' => $highUsageSchools,
+            'recommendations' => $recommendations
+        ];
+    }
+    
+    /**
+     * Calculate database statistics
+     */
+    private function calculateDatabaseStats($schools)
+    {
+        $totalSize = 0;
+        $schoolSizes = [];
+        
+        foreach ($schools as $school) {
+            $size = $this->estimateSchoolDatabaseSize($school);
+            $totalSize += $size;
+            $schoolSizes[] = [
+                'school_id' => $school->id,
+                'school_name' => $school->name,
+                'size_mb' => $size
+            ];
+        }
+        
+        return [
+            'total_size_mb' => $totalSize,
+            'total_size_gb' => round($totalSize / 1024, 2),
+            'average_size_mb' => $schools->count() > 0 ? round($totalSize / $schools->count(), 2) : 0,
+            'school_sizes' => collect($schoolSizes)->sortByDesc('size_mb')
+        ];
+    }
+    
+    /**
+     * Estimate database size for a school
+     */
+    private function estimateSchoolDatabaseSize($school)
+    {
+        // Simplified estimation based on user count and data
+        $userCount = $school->users_count ?? 0;
+        $baseSize = 10; // Base 10MB per school
+        $userSize = $userCount * 0.5; // 0.5MB per user
+        $attendanceSize = $userCount * 0.3; // 0.3MB for attendance data per user
+        
+        return round($baseSize + $userSize + $attendanceSize, 2);
+    }
+    
+    /**
+     * Generate recommendations based on analytics
+     */
+    private function generateRecommendations($schoolAnalytics, $databaseStats)
+    {
+        $recommendations = [];
+        
+        // High usage schools
+        $highUsage = $schoolAnalytics->where('usage_score', '>', 90);
+        if ($highUsage->count() > 0) {
+            $recommendations[] = [
+                'type' => 'warning',
+                'title' => 'Sekolah dengan Penggunaan Tinggi',
+                'message' => "{$highUsage->count()} sekolah memiliki penggunaan >90%. Pertimbangkan untuk upgrade server atau optimasi database.",
+                'schools' => $highUsage->pluck('name')->toArray()
+            ];
+        }
+        
+        // Large database schools
+        $largeDb = $schoolAnalytics->where('database_size_mb', '>', 500);
+        if ($largeDb->count() > 0) {
+            $recommendations[] = [
+                'type' => 'info',
+                'title' => 'Sekolah dengan Database Besar',
+                'message' => "{$largeDb->count()} sekolah memiliki database >500MB. Pertimbangkan untuk cleanup data lama atau archiving.",
+                'schools' => $largeDb->pluck('name')->toArray()
+            ];
+        }
+        
+        // Inactive schools
+        $inactive = $schoolAnalytics->where('is_active', false);
+        if ($inactive->count() > 0) {
+            $recommendations[] = [
+                'type' => 'warning',
+                'title' => 'Sekolah Tidak Aktif',
+                'message' => "{$inactive->count()} sekolah tidak aktif. Pertimbangkan untuk menghapus atau mengaktifkan kembali.",
+                'schools' => $inactive->pluck('name')->toArray()
+            ];
+        }
+        
+        // Database optimization
+        if ($databaseStats['total_size_gb'] > 5) {
+            $recommendations[] = [
+                'type' => 'success',
+                'title' => 'Optimasi Database',
+                'message' => "Total database {$databaseStats['total_size_gb']}GB. Pertimbangkan untuk implementasi database partitioning atau archiving.",
+                'schools' => []
+            ];
+        }
+        
+        return $recommendations;
     }
 
     /**
