@@ -103,7 +103,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #10b981 !important;"></div>
-                    <span class="text-sm text-gray-700">Ontime</span>
+                    <span class="text-sm text-gray-700">Tepat Waktu</span>
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #eab308 !important;"></div>
@@ -111,11 +111,11 @@
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #f97316 !important;"></div>
-                    <span class="text-sm text-gray-700">Sakit/Izin/Cuti/Dinas</span>
+                    <span class="text-sm text-gray-700">Izin/Sakit/Cuti/Dinas Luar</span>
                 </div>
                 <div class="flex items-center">
                     <div class="w-4 h-4 rounded mr-2" style="background-color: #ef4444 !important;"></div>
-                    <span class="text-sm text-gray-700">Alpha</span>
+                    <span class="text-sm text-gray-700">Alpa</span>
                 </div>
             </div>
         </div>
@@ -214,13 +214,24 @@
                                 $overlayLeave = isset($leaveByUserDate[$userId][$dateKey]) ? $leaveByUserDate[$userId][$dateKey] : null;
                                 $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
-                                $colors = [ 'ontime'=>'bg-green-100 text-green-800 border-green-200', 'late'=>'bg-yellow-100 text-yellow-800 border-yellow-200', 'sick'=>'bg-orange-100 text-orange-800 border-orange-200', 'permit'=>'bg-orange-100 text-orange-800 border-orange-200', 'duty'=>'bg-orange-100 text-orange-800 border-orange-200', 'leave'=>'bg-orange-100 text-orange-800 border-orange-200', 'alpha'=>'bg-red-100 text-red-800 border-red-200' ];
+                                // warna badge sesuai legenda (hex)
+                                $badgeMap = [
+                                    'ontime' => ['bg' => '#10b981', 'border' => '#10b981', 'text' => '#ffffff'],
+                                    'late'   => ['bg' => '#eab308', 'border' => '#eab308', 'text' => '#ffffff'],
+                                    'sick'   => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
+                                    'permit' => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
+                                    'duty'   => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
+                                    'leave'  => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
+                                    'alpha'  => ['bg' => '#ef4444', 'border' => '#ef4444', 'text' => '#ffffff'],
+                                ];
+                                $labels = [ 'ontime'=>'Tepat Waktu', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpa' ];
+                                $style = $badgeMap[$status] ?? $badgeMap['alpha'];
                             ?>
                             <td class="px-2 py-4 text-center">
-                                <div class="rounded-lg border-2 <?php echo e($colors[$status] ?? 'bg-red-100 text-red-800 border-red-200'); ?> p-2 min-h-[60px] flex flex-col justify-center">
-                                    <div class="text-xs font-semibold text-center"><?php echo e(ucfirst($status)); ?></div>
+                                <div class="rounded-lg border-2 p-2 min-h-[60px] flex flex-col justify-center" style="background-color: <?php echo e($style['bg']); ?>; border-color: <?php echo e($style['border']); ?>; color: <?php echo e($style['text']); ?>;">
+                                    <div class="text-xs font-semibold text-center"><?php echo e($labels[$status] ?? 'Alpa'); ?></div>
                                     <?php if($attendance && in_array($status, ['ontime', 'late']) && $time): ?>
-                                        <div class="text-xs text-center mt-1 opacity-75"><?php echo e($time); ?></div>
+                                        <div class="text-xs text-center mt-1 opacity-90"><?php echo e($time); ?></div>
                                     <?php endif; ?>
                                 </div>
                             </td>
