@@ -13,12 +13,27 @@ class LoginController extends Controller
     /**
      * Show the login form.
      */
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        
+
+        // Ensure captcha shows after threshold even on fresh GET
+        $ipAddress = (string) $request->ip();
+        $emailLower = strtolower((string) ($request->old('email') ?? $request->session()->get('login_email_lower', '')));
+        if ($emailLower !== '') {
+            $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $emailLower);
+            $attempts = (int) Cache::get($attemptKey, 0);
+            if ($attempts >= 3) {
+                if (!$request->session()->has('captcha_question')) {
+                    $this->generateCaptchaQuestion($request);
+                } else {
+                    $request->session()->put('captcha_required', true);
+                }
+            }
+        }
+
         return view('auth.login');
     }
 
@@ -111,6 +126,9 @@ class LoginController extends Controller
         if ($attempts >= 10) {
             Cache::put($banKey, true, now()->addMinutes(30));
         }
+
+        // Remember last email to evaluate attempts on GET
+        $request->session()->put('login_email_lower', $emailLower);
 
         return redirect()->back()
             ->withErrors(['email' => 'Email atau password salah.'])
