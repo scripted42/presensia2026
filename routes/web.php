@@ -61,12 +61,7 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.ad
         Route::get('/{securityLog}', [SecurityController::class, 'show'])->whereNumber('securityLog')->name('show');
     });
     
-    // Network Monitoring routes
-    Route::prefix('network')->name('network.')->group(function () {
-        Route::get('/', [NetworkController::class, 'index'])->name('index');
-        Route::get('/realtime', [NetworkController::class, 'realtime'])->name('realtime');
-        Route::get('/alerts', [NetworkController::class, 'alerts'])->name('alerts');
-    });
+    // (Removed) Network Monitoring routes
 });
 
 // Authentication routes

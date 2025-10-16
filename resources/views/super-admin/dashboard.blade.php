@@ -84,23 +84,7 @@
             </div>
         </div>
 
-        <!-- Network Monitoring Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.network.index') }}'">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <i class="fas fa-network-wired text-purple-600 text-2xl"></i>
-                    </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Network Monitoring</dt>
-                            <dd class="text-lg font-medium text-gray-900" id="network-traffic">-</dd>
-                            <dd class="text-xs text-gray-500">Current Traffic</dd>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Schools Card -->
         <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('super-admin.schools.index') }}'">
@@ -547,13 +531,7 @@ function loadDashboardData() {
         })
         .catch(error => console.error('Error loading banned IPs:', error));
 
-    // Load network data
-    fetch('{{ route("super-admin.network.realtime") }}')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('network-traffic').textContent = data.requests_per_second + ' req/s';
-        })
-        .catch(error => console.error('Error loading network data:', error));
+    
 
     // Load recent activity
     fetch('{{ route("super-admin.audit-trails.statistics") }}')
