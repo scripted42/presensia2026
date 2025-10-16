@@ -15,7 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'school.isolation' => \App\Http\Middleware\SchoolIsolationMiddleware::class,
             'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'security.monitor' => \App\Http\Middleware\SecurityMonitoringMiddleware::class,
         ]);
+
+        // Jalankan monitoring keamanan + audit trail untuk semua request web
+        // Catatan: jika ingin membatasi, gunakan group 'web' saja
+        $middleware->append(\App\Http\Middleware\SecurityMonitoringMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
