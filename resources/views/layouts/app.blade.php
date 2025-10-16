@@ -49,24 +49,7 @@
         /* Accessibility helpers */
         .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
         .skip-link:focus{position:static;width:auto;height:auto;margin:8px;clip:auto;padding:8px 12px;background:#1f2937;color:#fff;border-radius:6px}
-        /* Sidebar color accents per group */
-        .sb-header{border-left:4px solid transparent;border-radius:8px;padding-left:10px;}
-        .sb-header:hover{background:#f9fafb}
-        .sb-c-purple a{border-left:3px solid transparent;border-radius:8px}
-        .sb-c-purple a:hover{background:#f5f3ff;border-left-color:#A78BFA}
-        .sb-c-purple a[aria-current="page"]{background:#ede9fe;border-left-color:#7c3aed;color:#3730a3}
-        .sb-c-teal a{border-left:3px solid transparent;border-radius:8px}
-        .sb-c-teal a:hover{background:#f0fdfa;border-left-color:#14B8A6}
-        .sb-c-teal a[aria-current="page"]{background:#ccfbf1;border-left-color:#0d9488;color:#115e59}
-        .sb-c-blue a{border-left:3px solid transparent;border-radius:8px}
-        .sb-c-blue a:hover{background:#eff6ff;border-left-color:#3B82F6}
-        .sb-c-blue a[aria-current="page"]{background:#dbeafe;border-left-color:#2563eb;color:#1e3a8a}
-        .sb-c-amber a{border-left:3px solid transparent;border-radius:8px}
-        .sb-c-amber a:hover{background:#fffbeb;border-left-color:#f59e0b}
-        .sb-c-amber a[aria-current="page"]{background:#fef3c7;border-left-color:#d97706;color:#92400e}
-        .sb-c-indigo a{border-left:3px solid transparent;border-radius:8px}
-        .sb-c-indigo a:hover{background:#eef2ff;border-left-color:#6366f1}
-        .sb-c-indigo a[aria-current="page"]{background:#e0e7ff;border-left-color:#4f46e5;color:#3730a3}
+        /* removed color accents */
         /* Desktop sidebar collapse */
         .desktop-sidebar{transition:width .2s ease;}
         body.desktop-sidebar-collapsed #desktop-sidebar{display:none !important;}
@@ -95,8 +78,8 @@
                     
                     <!-- SUPER ADMIN MENU -->
                     @if($isSuper)
-                        <div class="space-y-1 sb-c-indigo">
-                            <button type="button" class="sb-header w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-super-admin')">
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-super-admin')">
                                 <span>Super Admin</span>
                                 <span id="chev-group-super-admin">▾</span>
                             </button>
@@ -123,8 +106,8 @@
 
                     <!-- 1. MANAJEMEN DATA (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1 sb-c-purple">
-                            <button type="button" class="sb-header w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-manajemen-data')">
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-manajemen-data')">
                                 <span>Manajemen Data</span>
                                 <span id="chev-group-manajemen-data">▾</span>
                             </button>
@@ -151,8 +134,8 @@
 
                     <!-- 2. ABSENSI (All roles except student) -->
                     @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1 sb-c-blue">
-                            <button type="button" class="sb-header w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
                                 <span>Absensi</span>
                                 <span id="chev-group-absensi">▾</span>
                             </button>
@@ -193,8 +176,8 @@
 
                     <!-- 3. IZIN & CUTI (All roles except student) -->
                     @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1 sb-c-amber">
-                            <button type="button" class="sb-header w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
                                 <span>Izin & Cuti</span>
                                 <span id="chev-group-izin">▾</span>
                             </button>
@@ -232,8 +215,8 @@
 
                     <!-- 5. PENGATURAN (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1 sb-c-teal">
-                            <button type="button" class="sb-header w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-settings')">
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-settings')">
                                 <span>Pengaturan</span>
                                 <span id="chev-group-settings">▾</span>
                             </button>
