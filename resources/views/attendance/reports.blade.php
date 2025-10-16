@@ -22,7 +22,9 @@
     .att-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:9999px; border-width:1px; border-style:solid; font-size:10px; line-height:1; font-weight:600; min-width:64px; }
     .att-ontime { color:#065f46; background:#ecfdf5; border-color:#10b981; }
     .att-late { color:#92400e; background:#fffbeb; border-color:#eab308; }
-    .att-leave { color:#9a3412; background:#fff7ed; border-color:#f97316; }
+    /* Leave group now solid orange to be distinct from Alpha */
+    .att-leave { color:#ffffff; background:#f97316; border-color:#f97316; }
+    /* Alpha stays light red */
     .att-alpha { color:#991b1b; background:#fef2f2; border-color:#ef4444; }
     .att-time { font-size:10px; margin-top:2px; opacity:.85; }
 </style>
