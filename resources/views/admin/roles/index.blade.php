@@ -3,7 +3,7 @@
 @section('title', 'Manajemen Role - Presensia')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+<div>
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
@@ -23,7 +23,7 @@
                         <i class="fas fa-plus mr-2"></i>
                         Tambah Role
                     </a>
-                </div>
+    </div>
             </div>
         </div>
     </div>

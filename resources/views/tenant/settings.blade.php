@@ -3,7 +3,7 @@
 @section('title', 'Pengaturan Aplikasi - Presensia')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+<div>
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
@@ -11,7 +11,7 @@
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Pengaturan Aplikasi</h1>
                     <p class="text-gray-600 mt-1">Kustomisasi branding dan fitur aplikasi untuk {{ $school->name }}</p>
-                </div>
+    </div>
             </div>
         </div>
     </div>
