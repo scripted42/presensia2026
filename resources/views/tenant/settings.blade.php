@@ -116,13 +116,17 @@
                         <!-- Interactive Photo Position Controls -->
                         <div class="mt-4">
                             <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h5>
-                            <div class="relative bg-gray-100 rounded-lg p-4" style="height: 200px;">
-                                <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded bg-cover bg-center bg-no-repeat">
-                                    <div id="photo-drag-handle" class="absolute w-8 h-8 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white text-xs font-bold shadow-lg" 
-                                         style="left: {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? '10%' : (($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? '90%' : '50%') }}; top: {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? '10%' : (($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? '90%' : '50%') }};">
+                            <div class="relative bg-gray-100 rounded-lg p-4" style="height: 240px;">
+                                <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded overflow-hidden">
+                                    <!-- Background layer for photo (controls opacity/scale/position) -->
+                                    <div id="photo-bg" class="absolute inset-0 bg-no-repeat bg-cover" style="opacity: {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};"></div>
+                                    
+                                    <!-- Drag handle -->
+                                    <div id="photo-drag-handle" class="absolute z-10 w-8 h-8 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white text-xs font-bold shadow-lg" 
+                                         style="left: {{ ($tenantSettings->school_photo_position_x ?? 'center') == 'left' ? '10%' : (($tenantSettings->school_photo_position_x ?? 'center') == 'right' ? '90%' : '50%') }}; top: {{ ($tenantSettings->school_photo_position_y ?? 'center') == 'top' ? '10%' : (($tenantSettings->school_photo_position_y ?? 'center') == 'bottom' ? '90%' : '50%') }}; transform: translate(-50%, -50%);">
                                         <i class="fas fa-arrows-alt"></i>
                                     </div>
-                                    <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                                    <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm pointer-events-none">
                                         Drag lingkaran biru untuk mengatur posisi foto
                                     </div>
                                 </div>
@@ -148,18 +152,7 @@
                         </div>
                         </div>
                         
-                        <!-- School Photo Preview -->
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Preview Foto Sekolah:</label>
-                            <div class="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300" id="school-photo-preview">
-                                <div class="absolute inset-0 flex items-center justify-center text-gray-500">
-                                    <div class="text-center">
-                                        <i class="fas fa-school text-2xl mb-1"></i>
-                                        <p class="text-sm">Preview foto sekolah akan muncul di sini</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Preview terintegrasi pada kanvas posisi, blok terpisah dihapus -->
                     </div>
                     
                     <!-- Topbar Announcement -->
@@ -309,21 +302,16 @@ function previewSchoolPhoto(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const preview = document.getElementById('school-photo-preview');
-            const opacity = document.getElementById('school_photo_opacity').value;
-            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" style="opacity: ${opacity/100}" alt="School photo preview">`;
-
-            // Also set background in the interactive drag area so user can position directly
-            const area = document.getElementById('photo-position-area');
-            if (area) {
-                area.style.backgroundImage = `url('${e.target.result}')`;
-                // Reset to current position controls
+            const bg = document.getElementById('photo-bg');
+            if (bg) {
+                const opacity = document.getElementById('school_photo_opacity').value;
                 const posX = document.getElementById('school_photo_position_x').value;
                 const posY = document.getElementById('school_photo_position_y').value;
-                area.style.backgroundPosition = `${posX} ${posY}`;
                 const scale = document.getElementById('school_photo_scale').value;
-                area.style.backgroundSize = `${scale}%`;
-                area.style.backgroundRepeat = 'no-repeat';
+                bg.style.backgroundImage = `url('${e.target.result}')`;
+                bg.style.opacity = opacity/100;
+                bg.style.backgroundPosition = `${posX} ${posY}`;
+                bg.style.backgroundSize = `${scale}%`;
             }
         };
         reader.readAsDataURL(input.files[0]);
@@ -344,14 +332,17 @@ let dragArea = null;
 document.addEventListener('DOMContentLoaded', function() {
     dragHandle = document.getElementById('photo-drag-handle');
     dragArea = document.getElementById('photo-position-area');
+    const bg = document.getElementById('photo-bg');
     
     if (dragHandle && dragArea) {
         // Initialize background image of drag area if existing photo
         @if($tenantSettings->school_photo)
-            dragArea.style.backgroundImage = "url('{{ asset('storage/' . $tenantSettings->school_photo) }}')";
-            dragArea.style.backgroundPosition = "{{ $tenantSettings->school_photo_position_x ?? 'center' }} {{ $tenantSettings->school_photo_position_y ?? 'center' }}";
-            dragArea.style.backgroundSize = "{{ $tenantSettings->school_photo_scale ?? 100 }}%";
-            dragArea.style.backgroundRepeat = 'no-repeat';
+            if (bg) {
+                bg.style.backgroundImage = "url('{{ asset('storage/' . $tenantSettings->school_photo) }}')";
+                bg.style.backgroundPosition = "{{ $tenantSettings->school_photo_position_x ?? 'center' }} {{ $tenantSettings->school_photo_position_y ?? 'center' }}";
+                bg.style.backgroundSize = "{{ $tenantSettings->school_photo_scale ?? 100 }}%";
+                bg.style.opacity = {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};
+            }
         @endif
         // Mouse events
         dragHandle.addEventListener('mousedown', startDrag);
@@ -431,39 +422,15 @@ function updateScale(value) {
 
 // Update preview with all settings
 function updatePreview() {
-    const preview = document.getElementById('school-photo-preview');
-    const img = preview.querySelector('img');
-    const area = document.getElementById('photo-position-area');
-    if (img) {
+    const bg = document.getElementById('photo-bg');
+    if (bg && bg.style.backgroundImage) {
         const opacity = document.getElementById('school_photo_opacity').value;
         const positionX = document.getElementById('school_photo_position_x').value;
         const positionY = document.getElementById('school_photo_position_y').value;
         const scale = document.getElementById('school_photo_scale').value;
-        
-        // Apply opacity
-        img.style.opacity = opacity/100;
-        
-        // Apply position
-        let backgroundPosition = '';
-        if (positionX === 'left') backgroundPosition += 'left ';
-        else if (positionX === 'right') backgroundPosition += 'right ';
-        else backgroundPosition += 'center ';
-        
-        if (positionY === 'top') backgroundPosition += 'top';
-        else if (positionY === 'bottom') backgroundPosition += 'bottom';
-        else backgroundPosition += 'center';
-        
-        img.style.objectPosition = backgroundPosition;
-        
-        // Apply scale
-        img.style.transform = `scale(${scale/100})`;
-    }
-    if (area && area.style.backgroundImage) {
-        const positionX = document.getElementById('school_photo_position_x').value;
-        const positionY = document.getElementById('school_photo_position_y').value;
-        const scale = document.getElementById('school_photo_scale').value;
-        area.style.backgroundPosition = `${positionX} ${positionY}`;
-        area.style.backgroundSize = `${scale}%`;
+        bg.style.opacity = opacity/100;
+        bg.style.backgroundPosition = `${positionX} ${positionY}`;
+        bg.style.backgroundSize = `${scale}%`;
     }
 }
 
