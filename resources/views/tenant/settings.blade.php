@@ -37,7 +37,7 @@
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Banner & Layout</h3>
-                <form action="{{ route('tenant.banner.update') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('tenant.banner.update') }}" method="POST" enctype="multipart/form-data" id="banner-form">
                     @csrf
                     @method('PUT')
                     
@@ -172,10 +172,10 @@
                     </div>
                     
                     <div class="mt-6">
-                        <button type="submit" 
+                        <button type="submit" id="save-button"
                                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <i class="fas fa-save mr-2"></i>
-                            Simpan Pengaturan Banner
+                            <span id="save-text">Simpan Pengaturan Banner</span>
                         </button>
                     </div>
                 </form>
@@ -295,6 +295,7 @@ function previewBanner(input) {
 // School photo preview function
 function previewSchoolPhoto(input) {
     if (input.files && input.files[0]) {
+        console.log('School photo selected:', input.files[0].name);
         const reader = new FileReader();
         reader.onload = function(e) {
             const bg = document.getElementById('photo-bg');
@@ -307,6 +308,11 @@ function previewSchoolPhoto(input) {
                 bg.style.opacity = opacity/100;
                 bg.style.backgroundPosition = `${posX} ${posY}`;
                 bg.style.backgroundSize = `${scale}%`;
+                
+                console.log('Photo loaded in preview area');
+                
+                // Re-initialize drag functionality for the new image
+                initializeDrag();
             }
         };
         reader.readAsDataURL(input.files[0]);
@@ -323,6 +329,21 @@ function updateOpacity(value) {
 let isDragging = false;
 let dragArea = null;
 
+function initializeDrag() {
+    dragArea = document.getElementById('photo-position-area');
+    const bg = document.getElementById('photo-bg');
+    
+    if (dragArea && bg) {
+        // Remove existing event listeners to prevent duplicates
+        bg.removeEventListener('mousedown', startDrag);
+        bg.removeEventListener('touchstart', startDrag);
+        
+        // Add new event listeners
+        bg.addEventListener('mousedown', startDrag);
+        bg.addEventListener('touchstart', startDrag);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     dragArea = document.getElementById('photo-position-area');
     const bg = document.getElementById('photo-bg');
@@ -336,15 +357,27 @@ document.addEventListener('DOMContentLoaded', function() {
             bg.style.opacity = {{ ($tenantSettings->school_photo_opacity ?? 10) / 100 }};
         @endif
         
-        // Make the photo background draggable
-        bg.addEventListener('mousedown', startDrag);
+        // Initialize drag functionality
+        initializeDrag();
+        
+        // Global mouse/touch events
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', stopDrag);
-        
-        // Touch events for mobile
-        bg.addEventListener('touchstart', startDrag);
         document.addEventListener('touchmove', drag);
         document.addEventListener('touchend', stopDrag);
+    }
+    
+    // Handle form submission
+    const form = document.getElementById('banner-form');
+    const saveButton = document.getElementById('save-button');
+    const saveText = document.getElementById('save-text');
+    
+    if (form && saveButton && saveText) {
+        form.addEventListener('submit', function(e) {
+            saveButton.disabled = true;
+            saveText.textContent = 'Menyimpan...';
+            saveButton.classList.add('opacity-75', 'cursor-not-allowed');
+        });
     }
 });
 
@@ -352,7 +385,10 @@ function startDrag(e) {
     isDragging = true;
     e.preventDefault();
     const bg = document.getElementById('photo-bg');
-    if (bg) bg.style.cursor = 'grabbing';
+    if (bg) {
+        bg.style.cursor = 'grabbing';
+        console.log('Drag started on photo');
+    }
 }
 
 function drag(e) {
@@ -367,8 +403,7 @@ function drag(e) {
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
     
-    dragHandle.style.left = x + '%';
-    dragHandle.style.top = y + '%';
+    console.log('Dragging to:', x, y);
     
     // Update position values
     updatePositionFromDrag(x, y);
