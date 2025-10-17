@@ -73,6 +73,18 @@ class AttendanceController extends Controller
      */
     public function checkIn(Request $request)
     {
+        // Debug ngrok issues
+        \Log::info('Check-in request received:', [
+            'user_id' => Auth::id(),
+            'qr_code' => $request->qr_code,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'location_name' => $request->location_name,
+            'user_agent' => $request->userAgent(),
+            'ip' => $request->ip(),
+            'headers' => $request->headers->all()
+        ]);
+        
         $user = Auth::user();
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         
@@ -120,6 +132,13 @@ class AttendanceController extends Controller
                 'qr_code_used' => $request->qr_code,
             ]
         );
+        
+        \Log::info('Attendance created successfully:', [
+            'attendance_id' => $attendance->id,
+            'user_id' => $attendance->user_id,
+            'check_in' => $attendance->check_in,
+            'status' => $attendance->status
+        ]);
         
         // Handle AJAX requests
         if ($request->ajax() || $request->wantsJson()) {
