@@ -104,6 +104,10 @@
                                         class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
                                     SISWA003
                                 </button>
+                                <button type="button" onclick="testQRDetection()" 
+                                        class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">
+                                    Test QR
+                                </button>
                             </div>
                         </div>
                         
@@ -293,30 +297,43 @@
             showNotification('QR Detection aktif - Arahkan QR ke kamera', 'info');
             
             // Start real-time QR detection
+            let detectionAttempts = 0;
             const detectionInterval = setInterval(() => {
                 if (!qrDetectionActive) {
                     clearInterval(detectionInterval);
                     return;
                 }
                 
+                detectionAttempts++;
+                console.log(`Detection attempt ${detectionAttempts}`);
+                
                 try {
+                    // Check if video is ready
+                    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+                        console.log('Video not ready, skipping detection');
+                        return;
+                    }
+                    
                     // Create canvas for detection
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
+                    console.log(`Canvas size: ${canvas.width}x${canvas.height}`);
+                    
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
                     // Get image data for QR detection
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    console.log(`Image data: ${imageData.data.length} bytes`);
                     
                     // Try to detect QR code
                     const qrCode = detectQRCode(imageData, canvas.width, canvas.height);
                     
                     if (qrCode && qrCode !== lastDetectedQR) {
                         detectionCount++;
-                        console.log(`QR detected (${detectionCount}): ${qrCode}`);
+                        console.log(`🎯 QR detected (${detectionCount}/3): ${qrCode}`);
                         
                         // Update detection count display
                         document.getElementById('detection-count').innerHTML = `<i class="fas fa-bullseye mr-1"></i>Count: ${detectionCount}`;
@@ -326,12 +343,15 @@
                         
                         // Auto-capture after 3 successful detections
                         if (detectionCount >= 3) {
-                            console.log('Auto-capturing QR after 3 detections');
+                            console.log('🚀 Auto-capturing QR after 3 detections');
                             autoCaptureQR(qrCode, canvas);
                             stopQRDetection();
                         }
                         
                         lastDetectedQR = qrCode;
+                    } else if (detectionAttempts % 10 === 0) {
+                        // Show progress every 10 attempts
+                        console.log(`Detection in progress... (${detectionAttempts} attempts)`);
                     }
                 } catch (err) {
                     console.error('QR detection error:', err);
@@ -372,20 +392,24 @@
             }
         }
         
-        // Real-time QR detection using jsQR
+        // Enhanced QR detection with better debugging
         function detectQRCode(imageData, width, height) {
             try {
+                console.log(`Detecting QR: ${width}x${height}, data length: ${imageData.data.length}`);
+                
                 // Use jsQR for real-time QR detection
                 const code = jsQR(imageData.data, width, height, {
                     inversionAttempts: 'attemptBoth'
                 });
                 
                 if (code && code.data) {
-                    console.log('QR detected:', code.data);
+                    console.log('✅ QR detected:', code.data);
+                    console.log('QR location:', code.location);
                     return code.data;
+                } else {
+                    console.log('❌ No QR detected');
+                    return null;
                 }
-                
-                return null;
             } catch (err) {
                 console.error('QR detection error:', err);
                 return null;
@@ -431,6 +455,49 @@
             capturedStudents.push(manualRecord);
             updateCapturedList();
             showNotification('Siswa berhasil ditambahkan: ' + qrCode, 'success');
+        }
+        
+        // Test QR detection function
+        function testQRDetection() {
+            console.log('🧪 Testing QR detection...');
+            
+            if (!cameraActive || !video) {
+                showNotification('Kamera belum aktif', 'warning');
+                return;
+            }
+            
+            try {
+                // Create test canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                console.log('Test image data:', {
+                    width: canvas.width,
+                    height: canvas.height,
+                    dataLength: imageData.data.length
+                });
+                
+                // Test QR detection
+                const qrCode = detectQRCode(imageData, canvas.width, canvas.height);
+                
+                if (qrCode) {
+                    console.log('✅ Test QR detected:', qrCode);
+                    showNotification('Test berhasil! QR terdeteksi: ' + qrCode, 'success');
+                } else {
+                    console.log('❌ Test failed: No QR detected');
+                    showNotification('Test gagal: Tidak ada QR terdeteksi', 'warning');
+                }
+                
+            } catch (err) {
+                console.error('Test QR detection error:', err);
+                showNotification('Test error: ' + err.message, 'error');
+            }
         }
 
         // Manual input - untuk QR code manual
