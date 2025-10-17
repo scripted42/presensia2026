@@ -13774,3 +13774,9 @@ Did you mean one of these?
 [2025-10-17 00:07:42] local.INFO: Tenant Settings data: {"banner_image":null,"school_photo":"tenant/school-photos/kcheV6nLKRo6lvydf4soWbKmbJ1QdeZjT0GX51up.webp","banner_text":null,"school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 
 [2025-10-17 04:05:26] local.INFO: Logout attempt for user: admin@presensia.com  
 [2025-10-17 04:05:26] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 04:06:52] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 04:06:52] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 04:08:37] local.INFO: Logout attempt for user: superadmin@presensia.co.id  
+[2025-10-17 04:08:37] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 04:09:09] local.INFO: Logout attempt for user: admin@smpn10surabaya.co.id  
+[2025-10-17 04:09:09] local.INFO: Logout completed, redirecting to login  

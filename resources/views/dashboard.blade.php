@@ -518,9 +518,9 @@
 /* School photo background animation - lazy loading */
 .school-photo-bg{
     opacity: 0;
-    transform: scale(0.8) translateY(30px);
-    transition: opacity 1.5s ease, transform 1.5s ease;
-    filter: blur(5px);
+    transform: scale(0.9) translateY(20px);
+    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1), transform 2s cubic-bezier(0.4, 0, 0.2, 1), filter 2s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: blur(3px);
 }
 .school-photo-bg.loaded{
     opacity: 1;
@@ -606,7 +606,7 @@
             console.log('Adding loaded class to school photo with delay');
             setTimeout(() => {
                 schoolPhoto.classList.add('loaded');
-            }, 500); // 500ms delay after banner starts animating
+            }, 300); // 300ms delay for smoother transition
         }
     });
 </script>
