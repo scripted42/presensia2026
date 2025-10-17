@@ -118,6 +118,12 @@
 
         // Start scanner: gunakan ZXing melalui QrScanner jika tersedia; jika tidak, fallback ke jsQR
         document.getElementById('startScanner').addEventListener('click', async function() {
+            // Cek HTTPS untuk akses kamera
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                alert('Akses kamera memerlukan HTTPS. Silakan akses melalui https:// atau gunakan localhost.');
+                return;
+            }
+            
             try {
                 const scanner = document.getElementById('scanner');
                 
@@ -156,17 +162,40 @@
 
                     await qrScanner.start();
                 } else {
-                    // Fallback ke jsQR manual loop
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream; await video.play();
+                    // Fallback ke jsQR manual loop dengan kompatibilitas browser lama
+                    let stream;
+                    try {
+                        // Coba getUserMedia modern dulu
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            const constraints = {
+                                video: {
+                                    facingMode: { ideal: 'environment' },
+                                    width: { ideal: 1920 },
+                                    height: { ideal: 1080 }
+                                },
+                                audio: false
+                            };
+                            stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        } else if (navigator.getUserMedia) {
+                            // Fallback untuk browser lama
+                            stream = await new Promise((resolve, reject) => {
+                                navigator.getUserMedia({ video: true, audio: false }, resolve, reject);
+                            });
+                        } else if (navigator.webkitGetUserMedia) {
+                            // Fallback untuk WebKit lama
+                            stream = await new Promise((resolve, reject) => {
+                                navigator.webkitGetUserMedia({ video: true, audio: false }, resolve, reject);
+                            });
+                        } else {
+                            throw new Error('getUserMedia tidak didukung di browser ini');
+                        }
+                        
+                        video.srcObject = stream;
+                        await video.play();
+                    } catch (err) {
+                        console.error('Error accessing camera:', err);
+                        throw new Error('Tidak dapat mengakses kamera. Pastikan menggunakan HTTPS dan izinkan akses kamera.');
+                    }
 
                     const off = document.createElement('canvas');
                     const ctx = off.getContext('2d');
@@ -220,7 +249,17 @@
                 
             } catch (err) {
                 console.error('Error starting scanner:', err);
-                alert('Tidak dapat mengakses kamera: ' + err.message);
+                
+                let errorMsg = 'Tidak dapat mengakses kamera: ' + err.message;
+                if (err.message.includes('getUserMedia')) {
+                    errorMsg = 'Browser tidak mendukung akses kamera. Pastikan:\n' +
+                              '1. Menggunakan HTTPS (bukan HTTP)\n' +
+                              '2. Browser terbaru (Chrome, Firefox, Safari)\n' +
+                              '3. Izin kamera sudah diberikan\n' +
+                              '4. Tidak ada aplikasi lain yang menggunakan kamera';
+                }
+                
+                alert(errorMsg);
                 
                 // Show manual input as fallback
                 document.getElementById('manualQrInput').style.display = 'block';
