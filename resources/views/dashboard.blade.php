@@ -499,16 +499,15 @@
 
 /* Custom banner image: same styling as welcome-hero-image */
 .banner-custom-image{
-    position:absolute; right:30px; top:-12px; height:200px; width:300px; border-radius:12px;
+    position:absolute; right:30px; top:-12px; height:220px; width:350px; border-radius:12px;
     opacity:1; 
     transform: translateY(0) scale(1);
     z-index: 1; pointer-events: none;
     background-size: cover; background-position: center; background-repeat: no-repeat;
-    border: 2px solid red; /* Debug border */
 }
 .banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
-@media (min-width:768px){ .banner-custom-image{ height:240px; right:34px; top:-16px; } }
-@media (min-width:1024px){ .banner-custom-image{ height:280px; right:40px; top:-20px; } }
+@media (min-width:768px){ .banner-custom-image{ height:260px; width:380px; right:34px; top:-16px; } }
+@media (min-width:1024px){ .banner-custom-image{ height:300px; width:420px; right:40px; top:-20px; } }
 
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
