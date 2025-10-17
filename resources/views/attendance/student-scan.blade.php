@@ -142,38 +142,38 @@
                 scanner.appendChild(video);
 
                 if (window.QrScanner) {
+                    console.log('QrScanner available, initializing...');
+                    
                     // Set path untuk worker lokal (same-origin, hindari CORS)
                     QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
 
-                    // Inisialisasi QrScanner dengan konfigurasi performa tinggi
+                    // Inisialisasi QrScanner dengan konfigurasi yang lebih sederhana
                     qrScanner = new QrScanner(video, result => {
+                        console.log('QrScanner callback triggered:', result);
                         const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
-                        if (!data) return;
+                        if (!data) {
+                            console.log('No data in result:', result);
+                            return;
+                        }
                         const n = Date.now();
-                        if (n - lastDecodeTs > 150) { // Lebih cepat dari 250ms
+                        if (n - lastDecodeTs > 150) {
                             lastDecodeTs = n;
                             console.log('QR detected (QrScanner):', data);
                             addScannedStudent(data);
                         }
                     }, {
                         preferredCamera: 'environment',
-                        highlightScanRegion: false, // Matikan highlight untuk performa
-                        highlightCodeOutline: false,
-                        returnDetailedScanResult: false,
-                        maxScansPerSecond: 30, // Tingkatkan dari 12 ke 30
-                        calculateScanRegion: (video) => {
-                            // ROI dinamis: scan seluruh area untuk jarak jauh
-                            return {
-                                x: 0,
-                                y: 0,
-                                width: video.videoWidth,
-                                height: video.videoHeight
-                            };
-                        }
+                        highlightScanRegion: true, // Aktifkan untuk debugging
+                        highlightCodeOutline: true,
+                        returnDetailedScanResult: true,
+                        maxScansPerSecond: 15 // Turunkan untuk stabilitas
                     });
 
+                    console.log('Starting QrScanner...');
                     await qrScanner.start();
+                    console.log('QrScanner started successfully');
                 } else {
+                    console.log('QrScanner not available, using jsQR fallback...');
                     // Fallback ke jsQR manual loop dengan kompatibilitas browser lama
                     let stream;
                     try {
@@ -231,8 +231,13 @@
 
                     let lastScanTs = 0;
                     let scanCount = 0;
+                    console.log('Starting jsQR scanning loop...');
+                    
                     const loop = () => {
-                        if (!scannerActive) return;
+                        if (!scannerActive) {
+                            console.log('Scanner not active, stopping loop');
+                            return;
+                        }
                         if (video.readyState === video.HAVE_ENOUGH_DATA) {
                             const now = performance.now();
                             // Throttle lebih agresif: 50ms (~20fps) untuk performa tinggi
@@ -268,12 +273,17 @@
                                         }
                                     }
                                     scanCount++;
+                                    if (scanCount % 100 === 0) {
+                                        console.log(`jsQR scan attempts: ${scanCount}, video size: ${vw}x${vh}`);
+                                    }
                                 }
                             }
                         }
                         requestAnimationFrame(loop);
                     };
-                    scannerActive = true; requestAnimationFrame(loop);
+                    scannerActive = true; 
+                    console.log('Starting jsQR loop...');
+                    requestAnimationFrame(loop);
                 }
 
                 scannerActive = true;
@@ -352,6 +362,13 @@
         console.log('Test 1 - SISWA001|Siswa 1:', parseQRCode('SISWA001|Siswa 1'));
         console.log('Test 2 - SISWA002_Siswa 2:', parseQRCode('SISWA002_Siswa 2'));
         console.log('Test 3 - SISWA003:', parseQRCode('SISWA003'));
+        
+        // Test manual QR untuk debugging
+        console.log('Testing manual QR input...');
+        setTimeout(() => {
+            console.log('Auto-testing with SISWA999|Test Student');
+            addScannedStudent('SISWA999|Test Student');
+        }, 2000);
         
         // Cek ketersediaan kamera (opsional)
         if (window.QrScanner && typeof window.QrScanner.hasCamera === 'function') {
