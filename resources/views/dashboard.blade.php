@@ -511,6 +511,9 @@
 @media (min-width:768px){ .banner-custom-image{ height:240px; right:34px; top:-16px; } }
 @media (min-width:1024px){ .banner-custom-image{ height:280px; right:40px; top:-20px; } }
 
+/* Debug: Make banner visible immediately for testing */
+.banner-custom-image{ opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
 @media (max-width: 639px){
@@ -575,8 +578,12 @@
     // add loaded class to custom banner image
     window.requestAnimationFrame(()=>{
         const bannerImg=document.querySelector('.banner-custom-image');
+        console.log('Banner image element:', bannerImg);
         if(bannerImg){
+            console.log('Adding loaded class to banner image');
             bannerImg.classList.add('loaded');
+        } else {
+            console.log('Banner image element not found!');
         }
     });
 </script>
