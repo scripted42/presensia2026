@@ -108,8 +108,6 @@
 @push('scripts')
     <!-- ZXing (WASM-capable) UMD build -->
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
-    <!-- Nimiq QR Scanner as last fallback -->
-    <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
     <script>
         let scannedStudents = [];
         let qrScanner = null;
@@ -195,40 +193,6 @@
                             if (text) addScannedStudent(text);
                         }
                     });
-                } else {
-                    // Fallback: Nimiq QrScanner (dioptimasi)
-                    const video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.objectFit = 'cover';
-                    video.setAttribute('playsinline', 'true');
-                    scanner.appendChild(video);
-
-                    // Region-of-Interest (ROI) tengah 70% untuk percepat decode
-                    const calcROI = (videoDimensions) => {
-                        const { width, height } = videoDimensions;
-                        const roiW = Math.floor(width * 0.7);
-                        const roiH = Math.floor(height * 0.7);
-                        const x = Math.floor((width - roiW) / 2);
-                        const y = Math.floor((height - roiH) / 2);
-                        return { x, y, width: roiW, height: roiH };
-                    };
-
-                    qrScanner = new QrScanner(video, result => {
-                        const now = Date.now();
-                        if (now - lastDecodeTs < 250) return; // debounce
-                        lastDecodeTs = now;
-                        addScannedStudent(result.data);
-                    }, {
-                        preferredCamera: 'environment',
-                        returnDetailedScanResult: false,
-                        highlightScanRegion: false,
-                        highlightCodeOutline: false,
-                        maxScansPerSecond: 24,
-                        calculateScanRegion: calcROI,
-                        onDecodeError: () => {}
-                    });
-                    await qrScanner.start();
                 }
                 
                 scannerActive = true;

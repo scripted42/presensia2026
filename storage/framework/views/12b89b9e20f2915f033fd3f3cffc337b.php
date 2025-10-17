@@ -105,7 +105,8 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-    <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
+    <!-- ZXing (WASM-capable) UMD build -->
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
     <script>
         let scannedStudents = [];
         let qrScanner = null;
@@ -160,8 +161,8 @@
                         requestAnimationFrame(loop);
                     };
                     requestAnimationFrame(loop);
-                } else {
-                    // Fallback: Nimiq QrScanner (dioptimasi)
+                } else if (window.ZXing && ZXing.BrowserMultiFormatReader) {
+                    // Fallback 2: ZXing BrowserMultiFormatReader (WASM/ASM) – cepat dan akurat
                     const video = document.createElement('video');
                     video.style.width = '100%';
                     video.style.height = '100%';
@@ -169,31 +170,28 @@
                     video.setAttribute('playsinline', 'true');
                     scanner.appendChild(video);
 
-                    // Region-of-Interest (ROI) tengah 70% untuk percepat decode
-                    const calcROI = (videoDimensions) => {
-                        const { width, height } = videoDimensions;
-                        const roiW = Math.floor(width * 0.7);
-                        const roiH = Math.floor(height * 0.7);
-                        const x = Math.floor((width - roiW) / 2);
-                        const y = Math.floor((height - roiH) / 2);
-                        return { x, y, width: roiW, height: roiH };
+                    const constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        },
+                        audio: false
                     };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream; await video.play();
 
-                    qrScanner = new QrScanner(video, result => {
-                        const now = Date.now();
-                        if (now - lastDecodeTs < 250) return; // debounce
-                        lastDecodeTs = now;
-                        addScannedStudent(result.data);
-                    }, {
-                        preferredCamera: 'environment',
-                        returnDetailedScanResult: false,
-                        highlightScanRegion: false,
-                        highlightCodeOutline: false,
-                        maxScansPerSecond: 24,
-                        calculateScanRegion: calcROI,
-                        onDecodeError: () => {}
+                    const codeReader = new ZXing.BrowserMultiFormatReader();
+                    // ROI tidak langsung tersedia di ZXing UMD; atur delay antar scan agar responsif
+                    await codeReader.decodeFromVideoDevice(null, video, (result, err, controls) => {
+                        if (result) {
+                            const now = Date.now();
+                            if (now - lastDecodeTs < 250) return; // debounce
+                            lastDecodeTs = now;
+                            const text = result.getText ? result.getText() : (result.text ?? '');
+                            if (text) addScannedStudent(text);
+                        }
                     });
-                    await qrScanner.start();
                 }
                 
                 scannerActive = true;
