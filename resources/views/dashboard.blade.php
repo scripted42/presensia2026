@@ -10,7 +10,7 @@
                 @php
                     $bannerScale = $school->tenantSettings->banner_scale ?? 100;
                 @endphp
-                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); transform: scale({{ $bannerScale / 100 }}); transform-origin: center;"></div>
+                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); background-size: {{ $bannerScale }}%; background-position: top; background-repeat: no-repeat;"></div>
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
@@ -504,11 +504,9 @@
 .banner-custom-image{
     position:absolute; right:0; top:0; height:100%; width:50%; border-radius:0 12px 12px 0;
     opacity:1; 
-    transform: translateY(0) scale(1);
     z-index: 0; pointer-events: none;
-    background-size: contain; background-position: top; background-repeat: no-repeat;
 }
-.banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
+.banner-custom-image.loaded{ opacity:1; }
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
 @media (min-width:1024px){ .banner-custom-image{ width:40%; } }
 
