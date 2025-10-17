@@ -13707,3 +13707,16 @@ Did you mean one of these?
 #58 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\FHL\\\\.c...')
 #59 {main}
 "} 
+[2025-10-17 00:04:20] local.INFO: === UPDATEBANNER DEBUG START ===  
+[2025-10-17 00:04:20] local.INFO: Request method: PUT  
+[2025-10-17 00:04:20] local.INFO: Request URL: http://localhost:8000/tenant/banner  
+[2025-10-17 00:04:20] local.INFO: Has banner_image: false  
+[2025-10-17 00:04:21] local.INFO: Has school_photo: true  
+[2025-10-17 00:04:21] local.INFO: All files: {"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpFC50.tmp"}} 
+[2025-10-17 00:04:21] local.INFO: All input: {"_token":"5hPyKOMWwR00xMv1x1Bv8I5WoM3uwal6KPWDnCzG","_method":"PUT","banner_text":null,"school_photo_opacity":"10","school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":"100","topbar_announcement":"Pengumuman akhir Semester akan segera tiba.","show_announcement":"1","school_id":1,"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpFC50.tmp"}} 
+[2025-10-17 00:04:21] local.INFO: Content type: multipart/form-data; boundary=----WebKitFormBoundaryoeJlrVeyuvM5wH9h  
+[2025-10-17 00:04:21] local.INFO: Content length: 238975  
+[2025-10-17 00:04:27] local.INFO: === DASHBOARD DEBUG ===  
+[2025-10-17 00:04:27] local.INFO: School ID: 1  
+[2025-10-17 00:04:27] local.INFO: Tenant Settings exists: Yes  
+[2025-10-17 00:04:27] local.INFO: Tenant Settings data: {"banner_image":null,"school_photo":null,"banner_text":null,"school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 

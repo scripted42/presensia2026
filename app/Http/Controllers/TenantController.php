@@ -103,19 +103,30 @@ class TenantController extends Controller
         \Log::info('Content type: ' . $request->header('Content-Type'));
         \Log::info('Content length: ' . $request->header('Content-Length'));
         
-        $request->validate([
-            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
-            'banner_text' => 'nullable|string|max:255',
-            'school_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
-            'school_photo_opacity' => 'nullable|integer|min:0|max:100',
-            'school_photo_position_x' => 'nullable|string|in:left,center,right',
-            'school_photo_position_y' => 'nullable|string|in:top,center,bottom',
-            'school_photo_scale' => 'nullable|integer|min:50|max:200',
-            'topbar_announcement' => 'nullable|string|max:500',
-            'show_announcement' => 'nullable|boolean',
-        ]);
+        try {
+            $request->validate([
+                'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+                'banner_text' => 'nullable|string|max:255',
+                'school_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+                'school_photo_opacity' => 'nullable|integer|min:0|max:100',
+                'school_photo_position_x' => 'nullable|string|in:left,center,right',
+                'school_photo_position_y' => 'nullable|string|in:top,center,bottom',
+                'school_photo_scale' => 'nullable|integer|min:50|max:200',
+                'topbar_announcement' => 'nullable|string|max:500',
+                'show_announcement' => 'nullable|boolean',
+            ]);
+            \Log::info('Validation passed successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', ['errors' => $e->errors()]);
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Validation error:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            throw $e;
+        }
 
+        \Log::info('Getting tenant settings...');
         $tenantSettings = $school->tenantSettings;
+        \Log::info('Tenant settings found: ' . ($tenantSettings ? 'Yes' : 'No'));
         
         $data = [
             'banner_text' => $request->banner_text,
@@ -126,6 +137,7 @@ class TenantController extends Controller
             'topbar_announcement' => $request->topbar_announcement,
             'show_announcement' => $request->has('show_announcement'),
         ];
+        \Log::info('Data array prepared:', $data);
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
