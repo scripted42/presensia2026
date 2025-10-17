@@ -142,10 +142,40 @@
                         fd.append('latitude', document.getElementById('latitude').value);
                         fd.append('longitude', document.getElementById('longitude').value);
                         fd.append('location_name', document.getElementById('location_name').value);
-                        const res = await fetch('{{ route('attendance.check-in') }}', { method: 'POST', body: fd });
-                        if (res.redirected) { window.location = res.url; }
-                        else { const t = await res.text(); console.log(t); window.location.reload(); }
-                    } catch(e) { alert('Gagal submit: '+e.message); }
+                        
+                        console.log('Submitting attendance data:', {
+                            qr_code: document.getElementById('qr_code').value,
+                            latitude: document.getElementById('latitude').value,
+                            longitude: document.getElementById('longitude').value
+                        });
+                        
+                        const res = await fetch('{{ route('attendance.check-in') }}', { 
+                            method: 'POST', 
+                            body: fd,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        
+                        console.log('Response status:', res.status);
+                        console.log('Response headers:', res.headers);
+                        
+                        if (res.redirected) { 
+                            console.log('Redirected to:', res.url);
+                            window.location = res.url; 
+                        } else if (res.ok) {
+                            const text = await res.text();
+                            console.log('Response text:', text);
+                            window.location.reload();
+                        } else {
+                            const errorText = await res.text();
+                            console.error('Server error:', errorText);
+                            alert('Gagal submit: Server error ' + res.status);
+                        }
+                    } catch(e) { 
+                        console.error('Fetch error:', e);
+                        alert('Gagal submit: '+e.message); 
+                    }
                     clearInterval(scanTimer); video.pause();
                     streamRef.getTracks().forEach(t=>t.stop());
                 }

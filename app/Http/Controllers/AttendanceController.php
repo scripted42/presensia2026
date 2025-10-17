@@ -121,6 +121,15 @@ class AttendanceController extends Controller
             ]
         );
         
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi masuk berhasil.',
+                'attendance' => $attendance
+            ]);
+        }
+        
         return redirect()->route('attendance.index')
             ->with('success', 'Absensi masuk berhasil.');
     }
