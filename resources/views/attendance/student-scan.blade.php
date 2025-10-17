@@ -128,8 +128,6 @@
 @endsection
 
 @push('scripts')
-    <!-- QR Code decoder untuk foto -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         let capturedStudents = [];
         let cameraStream = null;
@@ -218,7 +216,7 @@
             showNotification('Kamera dihentikan', 'info');
         });
 
-        // Capture photo
+        // Capture photo - hanya simpan foto tanpa decode QR
         document.getElementById('capturePhoto').addEventListener('click', function() {
             if (!cameraActive || !video) {
                 showNotification('Kamera belum aktif', 'warning');
@@ -237,19 +235,12 @@
                 // Draw video frame ke canvas
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Decode QR dari canvas
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, canvas.width, canvas.height, {
-                    inversionAttempts: 'attemptBoth'
-                });
+                // Convert canvas ke base64 image
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
                 
-                if (code && code.data) {
-                    console.log('QR detected from photo:', code.data);
-                    addCapturedStudent(code.data);
-                    showNotification('QR Code berhasil dibaca!', 'success');
-                } else {
-                    showNotification('QR Code tidak terdeteksi. Coba lagi dengan posisi yang lebih jelas.', 'warning');
-                }
+                // Tambah ke list tanpa decode QR
+                addCapturedPhoto(imageData);
+                showNotification('Foto berhasil diambil!', 'success');
                 
             } catch (err) {
                 console.error('Error capturing photo:', err);
@@ -257,13 +248,29 @@
             }
         });
 
-        // Manual input
+        // Manual input - untuk QR code manual
         document.getElementById('addManual').addEventListener('click', function() {
             const manualQr = document.getElementById('manual_qr').value.trim();
             if (manualQr) {
                 console.log('Manual QR input:', manualQr);
-                addCapturedStudent(manualQr);
+                // Simpan sebagai QR code manual (bukan foto)
+                const currentTime = new Date().toLocaleTimeString('id-ID', { 
+                    hour12: false, 
+                    timeZone: 'Asia/Jakarta' 
+                });
+                
+                const manualRecord = {
+                    qrCode: manualQr,
+                    captureTime: currentTime,
+                    timestamp: Date.now(),
+                    id: 'manual_' + Date.now(),
+                    isManual: true
+                };
+                
+                capturedStudents.push(manualRecord);
+                updateCapturedList();
                 document.getElementById('manual_qr').value = '';
+                showNotification('QR Code manual ditambahkan', 'success');
             }
         });
 
@@ -306,35 +313,23 @@
             return result;
         }
 
-        // Add captured student
-        function addCapturedStudent(qrCode) {
-            console.log('Processing QR Code:', qrCode);
-            const parsed = parseQRCode(qrCode);
-            console.log('Parsed QR Code:', parsed);
+        // Add captured photo - tanpa decode QR
+        function addCapturedPhoto(imageData) {
             const currentTime = new Date().toLocaleTimeString('id-ID', { 
                 hour12: false, 
                 timeZone: 'Asia/Jakarta' 
             });
             
-            // Check for duplicates by NIS
-            const existingIndex = capturedStudents.findIndex(student => student.nis === parsed.nis);
-            if (existingIndex !== -1) {
-                showNotification(`Siswa ${parsed.name} (${parsed.nis}) sudah diabsensi pada ${capturedStudents[existingIndex].captureTime}`, 'warning');
-                return;
-            }
-            
-            // Add to captured list
-            const studentRecord = {
-                qrCode: qrCode,
-                nis: parsed.nis,
-                name: parsed.name,
+            // Add to captured list - hanya simpan foto
+            const photoRecord = {
+                imageData: imageData,
                 captureTime: currentTime,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                id: 'photo_' + Date.now() // Unique ID untuk foto
             };
             
-            capturedStudents.push(studentRecord);
+            capturedStudents.push(photoRecord);
             updateCapturedList();
-            showNotification(`${parsed.name} (${parsed.nis}) berhasil ditambahkan`, 'success');
         }
 
         // Show notification
@@ -389,45 +384,83 @@
                 <div class="bg-gray-50 px-3 py-2 border-b">
                     <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
                         <div class="col-span-1">No.</div>
-                        <div class="col-span-3">NIS</div>
-                        <div class="col-span-5">Nama</div>
+                        <div class="col-span-3">Preview</div>
+                        <div class="col-span-5">Status</div>
                         <div class="col-span-2">Waktu</div>
                         <div class="col-span-1">Aksi</div>
                     </div>
                 </div>
             `;
             
-            sortedStudents.forEach((student, index) => {
-                html += `
-                    <div class="px-3 py-2 border-b hover:bg-gray-50">
-                        <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                            <div class="col-span-1 text-gray-600">${index + 1}</div>
-                            <div class="col-span-3 font-medium text-gray-900">${student.nis}</div>
-                            <div class="col-span-5 text-gray-700">${student.name}</div>
-                            <div class="col-span-2 text-gray-600">${student.captureTime}</div>
-                            <div class="col-span-1">
-                                <button type="button" onclick="removeStudentByNis('${student.nis.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 p-1">
-                                    <i class="fas fa-times text-xs"></i>
-                                </button>
+            sortedStudents.forEach((record, index) => {
+                if (record.isManual) {
+                    // Manual QR Code
+                    html += `
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                                <div class="col-span-3">
+                                    <div class="w-12 h-12 bg-green-100 rounded border flex items-center justify-center">
+                                        <i class="fas fa-keyboard text-green-600"></i>
+                                    </div>
+                                </div>
+                                <div class="col-span-5 text-gray-700">
+                                    <span class="text-green-600">QR Manual</span>
+                                    <br><small class="text-gray-500">${record.qrCode}</small>
+                                </div>
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+                                <div class="col-span-1">
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'student_qr_codes[]';
-                input.value = student.qrCode;
-                hiddenInputs.appendChild(input);
+                    `;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'qr_codes[]';
+                    input.value = record.qrCode;
+                    hiddenInputs.appendChild(input);
+                } else {
+                    // Foto QR Code
+                    html += `
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                                <div class="col-span-3">
+                                    <img src="${record.imageData}" class="w-12 h-12 object-cover rounded border" alt="QR Photo">
+                                </div>
+                                <div class="col-span-5 text-gray-700">
+                                    <span class="text-blue-600">Foto QR Code</span>
+                                    <br><small class="text-gray-500">Akan diproses saat sync</small>
+                                </div>
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+                                <div class="col-span-1">
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'qr_photos[]';
+                    input.value = record.imageData;
+                    hiddenInputs.appendChild(input);
+                }
             });
             
             capturedList.innerHTML = html;
             captureForm.style.display = 'block';
         }
 
-        // Remove student by NIS
-        function removeStudentByNis(nis) {
-            capturedStudents = capturedStudents.filter(s => s.nis !== nis);
+        // Remove photo by ID
+        function removePhotoById(photoId) {
+            capturedStudents = capturedStudents.filter(p => p.id !== photoId);
             updateCapturedList();
         }
 
