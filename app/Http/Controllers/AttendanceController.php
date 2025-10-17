@@ -523,7 +523,7 @@ class AttendanceController extends Controller
     }
     
     /**
-     * Basic QR decode using multiple methods for better reliability.
+     * Enhanced QR decode using multiple methods and image preprocessing.
      */
     private function basicQRDecode($imagePath)
     {
@@ -537,16 +537,19 @@ class AttendanceController extends Controller
                     return null;
                 }
             },
-            'simple_qr' => function($path) {
+            'khanamiryan_enhanced' => function($path) {
                 try {
-                    // Try with SimpleSoftwareIO if available
-                    if (class_exists('\SimpleSoftwareIO\QrCode\Facades\QrCode')) {
-                        // This is for encoding, not decoding, but let's try
-                        return null;
+                    // Try with enhanced image preprocessing
+                    $enhancedPath = $this->preprocessImage($path);
+                    if ($enhancedPath) {
+                        $qrcode = new \Zxing\QrReader($enhancedPath);
+                        $result = $qrcode->text();
+                        unlink($enhancedPath); // Clean up
+                        return $result;
                     }
                     return null;
                 } catch (\Exception $e) {
-                    \Log::warning("simple_qr method failed: " . $e->getMessage());
+                    \Log::warning("khanamiryan enhanced method failed: " . $e->getMessage());
                     return null;
                 }
             }
@@ -568,6 +571,37 @@ class AttendanceController extends Controller
         
         \Log::warning("All QR decode methods failed for image: {$imagePath}");
         return null;
+    }
+    
+    /**
+     * Preprocess image for better QR detection.
+     */
+    private function preprocessImage($imagePath)
+    {
+        try {
+            // Create image resource
+            $image = imagecreatefromstring(file_get_contents($imagePath));
+            if (!$image) {
+                return null;
+            }
+            
+            // Create enhanced version
+            $enhancedPath = tempnam(sys_get_temp_dir(), 'qr_enhanced_');
+            
+            // Apply image filters for better QR detection
+            imagefilter($image, IMG_FILTER_CONTRAST, 50);
+            imagefilter($image, IMG_FILTER_BRIGHTNESS, 20);
+            imagefilter($image, IMG_FILTER_SMOOTH, 1);
+            
+            // Save enhanced image
+            imagejpeg($image, $enhancedPath, 95);
+            imagedestroy($image);
+            
+            return $enhancedPath;
+        } catch (\Exception $e) {
+            \Log::error("Image preprocessing failed: " . $e->getMessage());
+            return null;
+        }
     }
     
     /**

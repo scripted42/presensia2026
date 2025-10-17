@@ -75,15 +75,41 @@
                         </button>
                     </div>
 
-                    <!-- Manual Input -->
+                    <!-- Enhanced Manual Input -->
                     <div class="mb-4">
                         <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
+                        
+                        <!-- Quick Add Buttons -->
+                        <div class="mb-3">
+                            <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA001
+                                </button>
+                                <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA002
+                                </button>
+                                <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA003
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div class="flex space-x-2">
-                            <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa"
+                            <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
                                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <button id="addManual" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-plus"></i>
                             </button>
+                        </div>
+                        
+                        <!-- Help Text -->
+                        <div class="mt-1 text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Format: NIS|Nama (contoh: SISWA001|John Doe)
                         </div>
                     </div>
                 </div>
@@ -160,12 +186,16 @@
                 video.setAttribute('muted', 'true');
                 camera.appendChild(video);
 
-                // Minta akses kamera
+                // Enhanced camera constraints for better QR scanning
                 const constraints = {
                     video: {
                         facingMode: { ideal: 'environment' },
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
+                        width: { ideal: 2560, min: 1920 },
+                        height: { ideal: 1440, min: 1080 },
+                        frameRate: { ideal: 30, min: 24 },
+                        focusMode: 'continuous',
+                        exposureMode: 'continuous',
+                        whiteBalanceMode: 'continuous'
                     },
                     audio: false
                 };
@@ -216,7 +246,7 @@
             showNotification('Kamera dihentikan', 'info');
         });
 
-        // Capture photo - hanya simpan foto tanpa decode QR
+        // Enhanced photo capture with quality optimization
         document.getElementById('capturePhoto').addEventListener('click', function() {
             if (!cameraActive || !video) {
                 showNotification('Kamera belum aktif', 'warning');
@@ -224,29 +254,94 @@
             }
             
             try {
-                // Buat canvas untuk capture
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                // Show loading state
+                const captureBtn = document.getElementById('capturePhoto');
+                const originalText = captureBtn.innerHTML;
+                captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengambil Foto...';
+                captureBtn.disabled = true;
                 
-                // Set canvas size sesuai video
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                
-                // Draw video frame ke canvas
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Convert canvas ke base64 image
-                const imageData = canvas.toDataURL('image/jpeg', 0.8);
-                
-                // Tambah ke list tanpa decode QR
-                addCapturedPhoto(imageData);
-                showNotification('Foto berhasil diambil!', 'success');
+                // Wait for video to be ready
+                setTimeout(() => {
+                    // Buat canvas dengan resolusi tinggi
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas size dengan resolusi tinggi
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    // Draw video frame ke canvas dengan kualitas tinggi
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Apply image enhancement
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const enhancedData = enhanceImage(imageData);
+                    ctx.putImageData(enhancedData, 0, 0);
+                    
+                    // Convert ke base64 dengan kualitas tinggi
+                    const base64Image = canvas.toDataURL('image/jpeg', 0.95);
+                    
+                    // Tambah ke list
+                    addCapturedPhoto(base64Image);
+                    showNotification('Foto berhasil diambil dengan kualitas tinggi!', 'success');
+                    
+                    // Reset button
+                    captureBtn.innerHTML = originalText;
+                    captureBtn.disabled = false;
+                    
+                }, 500); // Wait 500ms for camera stabilization
                 
             } catch (err) {
                 console.error('Error capturing photo:', err);
                 showNotification('Gagal capture foto', 'error');
+                
+                // Reset button
+                const captureBtn = document.getElementById('capturePhoto');
+                captureBtn.innerHTML = '<i class="fas fa-camera mr-2"></i>Ambil Foto QR';
+                captureBtn.disabled = false;
             }
         });
+        
+        // Image enhancement function
+        function enhanceImage(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Apply contrast enhancement
+            for (let i = 0; i < data.length; i += 4) {
+                // Red channel
+                data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.2 + 128));
+                // Green channel  
+                data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.2 + 128));
+                // Blue channel
+                data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.2 + 128));
+            }
+            
+            return imageData;
+        }
+        
+        // Quick add student function
+        function quickAddStudent(qrCode) {
+            console.log('Quick adding student:', qrCode);
+            
+            const currentTime = new Date().toLocaleTimeString('id-ID', { 
+                hour12: false, 
+                timeZone: 'Asia/Jakarta' 
+            });
+            
+            const manualRecord = {
+                qrCode: qrCode,
+                captureTime: currentTime,
+                timestamp: Date.now(),
+                id: 'manual_' + Date.now(),
+                isManual: true
+            };
+            
+            capturedStudents.push(manualRecord);
+            updateCapturedList();
+            showNotification('Siswa berhasil ditambahkan: ' + qrCode, 'success');
+        }
 
         // Manual input - untuk QR code manual
         document.getElementById('addManual').addEventListener('click', function() {
@@ -395,10 +490,10 @@
             sortedStudents.forEach((record, index) => {
                 if (record.isManual) {
                     // Manual QR Code
-                    html += `
-                        <div class="px-3 py-2 border-b hover:bg-gray-50">
-                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                html += `
+                    <div class="px-3 py-2 border-b hover:bg-gray-50">
+                        <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                            <div class="col-span-1 text-gray-600">${index + 1}</div>
                                 <div class="col-span-3">
                                     <div class="w-12 h-12 bg-green-100 rounded border flex items-center justify-center">
                                         <i class="fas fa-keyboard text-green-600"></i>
@@ -409,17 +504,17 @@
                                     <br><small class="text-gray-500">${record.qrCode}</small>
                                 </div>
                                 <div class="col-span-2 text-gray-600">${record.captureTime}</div>
-                                <div class="col-span-1">
+                            <div class="col-span-1">
                                     <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
-                                        <i class="fas fa-times text-xs"></i>
-                                    </button>
-                                </div>
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
                             </div>
                         </div>
-                    `;
-                    
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
+                    </div>
+                `;
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
                     input.name = 'qr_codes[]';
                     input.value = record.qrCode;
                     hiddenInputs.appendChild(input);
@@ -450,7 +545,7 @@
                     input.type = 'hidden';
                     input.name = 'qr_photos[]';
                     input.value = record.imageData;
-                    hiddenInputs.appendChild(input);
+                hiddenInputs.appendChild(input);
                 }
             });
             
