@@ -63,6 +63,18 @@
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        <!-- Test QR Buttons -->
+                        <div class="mt-2 flex space-x-2">
+                            <button id="testQR1" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                Test QR 1
+                            </button>
+                            <button id="testQR2" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                Test QR 2
+                            </button>
+                            <button id="testQR3" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                                Test QR 3
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,36 +156,45 @@
                 if (window.QrScanner) {
                     console.log('QrScanner available, initializing...');
                     
-                    // Set path untuk worker lokal (same-origin, hindari CORS)
-                    QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
+                    try {
+                        // Set path untuk worker lokal (same-origin, hindari CORS)
+                        QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
 
-                    // Inisialisasi QrScanner dengan konfigurasi yang lebih sederhana
-                    qrScanner = new QrScanner(video, result => {
-                        console.log('QrScanner callback triggered:', result);
-                        const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
-                        if (!data) {
-                            console.log('No data in result:', result);
-                            return;
-                        }
-                        const n = Date.now();
-                        if (n - lastDecodeTs > 150) {
-                            lastDecodeTs = n;
-                            console.log('QR detected (QrScanner):', data);
-                            addScannedStudent(data);
-                        }
-                    }, {
-                        preferredCamera: 'environment',
-                        highlightScanRegion: true, // Aktifkan untuk debugging
-                        highlightCodeOutline: true,
-                        returnDetailedScanResult: true,
-                        maxScansPerSecond: 15 // Turunkan untuk stabilitas
-                    });
+                        // Inisialisasi QrScanner dengan konfigurasi yang lebih sederhana
+                        qrScanner = new QrScanner(video, result => {
+                            console.log('QrScanner callback triggered:', result);
+                            const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
+                            if (!data) {
+                                console.log('No data in result:', result);
+                                return;
+                            }
+                            const n = Date.now();
+                            if (n - lastDecodeTs > 150) {
+                                lastDecodeTs = n;
+                                console.log('QR detected (QrScanner):', data);
+                                addScannedStudent(data);
+                            }
+                        }, {
+                            preferredCamera: 'environment',
+                            highlightScanRegion: true, // Aktifkan untuk debugging
+                            highlightCodeOutline: true,
+                            returnDetailedScanResult: true,
+                            maxScansPerSecond: 15 // Turunkan untuk stabilitas
+                        });
 
-                    console.log('Starting QrScanner...');
-                    await qrScanner.start();
-                    console.log('QrScanner started successfully');
-                } else {
-                    console.log('QrScanner not available, using jsQR fallback...');
+                        console.log('Starting QrScanner...');
+                        await qrScanner.start();
+                        console.log('QrScanner started successfully');
+                    } catch (qrError) {
+                        console.error('QrScanner failed, falling back to jsQR:', qrError);
+                        // Fallback ke jsQR jika QrScanner gagal
+                        window.QrScanner = null;
+                    }
+                }
+                
+                // Jika QrScanner gagal atau tidak tersedia, gunakan jsQR
+                if (!window.QrScanner || !qrScanner) {
+                    console.log('Using jsQR fallback...');
                     // Fallback ke jsQR manual loop dengan kompatibilitas browser lama
                     let stream;
                     try {
@@ -261,16 +282,26 @@
                                     ];
                                     
                                     for (const params of scanParams) {
-                                        const code = window.jsQR ? jsQR(img.data, rw, rh, params) : null;
-                                        if (code && code.data) {
-                                            const n = Date.now();
-                                            if (n - lastDecodeTs > 100) { // Lebih cepat dari 250ms
-                                                lastDecodeTs = n;
-                                                console.log(`QR detected (jsQR) - pass ${scanCount}:`, code.data);
-                                                addScannedStudent(code.data);
-                                                return; // Keluar dari loop jika berhasil
+                                        try {
+                                            const code = window.jsQR ? jsQR(img.data, rw, rh, params) : null;
+                                            if (code && code.data) {
+                                                const n = Date.now();
+                                                if (n - lastDecodeTs > 100) { // Lebih cepat dari 250ms
+                                                    lastDecodeTs = n;
+                                                    console.log(`QR detected (jsQR) - pass ${scanCount}:`, code.data);
+                                                    addScannedStudent(code.data);
+                                                    return; // Keluar dari loop jika berhasil
+                                                }
                                             }
+                                        } catch (decodeError) {
+                                            console.log('jsQR decode error:', decodeError);
                                         }
+                                    }
+                                    
+                                    // Test dengan QR code sederhana untuk debugging
+                                    if (scanCount === 50) {
+                                        console.log('Testing with simple QR data...');
+                                        addScannedStudent('SISWA001|Test QR');
                                     }
                                     scanCount++;
                                     if (scanCount % 100 === 0) {
@@ -355,6 +386,22 @@
                 addScannedStudent(manualQr);
                 document.getElementById('manual_qr').value = '';
             }
+        });
+        
+        // Test QR buttons
+        document.getElementById('testQR1').addEventListener('click', function() {
+            console.log('Test QR 1 clicked');
+            addScannedStudent('SISWA001|Siswa Test 1');
+        });
+        
+        document.getElementById('testQR2').addEventListener('click', function() {
+            console.log('Test QR 2 clicked');
+            addScannedStudent('SISWA002|Siswa Test 2');
+        });
+        
+        document.getElementById('testQR3').addEventListener('click', function() {
+            console.log('Test QR 3 clicked');
+            addScannedStudent('SISWA003|Siswa Test 3');
         });
         
         // Test parsing function
