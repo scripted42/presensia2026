@@ -129,6 +129,7 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
     // Tenant Settings (Admin only)
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/tenant/settings', [TenantController::class, 'index'])->name('tenant.settings');
+        Route::get('/tenant/banner', [TenantController::class, 'index'])->name('tenant.banner');
         Route::put('/tenant/settings', [TenantController::class, 'update'])->name('tenant.settings.update');
         Route::put('/tenant/banner', [TenantController::class, 'updateBanner'])->name('tenant.banner.update');
         Route::delete('/tenant/banner/remove/{type}', [TenantController::class, 'removeImage'])->name('tenant.banner.remove');
