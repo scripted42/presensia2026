@@ -7,7 +7,7 @@
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             @if($school->tenantSettings && $school->tenantSettings->banner_image)
-                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
+                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); background-size: contain; background-position: right center;"></div>
                 <div class="absolute inset-0 bg-gradient-to-r from-white/90 to-transparent"></div>
             @endif
             <!-- School Photo Background -->
