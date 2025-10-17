@@ -98,6 +98,28 @@ class TenantController extends Controller
         \Log::info('Request URL: ' . $request->fullUrl());
         \Log::info('Has banner_image: ' . ($request->hasFile('banner_image') ? 'true' : 'false'));
         \Log::info('Has school_photo: ' . ($request->hasFile('school_photo') ? 'true' : 'false'));
+        
+        // Debug file details
+        if ($request->hasFile('banner_image')) {
+            $bannerFile = $request->file('banner_image');
+            \Log::info('Banner file details:', [
+                'original_name' => $bannerFile->getClientOriginalName(),
+                'mime_type' => $bannerFile->getMimeType(),
+                'size' => $bannerFile->getSize(),
+                'extension' => $bannerFile->getClientOriginalExtension()
+            ]);
+        }
+        
+        if ($request->hasFile('school_photo')) {
+            $schoolPhotoFile = $request->file('school_photo');
+            \Log::info('School photo file details:', [
+                'original_name' => $schoolPhotoFile->getClientOriginalName(),
+                'mime_type' => $schoolPhotoFile->getMimeType(),
+                'size' => $schoolPhotoFile->getSize(),
+                'extension' => $schoolPhotoFile->getClientOriginalExtension()
+            ]);
+        }
+        
         \Log::info('All files:', $request->allFiles());
         \Log::info('All input:', $request->all());
         \Log::info('Content type: ' . $request->header('Content-Type'));
@@ -105,9 +127,9 @@ class TenantController extends Controller
         
         try {
             $request->validate([
-                'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+                'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
                 'banner_text' => 'nullable|string|max:255',
-                'school_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+                'school_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
                 'school_photo_opacity' => 'nullable|integer|min:0|max:100',
                 'school_photo_position_x' => 'nullable|string|in:left,center,right',
                 'school_photo_position_y' => 'nullable|string|in:top,center,bottom',
