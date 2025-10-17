@@ -504,7 +504,7 @@
 .banner-custom-image{
     position:absolute; right:0; top:0; height:100%; width:50%; border-radius:0 12px 12px 0;
     opacity:1; 
-    z-index: 0; pointer-events: none;
+    z-index: 2; pointer-events: none;
 }
 .banner-custom-image.loaded{ opacity:1; }
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
