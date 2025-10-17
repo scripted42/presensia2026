@@ -511,16 +511,6 @@ class AttendanceController extends Controller
                     return null;
                 }
             },
-            'fallback_test' => function($path) {
-                try {
-                    // Fallback: Return a test QR code for debugging
-                    \Log::info("Using fallback test QR code");
-                    return 'SISWA001|Test Student';
-                } catch (\Exception $e) {
-                    \Log::warning("Fallback test method failed: " . $e->getMessage());
-                    return null;
-                }
-            }
         ];
         
         foreach ($methods as $methodName => $method) {
