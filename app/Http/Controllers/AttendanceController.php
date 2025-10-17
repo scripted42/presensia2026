@@ -76,20 +76,26 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         
-        // Validate QR code if provided
+        // Validate QR code if provided (graceful fallback for generic QR)
         if ($request->qr_code) {
             $qrCode = QrCode::where('code', $request->qr_code)
-                ->where('user_id', $user->id)
+                // Terima QR milik user ini ATAU QR generik milik sekolah yang tidak di-assign user_id
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereNull('user_id');
+                })
+                ->where('school_id', $user->school_id)
                 ->where('is_used', false)
                 ->where('expires_at', '>', now())
                 ->first();
-                
-            if (!$qrCode) {
-                return redirect()->back()
-                    ->withErrors(['qr_code' => 'QR Code tidak valid atau sudah expired.']);
+
+            // Jika tidak ditemukan, JANGAN blokir proses; anggap QR opsional
+            if ($qrCode) {
+                // Tandai terpakai hanya jika QR memang one-time (punya user)
+                if ($qrCode->user_id) {
+                    $qrCode->update(['is_used' => true, 'used_at' => now()]);
+                }
             }
-            
-            $qrCode->update(['is_used' => true, 'used_at' => now()]);
         }
         // Validate location inside radius if required
         $settings = AttendanceSetting::where('school_id', $user->school_id)
