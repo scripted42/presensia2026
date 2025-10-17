@@ -16,6 +16,7 @@ class TenantSetting extends Model
         'app_favicon',
         'banner_image',
         'banner_text',
+        'banner_scale',
         'school_photo',
         'school_photo_opacity',
         'school_photo_position_x',

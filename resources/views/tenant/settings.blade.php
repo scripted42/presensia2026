@@ -108,6 +108,19 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Banner Scale Control -->
+                        <div class="mt-4">
+                            <label for="banner_scale" class="block text-sm font-medium text-gray-700 mb-2">Skala Banner ({{ $tenantSettings->banner_scale ?? 100 }}%)</label>
+                            <input type="range" name="banner_scale" id="banner_scale" min="50" max="200" value="{{ $tenantSettings->banner_scale ?? 100 }}" 
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider" 
+                                   oninput="updateBannerScale(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>50%</span>
+                                <span>100%</span>
+                                <span>200%</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- School Photo Settings -->
@@ -314,9 +327,26 @@ function previewBanner(input) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById('banner-preview');
-            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" alt="Banner preview">`;
+            const scale = document.getElementById('banner_scale').value;
+            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" alt="Banner preview" style="transform: scale(${scale/100}); transform-origin: center;">`;
         };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Banner scale update function
+function updateBannerScale(value) {
+    const preview = document.getElementById('banner-preview');
+    const img = preview.querySelector('img');
+    if (img) {
+        img.style.transform = `scale(${value/100})`;
+        img.style.transformOrigin = 'center';
+    }
+    
+    // Update label
+    const label = document.querySelector('label[for="banner_scale"]');
+    if (label) {
+        label.textContent = `Skala Banner (${value}%)`;
     }
 }
 

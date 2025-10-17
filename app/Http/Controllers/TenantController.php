@@ -96,6 +96,7 @@ class TenantController extends Controller
         $request->validate([
             'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
             'banner_text' => 'nullable|string|max:255',
+            'banner_scale' => 'nullable|integer|min:50|max:200',
             'school_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
             'school_photo_opacity' => 'nullable|integer|min:0|max:100',
             'school_photo_position_x' => 'nullable|string|in:left,center,right',
@@ -109,6 +110,7 @@ class TenantController extends Controller
         
         $data = [
             'banner_text' => $request->banner_text,
+            'banner_scale' => $request->banner_scale ?? 100,
             'school_photo_opacity' => $request->school_photo_opacity ?? 10,
             'school_photo_position_x' => $request->school_photo_position_x ?? 'center',
             'school_photo_position_y' => $request->school_photo_position_y ?? 'center',

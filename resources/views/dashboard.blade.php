@@ -7,7 +7,10 @@
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             @if($school->tenantSettings && $school->tenantSettings->banner_image)
-                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
+                @php
+                    $bannerScale = $school->tenantSettings->banner_scale ?? 100;
+                @endphp
+                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); transform: scale({{ $bannerScale / 100 }});"></div>
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
