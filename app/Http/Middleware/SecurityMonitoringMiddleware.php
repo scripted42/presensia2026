@@ -313,11 +313,16 @@ class SecurityMonitoringMiddleware
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0];
         
-        if ($subdomain !== 'www' && $subdomain !== 'localhost') {
-            $school = \App\Models\School::where('subdomain', $subdomain)->first();
-            return $school ? $school->id : null;
+        // Skip subdomain logic for IP addresses and localhost
+        if ($subdomain === 'www' || $subdomain === 'localhost' || 
+            filter_var($host, FILTER_VALIDATE_IP) || 
+            strpos($host, '192.168.') === 0 || 
+            strpos($host, '127.0.') === 0) {
+            return null;
         }
 
+        // For subdomain-based routing, return null for now
+        // This can be implemented later when subdomain column is added
         return null;
     }
 
