@@ -408,29 +408,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (form && saveButton && saveText) {
         form.addEventListener('submit', function(e) {
-            console.log('Form submitted');
+            console.log('=== FORM SUBMISSION DEBUG ===');
+            console.log('Form submitted at:', new Date().toISOString());
             
             // Check if files are selected
             const bannerFile = document.getElementById('banner_image').files[0];
             const schoolPhotoFile = document.getElementById('school_photo').files[0];
             
-            if (bannerFile) {
-                console.log('Banner file selected:', bannerFile.name, bannerFile.size, 'Type:', bannerFile.type);
-            }
-            if (schoolPhotoFile) {
-                console.log('School photo file selected:', schoolPhotoFile.name, schoolPhotoFile.size, 'Type:', schoolPhotoFile.type);
-            }
+            console.log('Banner file:', bannerFile ? {
+                name: bannerFile.name,
+                size: bannerFile.size,
+                type: bannerFile.type,
+                lastModified: bannerFile.lastModified
+            } : 'No banner file');
+            
+            console.log('School photo file:', schoolPhotoFile ? {
+                name: schoolPhotoFile.name,
+                size: schoolPhotoFile.size,
+                type: schoolPhotoFile.type,
+                lastModified: schoolPhotoFile.lastModified
+            } : 'No school photo file');
             
             // Check form data
             const formData = new FormData(form);
             console.log('Form data entries:');
             for (let [key, value] of formData.entries()) {
                 if (value instanceof File) {
-                    console.log(key, ':', value.name, value.size, value.type);
+                    console.log(key, ':', {
+                        name: value.name,
+                        size: value.size,
+                        type: value.type
+                    });
                 } else {
                     console.log(key, ':', value);
                 }
             }
+            
+            // Check if form has correct action and method
+            console.log('Form action:', form.action);
+            console.log('Form method:', form.method);
+            console.log('Form enctype:', form.enctype);
             
             saveButton.disabled = true;
             saveText.textContent = 'Menyimpan...';

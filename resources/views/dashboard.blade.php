@@ -3,6 +3,26 @@
 @section('title', 'Dashboard - Presensia')
 
 @section('content')
+        <!-- Debug Info -->
+        @if(config('app.debug'))
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">Debug Info:</p>
+                    <p class="text-xs">Tenant Settings: {{ $school->tenantSettings ? 'Available' : 'Not Available' }}</p>
+                    @if($school->tenantSettings)
+                        <p class="text-xs">Banner Image: {{ $school->tenantSettings->banner_image ? 'Set' : 'Not Set' }}</p>
+                        <p class="text-xs">School Photo: {{ $school->tenantSettings->school_photo ? 'Set' : 'Not Set' }}</p>
+                        <p class="text-xs">Banner Text: {{ $school->tenantSettings->banner_text ? 'Set' : 'Not Set' }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+        
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             @if($school->tenantSettings && $school->tenantSettings->banner_image)

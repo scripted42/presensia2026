@@ -13641,3 +13641,5 @@ Did you mean one of these?
 [2025-10-16 16:38:05] local.INFO: Logout completed, redirecting to login  
 [2025-10-16 16:40:41] local.INFO: Logout attempt for user: superadmin@presensia.co.id  
 [2025-10-16 16:40:41] local.INFO: Logout completed, redirecting to login  
+[2025-10-16 23:58:34] local.INFO: UpdateBanner Request Data: {"has_banner_image":false,"has_school_photo":true,"banner_text":null,"school_photo_opacity":"22","all_files":{"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpB27B.tmp"}}} 
+[2025-10-16 23:58:53] local.INFO: UpdateBanner Request Data: {"has_banner_image":false,"has_school_photo":true,"banner_text":null,"school_photo_opacity":"10","all_files":{"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpFD6F.tmp"}}} 
