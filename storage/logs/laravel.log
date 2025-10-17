@@ -14274,3 +14274,21 @@ Did you mean one of these?
 "} 
 [2025-10-17 06:04:44] local.INFO: Logout attempt for user: admin@presensia.com  
 [2025-10-17 06:04:44] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:27:52] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-17 06:27:52] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:29:20] local.INFO: Logout attempt for user: bk@presensia.com  
+[2025-10-17 06:29:20] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:32:51] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 06:32:51] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:34:39] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-17 06:34:39] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:40:19] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-17 06:40:19] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:40:41] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-17 06:40:41] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:41:06] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 06:41:06] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:42:08] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 06:42:08] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 06:42:37] local.INFO: Logout attempt for user: siswa4@presensia.com  
+[2025-10-17 06:42:37] local.INFO: Logout completed, redirecting to login  

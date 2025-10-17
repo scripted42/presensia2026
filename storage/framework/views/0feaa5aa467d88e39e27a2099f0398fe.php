@@ -20,7 +20,7 @@
                 </a>
                 <?php else: ?>
                 <span class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium">
-                    <i class="fas fa-check mr-2"></i>Sudah Absensi Lengkap
+                    <i class="fas fa-check mr-2"></i>Absensi Sudah Lengkap
                 </span>
                 <?php endif; ?>
             </div>
