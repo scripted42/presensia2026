@@ -130,34 +130,46 @@
                 // Clear previous content
                 scanner.innerHTML = '';
                 
-                // Buat elemen video
+                // Buat elemen video dengan optimasi performa
                 const video = document.createElement('video');
                 video.style.width = '100%';
                 video.style.height = '100%';
                 video.style.objectFit = 'cover';
                 video.setAttribute('playsinline', 'true');
+                video.setAttribute('autoplay', 'true');
+                video.setAttribute('muted', 'true');
+                video.setAttribute('webkit-playsinline', 'true');
                 scanner.appendChild(video);
 
                 if (window.QrScanner) {
                     // Set path untuk worker lokal (same-origin, hindari CORS)
                     QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
 
-                    // Inisialisasi QrScanner dengan preferensi kamera belakang
+                    // Inisialisasi QrScanner dengan konfigurasi performa tinggi
                     qrScanner = new QrScanner(video, result => {
                         const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
                         if (!data) return;
                         const n = Date.now();
-                        if (n - lastDecodeTs > 250) {
+                        if (n - lastDecodeTs > 150) { // Lebih cepat dari 250ms
                             lastDecodeTs = n;
                             console.log('QR detected (QrScanner):', data);
                             addScannedStudent(data);
                         }
                     }, {
                         preferredCamera: 'environment',
-                        highlightScanRegion: true,
-                        highlightCodeOutline: true,
+                        highlightScanRegion: false, // Matikan highlight untuk performa
+                        highlightCodeOutline: false,
                         returnDetailedScanResult: false,
-                        maxScansPerSecond: 12
+                        maxScansPerSecond: 30, // Tingkatkan dari 12 ke 30
+                        calculateScanRegion: (video) => {
+                            // ROI dinamis: scan seluruh area untuk jarak jauh
+                            return {
+                                x: 0,
+                                y: 0,
+                                width: video.videoWidth,
+                                height: video.videoHeight
+                            };
+                        }
                     });
 
                     await qrScanner.start();
@@ -165,13 +177,18 @@
                     // Fallback ke jsQR manual loop dengan kompatibilitas browser lama
                     let stream;
                     try {
-                        // Coba getUserMedia modern dulu
+                        // Coba getUserMedia modern dulu dengan resolusi tinggi untuk jarak jauh
                         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                             const constraints = {
                                 video: {
                                     facingMode: { ideal: 'environment' },
-                                    width: { ideal: 1920 },
-                                    height: { ideal: 1080 }
+                                    width: { ideal: 2560, min: 1280 }, // Resolusi tinggi untuk jarak jauh
+                                    height: { ideal: 1440, min: 720 },
+                                    frameRate: { ideal: 30, min: 15 }, // Frame rate tinggi
+                                    focusMode: { ideal: 'continuous' }, // Auto-focus kontinyu
+                                    exposureMode: { ideal: 'continuous' }, // Auto-exposure kontinyu
+                                    whiteBalanceMode: { ideal: 'continuous' }, // Auto white balance
+                                    torch: false // Matikan flash untuk performa
                                 },
                                 audio: false
                             };
@@ -197,39 +214,60 @@
                         throw new Error('Tidak dapat mengakses kamera. Pastikan menggunakan HTTPS dan izinkan akses kamera.');
                     }
 
+                    // Canvas offscreen untuk performa tinggi
                     const off = document.createElement('canvas');
                     const ctx = off.getContext('2d');
+                    off.style.display = 'none'; // Sembunyikan canvas
 
+                    // ROI dinamis: scan area yang lebih besar untuk jarak jauh
                     function getROI(vw, vh) {
-                        const rw = Math.floor(vw * 0.7);
-                        const rh = Math.floor(vh * 0.7);
+                        // Untuk jarak jauh, scan area lebih besar (90% vs 70%)
+                        const rw = Math.floor(vw * 0.9);
+                        const rh = Math.floor(vh * 0.9);
                         const rx = Math.floor((vw - rw) / 2);
                         const ry = Math.floor((vh - rh) / 2);
                         return { rx, ry, rw, rh };
                     }
 
                     let lastScanTs = 0;
+                    let scanCount = 0;
                     const loop = () => {
                         if (!scannerActive) return;
                         if (video.readyState === video.HAVE_ENOUGH_DATA) {
                             const now = performance.now();
-                            if (now - lastScanTs > 80) {
+                            // Throttle lebih agresif: 50ms (~20fps) untuk performa tinggi
+                            if (now - lastScanTs > 50) {
                                 lastScanTs = now;
                                 const vw = video.videoWidth, vh = video.videoHeight;
                                 if (vw && vh) {
+                                    // Set canvas size sesuai video
                                     off.width = vw; off.height = vh;
                                     ctx.drawImage(video, 0, 0, vw, vh);
+                                    
+                                    // Scan area yang lebih besar
                                     const { rx, ry, rw, rh } = getROI(vw, vh);
                                     const img = ctx.getImageData(rx, ry, rw, rh);
-                                    const code = window.jsQR ? jsQR(img.data, rw, rh, { inversionAttempts: 'attemptBoth' }) : null;
-                                    if (code && code.data) {
-                                        const n = Date.now();
-                                        if (n - lastDecodeTs > 250) {
-                                            lastDecodeTs = n;
-                                            console.log('QR detected (jsQR):', code.data);
-                                            addScannedStudent(code.data);
+                                    
+                                    // Multi-pass scanning dengan parameter berbeda
+                                    const scanParams = [
+                                        { inversionAttempts: 'dontInvert' },
+                                        { inversionAttempts: 'onlyInvert' },
+                                        { inversionAttempts: 'attemptBoth' }
+                                    ];
+                                    
+                                    for (const params of scanParams) {
+                                        const code = window.jsQR ? jsQR(img.data, rw, rh, params) : null;
+                                        if (code && code.data) {
+                                            const n = Date.now();
+                                            if (n - lastDecodeTs > 100) { // Lebih cepat dari 250ms
+                                                lastDecodeTs = n;
+                                                console.log(`QR detected (jsQR) - pass ${scanCount}:`, code.data);
+                                                addScannedStudent(code.data);
+                                                return; // Keluar dari loop jika berhasil
+                                            }
                                         }
                                     }
+                                    scanCount++;
                                 }
                             }
                         }
