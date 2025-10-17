@@ -94,14 +94,14 @@ class TenantController extends Controller
         
         // Debug: Log request data
         \Log::info('=== UPDATEBANNER DEBUG START ===');
-        \Log::info('Request method:', $request->method());
-        \Log::info('Request URL:', $request->fullUrl());
-        \Log::info('Has banner_image:', $request->hasFile('banner_image'));
-        \Log::info('Has school_photo:', $request->hasFile('school_photo'));
+        \Log::info('Request method: ' . $request->method());
+        \Log::info('Request URL: ' . $request->fullUrl());
+        \Log::info('Has banner_image: ' . ($request->hasFile('banner_image') ? 'true' : 'false'));
+        \Log::info('Has school_photo: ' . ($request->hasFile('school_photo') ? 'true' : 'false'));
         \Log::info('All files:', $request->allFiles());
         \Log::info('All input:', $request->all());
-        \Log::info('Content type:', $request->header('Content-Type'));
-        \Log::info('Content length:', $request->header('Content-Length'));
+        \Log::info('Content type: ' . $request->header('Content-Type'));
+        \Log::info('Content length: ' . $request->header('Content-Length'));
         
         $request->validate([
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
@@ -184,7 +184,7 @@ class TenantController extends Controller
         \Log::info('Data to be saved:', $data);
         
         if ($tenantSettings) {
-            \Log::info('Updating existing tenant settings:', ['id' => $tenantSettings->id]);
+            \Log::info('Updating existing tenant settings with ID: ' . $tenantSettings->id);
             $tenantSettings->update($data);
             \Log::info('Tenant settings updated successfully');
         } else {
@@ -198,7 +198,7 @@ class TenantController extends Controller
             $data['features'] = TenantSetting::getDefaultFeatures();
             $data['is_active'] = true;
             $tenantSettings = TenantSetting::create($data);
-            \Log::info('New tenant settings created:', ['id' => $tenantSettings->id]);
+            \Log::info('New tenant settings created with ID: ' . $tenantSettings->id);
         }
 
         // Verify data was saved

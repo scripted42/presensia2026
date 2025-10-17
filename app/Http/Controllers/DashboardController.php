@@ -31,8 +31,8 @@ class DashboardController extends Controller
         
         // Debug: Log tenant settings data
         \Log::info('=== DASHBOARD DEBUG ===');
-        \Log::info('School ID:', $school->id);
-        \Log::info('Tenant Settings exists:', $school->tenantSettings ? 'Yes' : 'No');
+        \Log::info('School ID: ' . $school->id);
+        \Log::info('Tenant Settings exists: ' . ($school->tenantSettings ? 'Yes' : 'No'));
         if ($school->tenantSettings) {
             \Log::info('Tenant Settings data:', [
                 'banner_image' => $school->tenantSettings->banner_image,
