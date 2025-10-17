@@ -502,7 +502,7 @@
 
 /* Custom banner image: full height background */
 .banner-custom-image{
-    position:absolute; right:0; top:0; height:100%; width:50%; border-radius:0 12px 12px 0;
+    position:absolute; right:0; top:-10px; height:calc(100% + 20px); width:50%; border-radius:0 12px 12px 0;
     opacity:1; 
     z-index: 2; pointer-events: none;
 }
