@@ -78,24 +78,20 @@ class AttendanceController extends Controller
         
         // Validate QR code if provided (graceful fallback for generic QR)
         if ($request->qr_code) {
+            // Sesuai flow: QR pada layar lobby bersifat "umum per sekolah", berubah tiap beberapa detik
+            // Guru/BK/Kesiswaan/Kepsek memindai QR ini. Maka validasi cukup berdasarkan school_id + masa berlaku
             $qrCode = QrCode::where('code', $request->qr_code)
-                // Terima QR milik user ini ATAU QR generik milik sekolah yang tidak di-assign user_id
-                ->where(function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhereNull('user_id');
-                })
                 ->where('school_id', $user->school_id)
                 ->where('is_used', false)
                 ->where('expires_at', '>', now())
                 ->first();
 
-            // Jika tidak ditemukan, JANGAN blokir proses; anggap QR opsional
-            if ($qrCode) {
-                // Tandai terpakai hanya jika QR memang one-time (punya user)
-                if ($qrCode->user_id) {
-                    $qrCode->update(['is_used' => true, 'used_at' => now()]);
-                }
+            if (!$qrCode) {
+                return redirect()->back()->withErrors(['qr_code' => 'QR Code tidak valid atau sudah kedaluwarsa. Silakan scan ulang.']);
             }
+
+            // Tandai terpakai (one-time) agar tidak bisa dipakai ulang
+            $qrCode->update(['is_used' => true, 'used_at' => now()]);
         }
         // Validate location inside radius if required
         $settings = AttendanceSetting::where('school_id', $user->school_id)
