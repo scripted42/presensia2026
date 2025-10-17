@@ -135,47 +135,72 @@
                     lastDecoded = code.data;
                     document.getElementById('qrStatus').textContent = 'QR terdeteksi';
                     document.getElementById('qr_code').value = lastDecoded;
-                    try {
-                        const fd = new FormData();
-                        fd.append('_token', '{{ csrf_token() }}');
-                        fd.append('qr_code', document.getElementById('qr_code').value);
-                        fd.append('latitude', document.getElementById('latitude').value);
-                        fd.append('longitude', document.getElementById('longitude').value);
-                        fd.append('location_name', document.getElementById('location_name').value);
-                        
-                        console.log('Submitting attendance data:', {
-                            qr_code: document.getElementById('qr_code').value,
-                            latitude: document.getElementById('latitude').value,
-                            longitude: document.getElementById('longitude').value
-                        });
-                        
-                        const res = await fetch('{{ route('attendance.check-in') }}', { 
-                            method: 'POST', 
-                            body: fd,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
+                    // Retry mechanism for ngrok
+                    let retryCount = 0;
+                    const maxRetries = 3;
+                    
+                    const submitAttendance = async () => {
+                        try {
+                            const fd = new FormData();
+                            fd.append('_token', '{{ csrf_token() }}');
+                            fd.append('qr_code', document.getElementById('qr_code').value);
+                            fd.append('latitude', document.getElementById('latitude').value);
+                            fd.append('longitude', document.getElementById('longitude').value);
+                            fd.append('location_name', document.getElementById('location_name').value);
+                            
+                            console.log(`Attempt ${retryCount + 1}: Submitting attendance data:`, {
+                                qr_code: document.getElementById('qr_code').value,
+                                latitude: document.getElementById('latitude').value,
+                                longitude: document.getElementById('longitude').value
+                            });
+                            
+                            // Add timeout for ngrok
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                            
+                            const res = await fetch('{{ route('attendance.check-in') }}', { 
+                                method: 'POST', 
+                                body: fd,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json, text/plain, */*',
+                                    'Cache-Control': 'no-cache'
+                                },
+                                credentials: 'same-origin',
+                                mode: 'cors',
+                                signal: controller.signal
+                            });
+                            
+                            clearTimeout(timeoutId);
+                            console.log('Response status:', res.status);
+                            console.log('Response headers:', res.headers);
+                            
+                            if (res.redirected) { 
+                                console.log('Redirected to:', res.url);
+                                window.location = res.url; 
+                            } else if (res.ok) {
+                                const text = await res.text();
+                                console.log('Response text:', text);
+                                window.location.reload();
+                            } else {
+                                const errorText = await res.text();
+                                console.error('Server error:', errorText);
+                                throw new Error(`Server error ${res.status}: ${errorText}`);
                             }
-                        });
-                        
-                        console.log('Response status:', res.status);
-                        console.log('Response headers:', res.headers);
-                        
-                        if (res.redirected) { 
-                            console.log('Redirected to:', res.url);
-                            window.location = res.url; 
-                        } else if (res.ok) {
-                            const text = await res.text();
-                            console.log('Response text:', text);
-                            window.location.reload();
-                        } else {
-                            const errorText = await res.text();
-                            console.error('Server error:', errorText);
-                            alert('Gagal submit: Server error ' + res.status);
+                        } catch(e) { 
+                            console.error(`Fetch error (attempt ${retryCount + 1}):`, e);
+                            
+                            if (retryCount < maxRetries) {
+                                retryCount++;
+                                console.log(`Retrying in 2 seconds... (${retryCount}/${maxRetries})`);
+                                setTimeout(submitAttendance, 2000);
+                            } else {
+                                alert('Gagal submit setelah ' + maxRetries + ' percobaan: ' + e.message);
+                            }
                         }
-                    } catch(e) { 
-                        console.error('Fetch error:', e);
-                        alert('Gagal submit: '+e.message); 
-                    }
+                    };
+                    
+                    submitAttendance();
                     clearInterval(scanTimer); video.pause();
                     streamRef.getTracks().forEach(t=>t.stop());
                 }
