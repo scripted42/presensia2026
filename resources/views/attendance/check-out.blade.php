@@ -121,17 +121,99 @@
                     lastDecoded = code.data;
                     document.getElementById('qrStatus').textContent = 'QR terdeteksi';
                     document.getElementById('qr_code').value = lastDecoded;
-                    try {
+                    // Multiple submission methods for ngrok
+                    const submitCheckOut = async () => {
                         const fd = new FormData();
                         fd.append('_token', '{{ csrf_token() }}');
                         fd.append('qr_code', document.getElementById('qr_code').value);
                         fd.append('latitude', document.getElementById('latitude').value);
                         fd.append('longitude', document.getElementById('longitude').value);
                         fd.append('location_name', document.getElementById('location_name').value);
-                        const res = await fetch('{{ route('attendance.check-out') }}', { method: 'POST', body: fd });
-                        if (res.redirected) { window.location = res.url; }
-                        else { const t = await res.text(); console.log(t); window.location.reload(); }
-                    } catch(e) { alert('Gagal submit: '+e.message); }
+                        
+                        console.log('Submitting check-out data:', {
+                            qr_code: document.getElementById('qr_code').value,
+                            latitude: document.getElementById('latitude').value,
+                            longitude: document.getElementById('longitude').value
+                        });
+                        
+                        // Method 1: Try fetch with minimal options
+                        try {
+                            console.log('Trying fetch method for check-out...');
+                            const res = await fetch('{{ route('attendance.check-out') }}', { 
+                                method: 'POST', 
+                                body: fd
+                            });
+                            
+                            if (res.ok) {
+                                console.log('Fetch successful for check-out');
+                                window.location.reload();
+                                return;
+                            }
+                        } catch(e) {
+                            console.log('Fetch failed for check-out:', e.message);
+                        }
+                        
+                        // Method 2: Try XMLHttpRequest (more reliable for ngrok)
+                        try {
+                            console.log('Trying XMLHttpRequest method for check-out...');
+                            const xhr = new XMLHttpRequest();
+                            
+                            xhr.onload = function() {
+                                if (xhr.status === 200 || xhr.status === 302) {
+                                    console.log('XMLHttpRequest successful for check-out');
+                                    window.location.reload();
+                                } else {
+                                    console.error('XMLHttpRequest error for check-out:', xhr.status, xhr.responseText);
+                                    tryMethod3();
+                                }
+                            };
+                            
+                            xhr.onerror = function() {
+                                console.log('XMLHttpRequest failed for check-out');
+                                tryMethod3();
+                            };
+                            
+                            xhr.open('POST', '{{ route('attendance.check-out') }}');
+                            xhr.send(fd);
+                            
+                        } catch(e) {
+                            console.log('XMLHttpRequest failed for check-out:', e.message);
+                            tryMethod3();
+                        }
+                        
+                        // Method 3: Form submission fallback
+                        function tryMethod3() {
+                            console.log('Trying form submission fallback for check-out...');
+                            
+                            // Create hidden form
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '{{ route('attendance.check-out') }}';
+                            form.style.display = 'none';
+                            
+                            // Add CSRF token
+                            const csrfInput = document.createElement('input');
+                            csrfInput.type = 'hidden';
+                            csrfInput.name = '_token';
+                            csrfInput.value = '{{ csrf_token() }}';
+                            form.appendChild(csrfInput);
+                            
+                            // Add other fields
+                            const fields = ['qr_code', 'latitude', 'longitude', 'location_name'];
+                            fields.forEach(fieldName => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = fieldName;
+                                input.value = document.getElementById(fieldName).value;
+                                form.appendChild(input);
+                            });
+                            
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    };
+                    
+                    submitCheckOut();
                     clearInterval(scanTimer); video.pause();
                     streamRef.getTracks().forEach(t=>t.stop());
                 }

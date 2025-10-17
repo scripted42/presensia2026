@@ -187,6 +187,18 @@ class AttendanceController extends Controller
      */
     public function checkOut(Request $request)
     {
+        // Debug ngrok issues for check-out
+        \Log::info('Check-out request received:', [
+            'user_id' => Auth::id(),
+            'qr_code' => $request->qr_code,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'location_name' => $request->location_name,
+            'user_agent' => $request->userAgent(),
+            'ip' => $request->ip(),
+            'headers' => $request->headers->all()
+        ]);
+        
         $user = Auth::user();
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         
@@ -202,6 +214,21 @@ class AttendanceController extends Controller
         $attendance->update([
             'check_out' => now()->setTimezone('Asia/Jakarta'),
         ]);
+        
+        \Log::info('Check-out completed successfully:', [
+            'attendance_id' => $attendance->id,
+            'user_id' => $attendance->user_id,
+            'check_out' => $attendance->check_out
+        ]);
+        
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi keluar berhasil.',
+                'attendance' => $attendance
+            ]);
+        }
         
         return redirect()->route('attendance.index')
             ->with('success', 'Absensi keluar berhasil.');
@@ -370,19 +397,19 @@ class AttendanceController extends Controller
      */
     private function processQRCode($qrCode)
     {
-        // Parse QR code to extract NIS
-        $parsed = $this->parseQRCode($qrCode);
-        $nis = $parsed['nis'] ?? $qrCode;
-        
-        // Find student by NIS or QR code
-        $student = User::where(function($query) use ($nis, $qrCode) {
-            $query->where('nis', $nis)
-                  ->orWhere('qr_code', $qrCode);
-        })
-        ->where('user_type', 'student')
-        ->where('school_id', Auth::user()->school_id)
-        ->first();
+            // Parse QR code to extract NIS
+            $parsed = $this->parseQRCode($qrCode);
+            $nis = $parsed['nis'] ?? $qrCode;
             
+            // Find student by NIS or QR code
+            $student = User::where(function($query) use ($nis, $qrCode) {
+                $query->where('nis', $nis)
+                      ->orWhere('qr_code', $qrCode);
+            })
+            ->where('user_type', 'student')
+            ->where('school_id', Auth::user()->school_id)
+            ->first();
+                
         if (!$student) {
             return [
                 'success' => false,
@@ -391,33 +418,33 @@ class AttendanceController extends Controller
             ];
         }
         
-        // Check if student already has attendance today
+                // Check if student already has attendance today
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
-        $existingAttendance = Attendance::where('user_id', $student->id)
+                $existingAttendance = Attendance::where('user_id', $student->id)
             ->where('date', $today)
-            ->first();
-            
-        if ($existingAttendance) {
+                    ->first();
+                    
+                if ($existingAttendance) {
             \Log::info("Duplicate attendance detected for student {$student->nis} on {$today}");
             return [
                 'success' => false,
                 'type' => 'duplicate',
                 'message' => $student->name . ' (' . $student->nis . ')'
             ];
-        }
-        
-        // Create attendance record for student
-        Attendance::create([
-            'user_id' => $student->id,
-            'date' => Carbon::now('Asia/Jakarta')->format('Y-m-d'),
-            'check_in' => now()->setTimezone('Asia/Jakarta'),
-            'status' => 'ontime',
-            'notes' => 'Absensi oleh guru: ' . Auth::user()->name,
-            'latitude' => null,
-            'longitude' => null,
-            'location_name' => 'Scan oleh ' . Auth::user()->name,
-        ]);
-        
+                }
+                
+                // Create attendance record for student
+                Attendance::create([
+                    'user_id' => $student->id,
+                    'date' => Carbon::now('Asia/Jakarta')->format('Y-m-d'),
+                    'check_in' => now()->setTimezone('Asia/Jakarta'),
+                    'status' => 'ontime',
+                    'notes' => 'Absensi oleh guru: ' . Auth::user()->name,
+                    'latitude' => null,
+                    'longitude' => null,
+                    'location_name' => 'Scan oleh ' . Auth::user()->name,
+                ]);
+                
         return [
             'success' => true,
             'student' => $student
@@ -637,7 +664,7 @@ class AttendanceController extends Controller
             if ($type === 'employees') {
                 $allUserIds = User::where('school_id', $user->school_id)
                     ->whereIn('user_type', ['admin', 'teacher', 'tu', 'bk', 'kesiswaan', 'employee'])
-                    ->pluck('id');
+                ->pluck('id');
             } elseif ($type === 'students') {
                 $allUserIds = User::where('school_id', $user->school_id)
                     ->where('user_type', 'student')
