@@ -22,7 +22,7 @@
                     
                     $backgroundPosition = $positionX . ' ' . $positionY;
                 @endphp
-                <div class="absolute inset-0 bg-cover" 
+                <div class="absolute inset-0 bg-cover school-photo-bg" 
                      style="background-image: url('{{ asset('storage/' . $school->tenantSettings->school_photo) }}'); 
                             background-position: {{ $backgroundPosition }};
                             opacity: {{ $opacity / 100 }};
@@ -503,12 +503,28 @@
 /* Custom banner image: full height background */
 .banner-custom-image{
     position:absolute; right:0; top:-10px; height:calc(100% + 20px); width:50%; border-radius:0 12px 12px 0;
-    opacity:1; 
+    opacity:0; 
     z-index: 2; pointer-events: none;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.8s ease, transform 0.8s ease;
 }
-.banner-custom-image.loaded{ opacity:1; }
+.banner-custom-image.loaded{ 
+    opacity:1; 
+    transform: translateY(0) scale(1);
+}
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
 @media (min-width:1024px){ .banner-custom-image{ width:40%; } }
+
+/* School photo background animation */
+.school-photo-bg{
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 1s ease, transform 1s ease;
+}
+.school-photo-bg.loaded{
+    opacity: 1;
+    transform: scale(1);
+}
 
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
@@ -580,6 +596,13 @@
             bannerImg.classList.add('loaded');
         } else {
             console.log('Banner image element not found!');
+        }
+        
+        // add loaded class to school photo background
+        const schoolPhoto=document.querySelector('.school-photo-bg');
+        if(schoolPhoto){
+            console.log('Adding loaded class to school photo');
+            schoolPhoto.classList.add('loaded');
         }
     });
 </script>
