@@ -515,15 +515,17 @@
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
 @media (min-width:1024px){ .banner-custom-image{ width:40%; } }
 
-/* School photo background animation */
+/* School photo background animation - lazy loading */
 .school-photo-bg{
     opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 1s ease, transform 1s ease;
+    transform: scale(0.8) translateY(30px);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+    filter: blur(5px);
 }
 .school-photo-bg.loaded{
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
+    filter: blur(0);
 }
 
 .welcome-hero-wrap{ position: relative; z-index: 1; }
@@ -598,11 +600,13 @@
             console.log('Banner image element not found!');
         }
         
-        // add loaded class to school photo background
+        // add loaded class to school photo background with delay for lazy effect
         const schoolPhoto=document.querySelector('.school-photo-bg');
         if(schoolPhoto){
-            console.log('Adding loaded class to school photo');
-            schoolPhoto.classList.add('loaded');
+            console.log('Adding loaded class to school photo with delay');
+            setTimeout(() => {
+                schoolPhoto.classList.add('loaded');
+            }, 500); // 500ms delay after banner starts animating
         }
     });
 </script>
