@@ -106,15 +106,15 @@
 @endsection
 
 @push('scripts')
-    <!-- ZXing (WASM-capable) UMD build -->
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <!-- jsQR (ringan, kompatibel lintas platform) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         let scannedStudents = [];
         let qrScanner = null;
         let scannerActive = false;
         let lastDecodeTs = 0;
 
-        // Start scanner: prefer BarcodeDetector (super cepat), fallback ke Nimiq QR Scanner
+        // Start scanner: gunakan jsQR (ringan & kompatibel)
         document.getElementById('startScanner').addEventListener('click', async function() {
             try {
                 const scanner = document.getElementById('scanner');
@@ -122,78 +122,67 @@
                 // Clear previous content
                 scanner.innerHTML = '';
                 
-                // Prefer native BarcodeDetector jika tersedia
-                const hasBD = 'BarcodeDetector' in window;
-                if (hasBD) {
-                    const video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.objectFit = 'cover';
-                    video.setAttribute('playsinline', 'true');
-                    scanner.appendChild(video);
+                // Buat elemen video
+                const video = document.createElement('video');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                video.setAttribute('playsinline', 'true');
+                scanner.appendChild(video);
 
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream; await video.play();
+                // Minta kamera belakang resolusi tinggi
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream; await video.play();
 
-                    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                // Canvas offscreen untuk pemindaian cepat
+                const off = document.createElement('canvas');
+                const ctx = off.getContext('2d');
 
-                    let running = true; scannerActive = true;
-                    const loop = async () => {
-                        if (!running) return;
-                        try {
-                            // Debounce agar tidak double proses
-                            const now = Date.now();
-                            if (now - lastDecodeTs < 250) { requestAnimationFrame(loop); return; }
-                            const barcodes = await detector.detect(video);
-                            if (barcodes && barcodes.length) {
-                                lastDecodeTs = now;
-                                const data = barcodes[0].rawValue || barcodes[0].rawValue === '' ? barcodes[0].rawValue : (barcodes[0].rawValue ?? barcodes[0].rawValue);
-                                addScannedStudent(data);
-                            }
-                        } catch (e) { /* ignore frame errors */ }
-                        requestAnimationFrame(loop);
-                    };
-                    requestAnimationFrame(loop);
-                } else if (window.ZXing && ZXing.BrowserMultiFormatReader) {
-                    // Fallback 2: ZXing BrowserMultiFormatReader (WASM/ASM) – cepat dan akurat
-                    const video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.objectFit = 'cover';
-                    video.setAttribute('playsinline', 'true');
-                    scanner.appendChild(video);
-
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream; await video.play();
-
-                    const codeReader = new ZXing.BrowserMultiFormatReader();
-                    // ROI tidak langsung tersedia di ZXing UMD; atur delay antar scan agar responsif
-                    await codeReader.decodeFromVideoDevice(null, video, (result, err, controls) => {
-                        if (result) {
-                            const now = Date.now();
-                            if (now - lastDecodeTs < 250) return; // debounce
-                            lastDecodeTs = now;
-                            const text = result.getText ? result.getText() : (result.text ?? '');
-                            if (text) addScannedStudent(text);
-                        }
-                    });
+                // ROI tengah 70%
+                function getROI(vw, vh) {
+                    const rw = Math.floor(vw * 0.7);
+                    const rh = Math.floor(vh * 0.7);
+                    const rx = Math.floor((vw - rw) / 2);
+                    const ry = Math.floor((vh - rh) / 2);
+                    return { rx, ry, rw, rh };
                 }
+
+                let running = true; scannerActive = true; let lastScanTs = 0;
+                const loop = () => {
+                    if (!running) return;
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        const now = performance.now();
+                        // throttle ~ every 80ms (~12.5 fps decode) agar CPU ringan
+                        if (now - lastScanTs > 80) {
+                            lastScanTs = now;
+                            const vw = video.videoWidth, vh = video.videoHeight;
+                            if (vw && vh) {
+                                off.width = vw; off.height = vh;
+                                ctx.drawImage(video, 0, 0, vw, vh);
+                                const { rx, ry, rw, rh } = getROI(vw, vh);
+                                const img = ctx.getImageData(rx, ry, rw, rh);
+                                const code = jsQR(img.data, rw, rh, { inversionAttempts: 'attemptBoth' });
+                                if (code && code.data) {
+                                    const n = Date.now();
+                                    if (n - lastDecodeTs > 250) {
+                                        lastDecodeTs = n;
+                                        addScannedStudent(code.data);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
                 
                 scannerActive = true;
                 document.getElementById('startScanner').style.display = 'none';
