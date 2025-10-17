@@ -238,16 +238,20 @@ class AttendanceController extends Controller
         
         // Process manual QR codes first
         if ($request->has('qr_codes')) {
+            \Log::info('Processing manual QR codes:', $request->qr_codes);
             foreach ($request->qr_codes as $qrCode) {
                 $result = $this->processQRCode($qrCode);
                 if ($result['success']) {
                     $scannedStudents[] = $result['student'];
                     $processedCount++;
+                    \Log::info("Successfully processed manual QR: {$qrCode}");
                 } else {
                     if ($result['type'] === 'duplicate') {
                         $duplicates[] = $result['message'];
+                        \Log::info("Duplicate manual QR: {$qrCode}");
                     } else {
                         $errors[] = $result['message'];
+                        \Log::error("Error processing manual QR: {$qrCode} - {$result['message']}");
                     }
                 }
             }
@@ -321,11 +325,13 @@ class AttendanceController extends Controller
         }
         
         // Check if student already has attendance today
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $existingAttendance = Attendance::where('user_id', $student->id)
-            ->where('date', Carbon::now('Asia/Jakarta')->format('Y-m-d'))
+            ->where('date', $today)
             ->first();
             
         if ($existingAttendance) {
+            \Log::info("Duplicate attendance detected for student {$student->nis} on {$today}");
             return [
                 'success' => false,
                 'type' => 'duplicate',
@@ -455,11 +461,11 @@ class AttendanceController extends Controller
             ->with('user');
             
         // Apply role-based restrictions
-        if ($user->hasRole('admin')) {
-            // Admin can see all data
+        if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
+            // Admin dan Headmaster dapat melihat semua data
             if ($type === 'employees') {
                 $query->whereHas('user', function($q) {
-                    $q->whereIn('user_type', ['admin', 'teacher', 'tu', 'bk', 'kesiswaan']);
+                    $q->whereIn('user_type', ['admin', 'teacher', 'tu', 'bk', 'kesiswaan', 'employee']);
                 });
             } elseif ($type === 'students') {
                 $query->whereHas('user', function($q) {
@@ -467,36 +473,21 @@ class AttendanceController extends Controller
                 });
             }
         } elseif ($user->hasRole('teacher')) {
-            // Teacher can see their own attendance and their students
+            // Teacher dapat melihat semua siswa di sekolah (tidak hanya kelas yang diajar)
             if ($type === 'employees') {
                 $query->where('user_id', $user->id);
             } elseif ($type === 'students') {
-                // Get students from classes taught by this teacher
-                $classIds = $user->taughtClasses()->pluck('id');
-                $studentIds = \App\Models\ClassStudent::whereIn('class_id', $classIds)
-                    ->where('status', 'active')
-                    ->pluck('student_id');
-                $query->whereIn('user_id', $studentIds);
-            } else {
-                // Show both own attendance and students
-                $classIds = $user->taughtClasses()->pluck('id');
-                $studentIds = \App\Models\ClassStudent::whereIn('class_id', $classIds)
-                    ->where('status', 'active')
-                    ->pluck('student_id');
-                $query->where(function($q) use ($user, $studentIds) {
-                    $q->where('user_id', $user->id)
-                      ->orWhereIn('user_id', $studentIds);
-                });
-            }
-        } elseif ($user->hasRole('headmaster')) {
-            // Headmaster can see all attendance data
-            if ($type === 'employees') {
-                $query->whereHas('user', function($q) {
-                    $q->where('user_type', 'employee');
-                });
-            } elseif ($type === 'students') {
+                // Semua siswa di sekolah, tidak hanya yang diajar
                 $query->whereHas('user', function($q) {
                     $q->where('user_type', 'student');
+                });
+            } else {
+                // Show both own attendance and all students
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereHas('user', function($userQuery) {
+                          $userQuery->where('user_type', 'student');
+                      });
                 });
             }
         } else {
@@ -506,15 +497,44 @@ class AttendanceController extends Controller
         
         $attendances = $query->get()->groupBy('user_id');
 
-        // Build map of approved leaves per user per date within month range
-        $userIds = $attendances->keys();
-        if ($userIds->isEmpty()) {
-            // If no attendance found (e.g., empty month), still prepare userIds based on role/type to allow leave overlay
-            $userIds = User::where('school_id', $user->school_id)
-                ->when($type === 'employees', function($q){ $q->where('user_type', 'employee'); })
-                ->when($type === 'students', function($q){ $q->where('user_type', 'student'); })
-                ->pluck('id');
+        // Get all users for the report (not just those with attendance)
+        $allUserIds = collect();
+        
+        if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
+            // Admin dan Headmaster dapat melihat semua user
+            if ($type === 'employees') {
+                $allUserIds = User::where('school_id', $user->school_id)
+                    ->whereIn('user_type', ['admin', 'teacher', 'tu', 'bk', 'kesiswaan', 'employee'])
+                    ->pluck('id');
+            } elseif ($type === 'students') {
+                $allUserIds = User::where('school_id', $user->school_id)
+                    ->where('user_type', 'student')
+                    ->pluck('id');
+            } else {
+                $allUserIds = User::where('school_id', $user->school_id)->pluck('id');
+            }
+        } elseif ($user->hasRole('teacher')) {
+            // Teacher dapat melihat semua siswa + dirinya sendiri
+            if ($type === 'employees') {
+                $allUserIds = collect([$user->id]);
+            } elseif ($type === 'students') {
+                $allUserIds = User::where('school_id', $user->school_id)
+                    ->where('user_type', 'student')
+                    ->pluck('id');
+            } else {
+                $allUserIds = User::where('school_id', $user->school_id)
+                    ->where(function($q) {
+                        $q->where('user_type', 'student')
+                          ->orWhere('id', Auth::id());
+                    })
+                    ->pluck('id');
+            }
+        } else {
+            $allUserIds = collect([$user->id]);
         }
+
+        // Build map of approved leaves per user per date within month range
+        $userIds = $attendances->keys()->merge($allUserIds)->unique();
 
         $approvedLeaves = LeaveRequest::whereIn('user_id', $userIds)
             ->where('status', 'approved')
