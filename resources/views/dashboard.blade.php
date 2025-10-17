@@ -51,13 +51,7 @@
                         <i class="fas fa-user mr-2"></i>{{ $user->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
                     </span>
                 </div>
-                <!-- Decorative image on the right -->
-                <img src="{{ asset('assets/images/banner/siswa.png') }}" 
-                     alt="Siswa" 
-                     loading="lazy"
-                     class="welcome-hero-image"
-                     data-fallback1="{{ url('assets/images/banner/siswa.png') }}"
-                     data-fallback2="/assets/images/banner/siswa.png" />
+                <!-- Decorative image on the right - REMOVED -->
             </div>
         </div>
 
@@ -501,18 +495,7 @@
 
 @push('scripts')
 <style>
-/* Welcome image: bigger, reach bottom edge, sit behind text */
-.welcome-hero-image{
-    position:absolute; right:30px; top:-12px; height:200px; width:auto; border-radius:12px;
-    opacity:0; mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 25%, rgba(0,0,0,1) 100%);
-    -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 20%, rgba(0,0,0,1) 100%);
-    transform: translateY(8px) scale(1.02);
-    transition: opacity .8s ease, transform .8s ease;
-    z-index: 0; pointer-events: none;
-}
-.welcome-hero-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
-@media (min-width:768px){ .welcome-hero-image{ height:240px; right:34px; top:-16px; } }
-@media (min-width:1024px){ .welcome-hero-image{ height:280px; right:40px; top:-20px; } }
+/* Welcome image: REMOVED - using custom banner image instead */
 
 /* Custom banner image: same styling as welcome-hero-image */
 .banner-custom-image{
@@ -589,20 +572,8 @@
     renderGauge('#gauge-kpi', gauges.kpi);
     renderGauge('#gauge-emp', gauges.emp);
     renderGauge('#gauge-stu', gauges.stu);
-    // add loaded class to welcome image once DOM settled
+    // add loaded class to custom banner image
     window.requestAnimationFrame(()=>{
-        const img=document.querySelector('.welcome-hero-image');
-        if(img){
-            img.classList.add('loaded');
-            img.addEventListener('error',()=>{
-                const f1=img.getAttribute('data-fallback1');
-                const f2=img.getAttribute('data-fallback2');
-                if (img.src !== f1) { img.src = f1; }
-                else if (img.src !== location.origin + f2) { img.src = f2; }
-            }, { once:true });
-        }
-        
-        // add loaded class to custom banner image
         const bannerImg=document.querySelector('.banner-custom-image');
         if(bannerImg){
             bannerImg.classList.add('loaded');
