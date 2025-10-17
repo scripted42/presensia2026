@@ -14294,3 +14294,271 @@ Did you mean one of these?
 [2025-10-17 06:42:37] local.INFO: Logout completed, redirecting to login  
 [2025-10-17 07:42:27] local.INFO: Logout attempt for user: guru@presensia.com  
 [2025-10-17 07:42:27] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 10:25:11] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-17 10:25:11] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 10:47:24] local.ERROR: The "--cert" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--cert\" option does not exist. at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Input\\ArgvInput.php:226)
+[stacktrace]
+#0 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Input\\ArgvInput.php(153): Symfony\\Component\\Console\\Input\\ArgvInput->addLongOption('cert', 'localhost+2.pem')
+#1 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Input\\ArgvInput.php(88): Symfony\\Component\\Console\\Input\\ArgvInput->parseLongOption('--cert=localhos...')
+#2 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Input\\ArgvInput.php(77): Symfony\\Component\\Console\\Input\\ArgvInput->parseToken('--cert=localhos...', true)
+#3 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Input\\Input.php(53): Symfony\\Component\\Console\\Input\\ArgvInput->parse()
+#4 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Command\\Command.php(276): Symfony\\Component\\Console\\Input\\Input->bind(Object(Symfony\\Component\\Console\\Input\\InputDefinition))
+#5 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#6 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(1110): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#7 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(359): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\ServeCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\symfony\\console\\Application.php(194): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#9 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#10 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#11 C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#12 {main}
+"} 
+[2025-10-17 11:01:01] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-17 11:01:01] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 11:01:42] local.INFO: Logout attempt for user: bk@presensia.com  
+[2025-10-17 11:01:42] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 12:53:53] local.INFO: Duplicate attendance detected for student SISWA001 on 2025-10-17  
+[2025-10-17 12:56:18] local.INFO: Duplicate attendance detected for student SISWA001 on 2025-10-17  
+[2025-10-17 12:59:49] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 12:59:49] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 12:59:49] local.INFO: Processing photo 0, data length: 141207  
+[2025-10-17 12:59:51] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_CC6A.tmp  
+[2025-10-17 12:59:51] local.WARNING: No QR code found in photo 0  
+[2025-10-17 13:00:19] local.INFO: Scan student request received: {"qr_photos_count":2,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:00:19] local.INFO: Processing photo QR codes, count: 2  
+[2025-10-17 13:00:19] local.INFO: Processing photo 0, data length: 115087  
+[2025-10-17 13:00:21] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_41AC.tmp  
+[2025-10-17 13:00:21] local.WARNING: No QR code found in photo 0  
+[2025-10-17 13:00:21] local.INFO: Processing photo 1, data length: 105379  
+[2025-10-17 13:00:24] local.INFO: QR decoded successfully: SISWA007|Siswa 7  
+[2025-10-17 13:00:24] local.INFO: QR decoded from photo 1: SISWA007|Siswa 7  
+[2025-10-17 13:00:24] local.INFO: Successfully processed photo QR: SISWA007|Siswa 7  
+[2025-10-17 13:01:34] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:01:34] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 13:01:34] local.INFO: Processing photo 0, data length: 126663  
+[2025-10-17 13:01:36] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_6511.tmp  
+[2025-10-17 13:01:36] local.WARNING: No QR code found in photo 0  
+[2025-10-17 13:01:54] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:01:54] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 13:01:54] local.INFO: Processing photo 0, data length: 86823  
+[2025-10-17 13:01:57] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_B621.tmp  
+[2025-10-17 13:01:57] local.WARNING: No QR code found in photo 0  
+[2025-10-17 13:02:22] local.INFO: Scan student request received: {"qr_photos_count":3,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:02:22] local.INFO: Processing photo QR codes, count: 3  
+[2025-10-17 13:02:22] local.INFO: Processing photo 0, data length: 92639  
+[2025-10-17 13:02:24] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_20A4.tmp  
+[2025-10-17 13:02:24] local.WARNING: No QR code found in photo 0  
+[2025-10-17 13:02:24] local.INFO: Processing photo 1, data length: 92175  
+[2025-10-17 13:02:26] local.INFO: QR decoded successfully: SISWA002|Siswa 2  
+[2025-10-17 13:02:26] local.INFO: QR decoded from photo 1: SISWA002|Siswa 2  
+[2025-10-17 13:02:26] local.INFO: Successfully processed photo QR: SISWA002|Siswa 2  
+[2025-10-17 13:02:26] local.INFO: Processing photo 2, data length: 118691  
+[2025-10-17 13:02:29] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_30E3.tmp  
+[2025-10-17 13:02:29] local.WARNING: No QR code found in photo 2  
+[2025-10-17 13:07:51] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:07:51] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 13:07:51] local.INFO: Processing photo 0, data length: 94247  
+[2025-10-17 13:07:51] local.INFO: QR decode attempt 1 for photo 0  
+[2025-10-17 13:07:51] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 13:07:51] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:07:54] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:07:54] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_2767.tmp  
+[2025-10-17 13:07:54] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 13:07:54] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:07:56] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:07:56] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_2777.tmp  
+[2025-10-17 13:07:56] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 13:07:56] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:07:59] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:07:59] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_27F5.tmp  
+[2025-10-17 13:07:59] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 13:07:59] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:01] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:01] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_2854.tmp  
+[2025-10-17 13:08:01] local.WARNING: QR decode attempt 1 failed for photo 0  
+[2025-10-17 13:08:01] local.INFO: QR decode attempt 2 for photo 0  
+[2025-10-17 13:08:02] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 13:08:02] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:05] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:05] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_4F65.tmp  
+[2025-10-17 13:08:05] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 13:08:05] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:07] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:07] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_4F76.tmp  
+[2025-10-17 13:08:07] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 13:08:07] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:10] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:10] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_4FE4.tmp  
+[2025-10-17 13:08:10] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 13:08:10] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:12] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:12] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_5043.tmp  
+[2025-10-17 13:08:12] local.WARNING: QR decode attempt 2 failed for photo 0  
+[2025-10-17 13:08:12] local.INFO: QR decode attempt 3 for photo 0  
+[2025-10-17 13:08:12] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 13:08:12] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:15] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:15] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_7A03.tmp  
+[2025-10-17 13:08:15] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 13:08:15] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:17] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:17] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_7A24.tmp  
+[2025-10-17 13:08:17] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 13:08:17] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:19] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:19] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_7A92.tmp  
+[2025-10-17 13:08:19] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 13:08:19] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:08:21] local.INFO: Trying QR decode with method: simple_qr  
+[2025-10-17 13:08:21] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_7AE1.tmp  
+[2025-10-17 13:08:21] local.WARNING: QR decode attempt 3 failed for photo 0  
+[2025-10-17 13:08:21] local.WARNING: No QR code found in photo 0 after 3 attempts  
+[2025-10-17 13:20:37] local.INFO: Check-in request received: {"user_id":2,"qr_code":"N5X9HNAwIzLEPv1hxmE6vZl6UgDveqDg","latitude":"-7.2376097","longitude":"112.627707","location_name":"Lat:-7.23761, Lng:112.62771","user_agent":"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36","ip":"127.0.0.1","headers":{"host":["1f52fdcf5acf.ngrok-free.app"],"user-agent":["Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"],"content-length":["177"],"accept":["text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"],"accept-encoding":["gzip, deflate, br, zstd"],"accept-language":["id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7"],"cache-control":["max-age=0"],"content-type":["application/x-www-form-urlencoded"],"cookie":["abuse_interstitial=1f52fdcf5acf.ngrok-free.app; XSRF-TOKEN=eyJpdiI6IlZNSHFhZ0xiSTE2a0FOTmZmTkZBR2c9PSIsInZhbHVlIjoiRGdMR0s2cVNZaG82d3VwT0dhRndLYTU2TmYxd2tMSmdjRlpzbmp1UmFZOWxZSmFVdkZYNmF1MEtxeXVvb1JLdk81ckk0Umo1OVV4UzVGOVdsZlRuajB2ZDdMM2hyREdXUlFqQzl4U3hzeWQvc1FPM1YvSC9rT3FQei9xaVlpSG4iLCJtYWMiOiJjYWQyYjliM2Y1ZjgzNDc4YzA5YmE2M2RjMWNlMmZmYzBiMmEwNmEwYzc2MDZhMmRmN2MyOGUyNzc1ZWY5OGMyIiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6IitUQ2hjZW5TT1g3MUhGWHRjYnZETkE9PSIsInZhbHVlIjoid2lFcy9PUEt1NjExcXZMZk9lWmZ2RWdYbnFHZzYyV0ZianJ1MHhZcHdVSkh1UDZXVEJWcUd1STRZelJLMDRhQUdJeHZUSkdVTTFaRjlLOGQ4dXBmVGdnTXdWQTlYbkQ4WktiK2RWeE10VFlVZ2c4cUtFSElydE5qbjdNVmFtUmUiLCJtYWMiOiI5MjBhYTQ4MTBjOWM1N2I3Njc0NmQwMjY3YTM2MDM5ZDVjNzdmYmFiZjA5NWVhNjI4OTRmMjNkN2Q1ZGNiZWJhIiwidGFnIjoiIn0%3D"],"dnt":["1"],"origin":["null"],"priority":["u=0, i"],"sec-ch-ua":["\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\""],"sec-ch-ua-mobile":["?1"],"sec-ch-ua-platform":["\"Android\""],"sec-fetch-dest":["document"],"sec-fetch-mode":["navigate"],"sec-fetch-site":["cross-site"],"sec-fetch-user":["?1"],"upgrade-insecure-requests":["1"],"x-forwarded-for":["2001:448a:c020:2ff:ee82:c036:dbb:ae86"],"x-forwarded-host":["1f52fdcf5acf.ngrok-free.app"],"x-forwarded-proto":["https"]}} 
+[2025-10-17 13:20:37] local.INFO: Attendance created successfully: {"attendance_id":18,"user_id":2,"check_in":"2025-10-17 20:20:37","status":"late"} 
+[2025-10-17 13:22:44] local.INFO: Check-out request received: {"user_id":2,"qr_code":"TP0MUoL7wWcHtSssuD3ubJGklLThNzbm","latitude":"-7.2376111","longitude":"112.627699","location_name":"Lat:-7.23761, Lng:112.62770","user_agent":"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36","ip":"127.0.0.1","headers":{"host":["1f52fdcf5acf.ngrok-free.app"],"user-agent":["Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36"],"content-length":["177"],"accept":["text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"],"accept-encoding":["gzip, deflate, br, zstd"],"accept-language":["id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7"],"cache-control":["max-age=0"],"content-type":["application/x-www-form-urlencoded"],"cookie":["abuse_interstitial=1f52fdcf5acf.ngrok-free.app; XSRF-TOKEN=eyJpdiI6Im5NQVpiaW1HYmFiOG1BK0wyTHh3Snc9PSIsInZhbHVlIjoibW90Z0c1NzNUOTE4cFU1RXRZT0dvVWdOWERpTDhOaC9iK0Jid3l1NHZaVnd1bHpKcjdzeS9iN084UDVqQVQySVZnTzhsNm5Cb2xLU280dnlMZmo3WmRqOUNzOTROdWJ1UEhIMlJ0S3VvSjdTNE1TcGlNNHluKy9pSDRBdE8zaWgiLCJtYWMiOiI1OTFiYTg3OGM3ZTVjOWQwZGQyYWYxMWM3ODBiNDA0ODZjMTRlNWQ1NjAyNTM2ZDk3MTg2NTQ0MjJkY2RiNWU2IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6IjM0ZytmOGZDOFdtY1kyZHl3WFJFZGc9PSIsInZhbHVlIjoiRlZMb1RzV2lyMHNQN01GOThhbG9rSjB4WndjeHAwczJCWGgyOCttNDN6TTFDdmlnTEt0b0lxMFBmSlk2WkYxQVEvemxlVUR0UG1xUlljbmlHRTkzVEg4QzB0QmtiK2podFVjR0lMbWlTYWRSR0xuVUthSUIxY2FsWkgzYzhQeSsiLCJtYWMiOiJjNDQ5N2JhNGNhYzE3NTZhZjBjODg2MjNiZjdhNWVhMDRlNDI0MjE1M2U2NGUxNmIxZTVmYWE5Njc0OGRjNjhhIiwidGFnIjoiIn0%3D"],"dnt":["1"],"origin":["null"],"priority":["u=0, i"],"sec-ch-ua":["\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\""],"sec-ch-ua-mobile":["?1"],"sec-ch-ua-platform":["\"Android\""],"sec-fetch-dest":["document"],"sec-fetch-mode":["navigate"],"sec-fetch-site":["cross-site"],"sec-fetch-user":["?1"],"upgrade-insecure-requests":["1"],"x-forwarded-for":["2001:448a:c020:2ff:ee82:c036:dbb:ae86"],"x-forwarded-host":["1f52fdcf5acf.ngrok-free.app"],"x-forwarded-proto":["https"]}} 
+[2025-10-17 13:22:44] local.INFO: Check-out completed successfully: {"attendance_id":18,"user_id":2,"check_out":"2025-10-17 20:22:44"} 
+[2025-10-17 13:53:04] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 13:53:04] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 13:53:04] local.INFO: Processing photo 0, data length: 1003955  
+[2025-10-17 13:53:04] local.INFO: QR decode attempt 1 for photo 0  
+[2025-10-17 13:53:05] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 13:53:05] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:09] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:14] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_8D2B.tmp  
+[2025-10-17 13:53:14] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 13:53:14] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:18] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:22] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_8D4C.tmp  
+[2025-10-17 13:53:22] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 13:53:22] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:25] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:30] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_8E27.tmp  
+[2025-10-17 13:53:30] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 13:53:30] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:33] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:37] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_8F03.tmp  
+[2025-10-17 13:53:37] local.WARNING: QR decode attempt 1 failed for photo 0  
+[2025-10-17 13:53:37] local.INFO: QR decode attempt 2 for photo 0  
+[2025-10-17 13:53:38] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 13:53:38] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:43] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:47] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_EB8.tmp  
+[2025-10-17 13:53:47] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 13:53:47] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:51] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:53:55] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_ED8.tmp  
+[2025-10-17 13:53:55] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 13:53:55] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:53:58] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 13:54:03] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_FA4.tmp  
+[2025-10-17 13:54:03] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 13:54:03] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 13:54:04] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\khanamiryan\\qrcode-detector-decoder\\lib\\GDLuminanceSource.php:78)
+[stacktrace]
+#0 {main}
+"} 
+[2025-10-17 13:55:11] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 13:55:11] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 13:56:05] local.INFO: Logout attempt for user: superadmin@presensia.co.id  
+[2025-10-17 13:56:05] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 13:57:02] local.INFO: Logout attempt for user: admin@smpn10surabaya.co.id  
+[2025-10-17 13:57:02] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 14:08:12] local.INFO: Logout attempt for user: admin@presensia.com  
+[2025-10-17 14:08:12] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 14:08:52] local.INFO: Logout attempt for user: sahara@presensia.com  
+[2025-10-17 14:08:52] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 14:09:21] local.INFO: Logout attempt for user: guru@presensia.com  
+[2025-10-17 14:09:21] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 14:09:47] local.INFO: Logout attempt for user: bk@presensia.com  
+[2025-10-17 14:09:47] local.INFO: Logout completed, redirecting to login  
+[2025-10-17 14:12:45] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 14:12:45] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 14:12:45] local.INFO: Processing photo 0, data length: 1003955  
+[2025-10-17 14:12:45] local.INFO: QR decode attempt 1 for photo 0  
+[2025-10-17 14:12:46] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 14:12:46] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:12:51] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:12:55] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_934E.tmp  
+[2025-10-17 14:12:55] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 14:12:55] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:12:59] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:04] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_936F.tmp  
+[2025-10-17 14:13:04] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 14:13:04] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:13:07] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:12] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_942B.tmp  
+[2025-10-17 14:13:12] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 14:13:12] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:13:15] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:20] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_94C8.tmp  
+[2025-10-17 14:13:20] local.WARNING: QR decode attempt 1 failed for photo 0  
+[2025-10-17 14:13:20] local.INFO: QR decode attempt 2 for photo 0  
+[2025-10-17 14:13:21] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 14:13:21] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:13:25] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:30] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_1BD0.tmp  
+[2025-10-17 14:13:30] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 14:13:30] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:13:35] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:39] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_1C00.tmp  
+[2025-10-17 14:13:39] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 14:13:39] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:13:44] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:13:45] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\app\\Http\\Controllers\\AttendanceController.php:598)
+[stacktrace]
+#0 {main}
+"} 
+[2025-10-17 14:15:43] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 14:15:43] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 14:15:43] local.INFO: Processing photo 0, data length: 1114143  
+[2025-10-17 14:15:43] local.INFO: QR decode attempt 1 for photo 0  
+[2025-10-17 14:15:43] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 14:15:43] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:15:47] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:15:52] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_484D.tmp  
+[2025-10-17 14:15:52] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 14:15:52] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:15:56] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:00] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_485E.tmp  
+[2025-10-17 14:16:00] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 14:16:00] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:03] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:08] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_492A.tmp  
+[2025-10-17 14:16:08] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 14:16:08] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:11] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:15] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_49C7.tmp  
+[2025-10-17 14:16:15] local.WARNING: QR decode attempt 1 failed for photo 0  
+[2025-10-17 14:16:15] local.INFO: QR decode attempt 2 for photo 0  
+[2025-10-17 14:16:16] local.INFO: Trying QR decode from image version 0  
+[2025-10-17 14:16:16] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:19] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:24] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_C71A.tmp  
+[2025-10-17 14:16:24] local.INFO: Trying QR decode from image version 1  
+[2025-10-17 14:16:24] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:27] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:32] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_C75A.tmp  
+[2025-10-17 14:16:32] local.INFO: Trying QR decode from image version 2  
+[2025-10-17 14:16:32] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:35] local.INFO: Trying QR decode with method: khanamiryan_enhanced  
+[2025-10-17 14:16:39] local.WARNING: All QR decode methods failed for image: C:\Users\FHL\AppData\Local\Temp\qr_C826.tmp  
+[2025-10-17 14:16:39] local.INFO: Trying QR decode from image version 3  
+[2025-10-17 14:16:39] local.INFO: Trying QR decode with method: khanamiryan  
+[2025-10-17 14:16:42] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:\\Users\\FHL\\.cursor\\presensia-v2\\starter-kit\\vendor\\khanamiryan\\qrcode-detector-decoder\\lib\\Common\\HybridBinarizer.php:222)
+[stacktrace]
+#0 {main}
+"} 
+[2025-10-17 14:19:56] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 14:19:56] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 14:19:56] local.INFO: Processing photo 0, data length: 1114143  
+[2025-10-17 14:20:05] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_24A5.tmp  
+[2025-10-17 14:20:05] local.WARNING: No QR code found in photo 0  
+[2025-10-17 14:20:51] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 14:20:51] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 14:20:51] local.INFO: Processing photo 0, data length: 760211  
+[2025-10-17 14:20:54] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_FB31.tmp  
+[2025-10-17 14:20:54] local.WARNING: No QR code found in photo 0  
+[2025-10-17 14:21:22] local.INFO: Scan student request received: {"qr_photos_count":1,"qr_codes_count":0,"qr_codes":[],"user_id":2,"school_id":1} 
+[2025-10-17 14:21:22] local.INFO: Processing photo QR codes, count: 1  
+[2025-10-17 14:21:22] local.INFO: Processing photo 0, data length: 654511  
+[2025-10-17 14:21:25] local.WARNING: No QR code found in image: C:\Users\FHL\AppData\Local\Temp\qr_74E7.tmp  
+[2025-10-17 14:21:25] local.WARNING: No QR code found in photo 0  

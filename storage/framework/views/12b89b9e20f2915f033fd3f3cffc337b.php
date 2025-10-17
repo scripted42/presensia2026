@@ -7,7 +7,7 @@
             <div class="px-4 py-5 sm:p-6">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Scan Absensi Siswa</h1>
+                        <h1 class="text-2xl font-bold text-gray-900">Capture QR Code Siswa</h1>
                         <p class="text-gray-600 mt-1"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('d F Y')); ?> - <span id="currentTime"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('H:i:s')); ?></span></p>
                     </div>
                     <a href="<?php echo e(route('attendance.index')); ?>" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
@@ -27,57 +27,114 @@
 
         <!-- Scanner Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- QR Scanner -->
+            <!-- Camera Capture -->
             <div class="bg-white shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Scanner QR Code</h2>
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Capture QR Code</h2>
                     
-                    <!-- Camera Preview -->
-                    <div id="scanner-container" class="mb-4">
-                        <div id="scanner" class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <!-- Camera Preview dengan Area Panduan -->
+                    <div id="camera-container" class="mb-4 relative">
+                        <div id="camera" class="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
                             <div class="text-center">
-                                <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-600">Kamera akan aktif saat tombol scan ditekan</p>
+                                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                            </div>
+                            
+                            <!-- Overlay Panduan QR -->
+                            <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
+                                <!-- Sudut kiri atas -->
+                                <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
+                                <!-- Sudut kanan atas -->
+                                <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
+                                <!-- Sudut kiri bawah -->
+                                <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
+                                <!-- Sudut kanan bawah -->
+                                <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
+                                
+                                <!-- Area tengah untuk panduan -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
+                                        <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Simple instruction -->
+                                <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                                    <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Scanner Controls -->
+                    <!-- Camera Controls -->
                     <div class="flex space-x-3 mb-4">
-                        <button id="startScanner" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-play mr-2"></i>Mulai Scan
+                        <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-camera mr-2"></i>Mulai Kamera
                         </button>
-                        <button id="stopScanner" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
-                            <i class="fas fa-stop mr-2"></i>Stop Scan
+                        <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                            <i class="fas fa-stop mr-2"></i>Stop Kamera
+                        </button>
+                        <button id="capturePhoto" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors" style="display: none;">
+                            <i class="fas fa-camera mr-2"></i>Ambil Foto QR
                         </button>
                     </div>
 
-                    <!-- Manual Input -->
+                    <!-- Enhanced Manual Input -->
                     <div class="mb-4">
                         <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
+                        
+                        <!-- Quick Add Buttons -->
+                        <div class="mb-3">
+                            <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA001
+                                </button>
+                                <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA002
+                                </button>
+                                <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
+                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                    SISWA003
+                                </button>
+                                <button type="button" onclick="testQRDetection()" 
+                                        class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">
+                                    Test QR
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div class="flex space-x-2">
-                            <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa"
+                            <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
                                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <button id="addManual" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
+                        
+                        <!-- Help Text -->
+                        <div class="mt-1 text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Format: NIS|Nama (contoh: SISWA001|John Doe)
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Scanned Students -->
+            <!-- Captured Students -->
             <div class="bg-white shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Siswa yang Sudah Diabsensi</h2>
                     
-                    <!-- Scanned List -->
+                    <!-- Captured List -->
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-sm font-medium text-gray-700">Record Absensi</h3>
-                            <span id="scanCount" class="text-sm text-gray-500">0 siswa</span>
+                            <span id="captureCount" class="text-sm text-gray-500">0 siswa</span>
                         </div>
-                        <div id="scannedList" class="max-h-64 overflow-y-auto border rounded-lg">
+                        <div id="capturedList" class="max-h-64 overflow-y-auto border rounded-lg">
                             <div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>
                         </div>
                     </div>
@@ -93,7 +150,7 @@
                     </div>
 
                     <!-- Submit Form -->
-                    <form id="scanForm" method="POST" action="<?php echo e(route('attendance.student-scan')); ?>" style="display: none;">
+                    <form id="captureForm" method="POST" action="<?php echo e(route('attendance.student-scan')); ?>" style="display: none;">
                         <?php echo csrf_field(); ?>
                         <div id="hiddenInputs"></div>
                     </form>
@@ -105,182 +162,235 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-    <!-- ZXing via Nimiq QrScanner (v1.2.0 - kompatibel WORKER_PATH). Jika gagal dimuat, fallback ke jsQR di bawah -->
-    <script src="https://unpkg.com/qr-scanner@1.2.0/qr-scanner.min.js"></script>
-    <!-- Fallback decoder: jsQR -->
+    <!-- QR Code decoder untuk real-time detection -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
-        let scannedStudents = [];
-        let qrScanner = null;
-        let scannerActive = false;
-        let lastDecodeTs = 0;
+        let capturedStudents = [];
+        let cameraStream = null;
+        let cameraActive = false;
+        let video = null;
 
-        // Start scanner: gunakan ZXing melalui QrScanner jika tersedia; jika tidak, fallback ke jsQR
-        document.getElementById('startScanner').addEventListener('click', async function() {
+        // Start camera
+        document.getElementById('startCamera').addEventListener('click', async function() {
+            // Cek HTTPS untuk akses kamera
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                alert('Akses kamera memerlukan HTTPS. Silakan akses melalui https:// atau gunakan localhost.');
+                return;
+            }
+            
             try {
-                const scanner = document.getElementById('scanner');
+                const camera = document.getElementById('camera');
+                const guide = document.getElementById('qr-guide');
                 
                 // Clear previous content
-                scanner.innerHTML = '';
+                camera.innerHTML = '';
+                guide.style.display = 'block';
                 
                 // Buat elemen video
-                const video = document.createElement('video');
+                video = document.createElement('video');
                 video.style.width = '100%';
                 video.style.height = '100%';
                 video.style.objectFit = 'cover';
                 video.setAttribute('playsinline', 'true');
-                scanner.appendChild(video);
+                video.setAttribute('autoplay', 'true');
+                video.setAttribute('muted', 'true');
+                camera.appendChild(video);
 
-                if (window.QrScanner) {
-                    // Set path untuk worker lokal (same-origin, hindari CORS)
-                    QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
-
-                    // Inisialisasi QrScanner dengan preferensi kamera belakang
-                    qrScanner = new QrScanner(video, result => {
-                        const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
-                        if (!data) return;
-                        const n = Date.now();
-                        if (n - lastDecodeTs > 250) {
-                            lastDecodeTs = n;
-                            console.log('QR detected (QrScanner):', data);
-                            addScannedStudent(data);
-                        }
-                    }, {
-                        preferredCamera: 'environment',
-                        highlightScanRegion: true,
-                        highlightCodeOutline: true,
-                        returnDetailedScanResult: false,
-                        maxScansPerSecond: 12
-                    });
-
-                    await qrScanner.start();
-                } else {
-                    // Fallback ke jsQR manual loop
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream; await video.play();
-
-                    const off = document.createElement('canvas');
-                    const ctx = off.getContext('2d');
-
-                    function getROI(vw, vh) {
-                        const rw = Math.floor(vw * 0.7);
-                        const rh = Math.floor(vh * 0.7);
-                        const rx = Math.floor((vw - rw) / 2);
-                        const ry = Math.floor((vh - rh) / 2);
-                        return { rx, ry, rw, rh };
-                    }
-
-                    let lastScanTs = 0;
-                    const loop = () => {
-                        if (!scannerActive) return;
-                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                            const now = performance.now();
-                            if (now - lastScanTs > 80) {
-                                lastScanTs = now;
-                                const vw = video.videoWidth, vh = video.videoHeight;
-                                if (vw && vh) {
-                                    off.width = vw; off.height = vh;
-                                    ctx.drawImage(video, 0, 0, vw, vh);
-                                    const { rx, ry, rw, rh } = getROI(vw, vh);
-                                    const img = ctx.getImageData(rx, ry, rw, rh);
-                                    const code = window.jsQR ? jsQR(img.data, rw, rh, { inversionAttempts: 'attemptBoth' }) : null;
-                                    if (code && code.data) {
-                                        const n = Date.now();
-                                        if (n - lastDecodeTs > 250) {
-                                            lastDecodeTs = n;
-                                            console.log('QR detected (jsQR):', code.data);
-                                            addScannedStudent(code.data);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        requestAnimationFrame(loop);
-                    };
-                    scannerActive = true; requestAnimationFrame(loop);
-                }
-
-                scannerActive = true;
-                document.getElementById('startScanner').style.display = 'none';
-                document.getElementById('stopScanner').style.display = 'inline-block';
+                // Enhanced camera constraints for better QR scanning
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 2560, min: 1920 },
+                        height: { ideal: 1440, min: 1080 },
+                        frameRate: { ideal: 30, min: 24 },
+                        focusMode: 'continuous',
+                        exposureMode: 'continuous',
+                        whiteBalanceMode: 'continuous'
+                    },
+                    audio: false
+                };
                 
-                console.log('QrScanner started successfully');
-                console.log('Scanner active:', scannerActive);
-                console.log('QR Scanner instance:', qrScanner);
-                showNotification('Scanner berhasil dimulai. Arahkan kamera ke QR Code siswa.', 'success');
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = cameraStream;
+                await video.play();
+                
+                cameraActive = true;
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('stopCamera').style.display = 'inline-block';
+                document.getElementById('capturePhoto').style.display = 'inline-block';
+                
+                showNotification('Kamera aktif. Arahkan QR Code ke area panduan dan klik Capture.', 'success');
                 
             } catch (err) {
-                console.error('Error starting scanner:', err);
+                console.error('Error starting camera:', err);
                 alert('Tidak dapat mengakses kamera: ' + err.message);
+                showNotification('Kamera gagal. Gunakan input manual di bawah.', 'warning');
+            }
+        });
+
+        // Stop camera
+        document.getElementById('stopCamera').addEventListener('click', function() {
+            if (cameraStream) {
+                try {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                } catch (e) {}
+                cameraStream = null;
+            }
+            
+            cameraActive = false;
+            document.getElementById('startCamera').style.display = 'inline-block';
+            document.getElementById('stopCamera').style.display = 'none';
+            document.getElementById('capturePhoto').style.display = 'none';
+            
+            // Reset camera display
+            const camera = document.getElementById('camera');
+            const guide = document.getElementById('qr-guide');
+            guide.style.display = 'none';
+            camera.innerHTML = `
+                    <div class="text-center">
+                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                    </div>
+                `;
                 
-                // Show manual input as fallback
-                document.getElementById('manualQrInput').style.display = 'block';
-                showNotification('Scanner gagal. Gunakan input manual di bawah.', 'warning');
-            }
+            showNotification('Kamera dihentikan', 'info');
         });
 
-        // Stop scanner: hentikan QrScanner dan stream video
-        document.getElementById('stopScanner').addEventListener('click', function() {
-            if (qrScanner) {
-                try { qrScanner.stop(); } catch (e) {}
-                try { qrScanner.destroy(); } catch (e) {}
-                qrScanner = null;
-            } else {
-                const scanner = document.getElementById('scanner');
-                const video = scanner.querySelector('video');
-                if (video && video.srcObject) {
-                    try { video.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
-                    video.srcObject = null;
-                }
+        // SIMPLE PHOTO CAPTURE - No complex QR detection
+        document.getElementById('capturePhoto').addEventListener('click', function() {
+            if (!cameraActive || !video) {
+                showNotification('Kamera belum aktif', 'warning');
+                return;
             }
-            scannerActive = false;
             
-            document.getElementById('startScanner').style.display = 'inline-block';
-            document.getElementById('stopScanner').style.display = 'none';
-            
-            // Reset scanner display
-            const scanner = document.getElementById('scanner');
-            scanner.innerHTML = `
-                <div class="text-center">
-                    <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
-                    <p class="text-gray-600">Kamera akan aktif saat tombol scan ditekan</p>
-                </div>
-            `;
-            
-            console.log('QrScanner stopped');
-            showNotification('Scanner dihentikan', 'info');
+            // Simple photo capture - just take photo and add to list
+            capturePhotoSimple();
         });
+        
+        // REMOVED COMPLEX QR DETECTION - Using simple photo capture instead
+        
+        // Image enhancement function
+        function enhanceImage(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Apply contrast enhancement
+            for (let i = 0; i < data.length; i += 4) {
+                // Red channel
+                data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.2 + 128));
+                // Green channel  
+                data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.2 + 128));
+                // Blue channel
+                data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.2 + 128));
+            }
+            
+            return imageData;
+        }
+        
+        // Quick add student function
+        function quickAddStudent(qrCode) {
+            console.log('Quick adding student:', qrCode);
+            
+            const currentTime = new Date().toLocaleTimeString('id-ID', { 
+                hour12: false, 
+                timeZone: 'Asia/Jakarta' 
+            });
+            
+            const manualRecord = {
+                qrCode: qrCode,
+                captureTime: currentTime,
+                timestamp: Date.now(),
+                id: 'manual_' + Date.now(),
+                isManual: true
+            };
+            
+            capturedStudents.push(manualRecord);
+            updateCapturedList();
+            showNotification('Siswa berhasil ditambahkan: ' + qrCode, 'success');
+        }
+        
+        // SIMPLE PHOTO CAPTURE - Just take photo, no QR detection
+        function capturePhotoSimple() {
+            try {
+                console.log('📸 Capturing photo...');
+                
+                // Show loading state
+                const captureBtn = document.getElementById('capturePhoto');
+                const originalText = captureBtn.innerHTML;
+                captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Capturing...';
+                captureBtn.disabled = true;
+                
+                // Wait a moment for camera stabilization
+                setTimeout(() => {
+                    try {
+                        // Create canvas
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        
+                        // Draw video frame
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        // Convert to base64
+                        const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+                        
+                        // Add to captured list
+                        addCapturedPhoto(base64Image);
+                        
+                        // Show success
+                        showNotification('Foto berhasil diambil! QR akan diproses saat synchronize.', 'success');
+                        
+                        // Reset button
+                        captureBtn.innerHTML = originalText;
+                        captureBtn.disabled = false;
+                        
+                        console.log('✅ Photo captured successfully');
+                        
+                    } catch (err) {
+                        console.error('Capture error:', err);
+                        showNotification('Gagal mengambil foto: ' + err.message, 'error');
+                        
+                        // Reset button
+                        captureBtn.innerHTML = originalText;
+                        captureBtn.disabled = false;
+                    }
+                }, 500);
+                
+            } catch (err) {
+                console.error('Capture error:', err);
+                showNotification('Gagal mengambil foto: ' + err.message, 'error');
+            }
+        }
 
-        // Manual input
+        // Manual input - untuk QR code manual
         document.getElementById('addManual').addEventListener('click', function() {
             const manualQr = document.getElementById('manual_qr').value.trim();
             if (manualQr) {
                 console.log('Manual QR input:', manualQr);
-                addScannedStudent(manualQr);
+                // Simpan sebagai QR code manual (bukan foto)
+                const currentTime = new Date().toLocaleTimeString('id-ID', { 
+                    hour12: false, 
+                    timeZone: 'Asia/Jakarta' 
+                });
+                
+                const manualRecord = {
+                    qrCode: manualQr,
+                    captureTime: currentTime,
+                    timestamp: Date.now(),
+                    id: 'manual_' + Date.now(),
+                    isManual: true
+                };
+                
+                capturedStudents.push(manualRecord);
+                updateCapturedList();
                 document.getElementById('manual_qr').value = '';
+                showNotification('QR Code manual ditambahkan', 'success');
             }
         });
-        
-        // Test parsing function
-        console.log('Testing parseQRCode function:');
-        console.log('Test 1 - SISWA001|Siswa 1:', parseQRCode('SISWA001|Siswa 1'));
-        console.log('Test 2 - SISWA002_Siswa 2:', parseQRCode('SISWA002_Siswa 2'));
-        console.log('Test 3 - SISWA003:', parseQRCode('SISWA003'));
-        
-        // Cek ketersediaan kamera (opsional)
-        if (window.QrScanner && typeof window.QrScanner.hasCamera === 'function') {
-            window.QrScanner.hasCamera().then(hasCamera => {
-                console.log('Device has camera:', hasCamera);
-            }).catch(err => console.log('Error checking camera:', err));
-        }
 
         // Parse QR code to extract NIS and name
         function parseQRCode(qrCode) {
@@ -321,64 +431,23 @@
             return result;
         }
 
-        // Add scanned student with duplicate check and time tracking
-        function addScannedStudent(qrCode) {
-            console.log('Processing QR Code:', qrCode);
-            const parsed = parseQRCode(qrCode);
-            console.log('Parsed QR Code:', parsed);
+        // Add captured photo - tanpa decode QR
+        function addCapturedPhoto(imageData) {
             const currentTime = new Date().toLocaleTimeString('id-ID', { 
                 hour12: false, 
                 timeZone: 'Asia/Jakarta' 
             });
             
-            // Check for duplicates by NIS
-            const existingIndex = scannedStudents.findIndex(student => student.nis === parsed.nis);
-            if (existingIndex !== -1) {
-                showNotification(`Siswa ${parsed.name} (${parsed.nis}) sudah diabsensi pada ${scannedStudents[existingIndex].scanTime}`, 'warning');
-                return;
-            }
+            // Add to captured list - hanya simpan foto
+            const photoRecord = {
+                imageData: imageData,
+                captureTime: currentTime,
+                timestamp: Date.now(),
+                id: 'photo_' + Date.now() // Unique ID untuk foto
+            };
             
-            // Hindari request network saat antrian panjang: gunakan nama dari QR jika ada,
-            // jika tidak ada, tampilkan NIS; sinkronisasi nama bisa dilakukan kemudian.
-            if (parsed.name === parsed.nis) {
-                const studentRecord = {
-                    qrCode: qrCode,
-                    nis: parsed.nis,
-                    name: parsed.nis,
-                    scanTime: currentTime,
-                    timestamp: Date.now()
-                };
-                scannedStudents.push(studentRecord);
-                updateScannedList();
-                showNotification(`${parsed.nis} berhasil ditambahkan`, 'success');
-            } else {
-                // Add to scanned list with timestamp
-                const studentRecord = {
-                    qrCode: qrCode,
-                    nis: parsed.nis,
-                    name: parsed.name,
-                    scanTime: currentTime,
-                    timestamp: Date.now()
-                };
-                
-                scannedStudents.push(studentRecord);
-                updateScannedList();
-                showNotification(`${parsed.name} (${parsed.nis}) berhasil ditambahkan`, 'success');
-            }
-        }
-        
-        // Fetch student name from server
-        async function fetchStudentName(nis) {
-            try {
-                const response = await fetch(`/api/student/${encodeURIComponent(nis)}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    return data?.name ?? null;
-                }
-            } catch (error) {
-                console.error('Error fetching student name:', error);
-            }
-            return null;
+            capturedStudents.push(photoRecord);
+            updateCapturedList();
         }
 
         // Show notification
@@ -386,31 +455,32 @@
             const notification = document.createElement('div');
             notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
                 type === 'success' ? 'bg-green-500' : 
-                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                type === 'warning' ? 'bg-yellow-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
             }`;
             notification.textContent = message;
             document.body.appendChild(notification);
             
             setTimeout(() => {
                 notification.remove();
-            }, 2000);
+            }, 3000);
         }
 
-        // Update scanned list with table format
-        function updateScannedList() {
-            const scannedList = document.getElementById('scannedList');
+        // Update captured list
+        function updateCapturedList() {
+            const capturedList = document.getElementById('capturedList');
             const hiddenInputs = document.getElementById('hiddenInputs');
-            const scanForm = document.getElementById('scanForm');
-            const scanCount = document.getElementById('scanCount');
+            const captureForm = document.getElementById('captureForm');
+            const captureCount = document.getElementById('captureCount');
             const syncButton = document.getElementById('syncButton');
             const clearButton = document.getElementById('clearButton');
             
             // Update count
-            scanCount.textContent = `${scannedStudents.length} siswa`;
+            captureCount.textContent = `${capturedStudents.length} siswa`;
             
-            if (scannedStudents.length === 0) {
-                scannedList.innerHTML = '<div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>';
-                scanForm.style.display = 'none';
+            if (capturedStudents.length === 0) {
+                capturedList.innerHTML = '<div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>';
+                captureForm.style.display = 'none';
                 syncButton.style.display = 'none';
                 clearButton.style.display = 'none';
                 return;
@@ -419,37 +489,46 @@
             // Show action buttons
             syncButton.style.display = 'inline-block';
             clearButton.style.display = 'inline-block';
-            syncButton.innerHTML = `<i class="fas fa-sync mr-2"></i>Synchronize (${scannedStudents.length})`;
+            syncButton.innerHTML = `<i class="fas fa-sync mr-2"></i>Synchronize (${capturedStudents.length})`;
             
             let html = '';
             hiddenInputs.innerHTML = '';
             
-            // Sort by scan time (earliest first)
-            const sortedStudents = [...scannedStudents].sort((a, b) => a.timestamp - b.timestamp);
+            // Sort by capture time (earliest first)
+            const sortedStudents = [...capturedStudents].sort((a, b) => a.timestamp - b.timestamp);
             
             // Table header
             html += `
                 <div class="bg-gray-50 px-3 py-2 border-b">
                     <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
                         <div class="col-span-1">No.</div>
-                        <div class="col-span-3">NIS</div>
-                        <div class="col-span-5">Nama</div>
+                        <div class="col-span-3">Preview</div>
+                        <div class="col-span-5">Status</div>
                         <div class="col-span-2">Waktu</div>
                         <div class="col-span-1">Aksi</div>
                     </div>
                 </div>
             `;
             
-            sortedStudents.forEach((student, index) => {
+            sortedStudents.forEach((record, index) => {
+                if (record.isManual) {
+                    // Manual QR Code
                 html += `
                     <div class="px-3 py-2 border-b hover:bg-gray-50">
                         <div class="grid grid-cols-12 gap-2 items-center text-sm">
                             <div class="col-span-1 text-gray-600">${index + 1}</div>
-                            <div class="col-span-3 font-medium text-gray-900">${student.nis}</div>
-                            <div class="col-span-5 text-gray-700">${student.name}</div>
-                            <div class="col-span-2 text-gray-600">${student.scanTime}</div>
+                                <div class="col-span-3">
+                                    <div class="w-12 h-12 bg-green-100 rounded border flex items-center justify-center">
+                                        <i class="fas fa-keyboard text-green-600"></i>
+                                    </div>
+                                </div>
+                                <div class="col-span-5 text-gray-700">
+                                    <span class="text-green-600">QR Manual</span>
+                                    <br><small class="text-gray-500">${record.qrCode}</small>
+                                </div>
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
                             <div class="col-span-1">
-                                <button type="button" onclick="removeStudentByNis('${'${student.nis}'.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 p-1">
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
                                     <i class="fas fa-times text-xs"></i>
                                 </button>
                             </div>
@@ -459,43 +538,72 @@
                 
                 const input = document.createElement('input');
                 input.type = 'hidden';
-                input.name = 'student_qr_codes[]';
-                input.value = student.qrCode;
+                    input.name = 'qr_codes[]';
+                    input.value = record.qrCode;
+                    hiddenInputs.appendChild(input);
+                } else {
+                    // Foto QR Code
+                    html += `
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                                <div class="col-span-3">
+                                    <img src="${record.imageData}" class="w-12 h-12 object-cover rounded border" alt="QR Photo">
+                                </div>
+                                <div class="col-span-5 text-gray-700">
+                                    <span class="text-blue-600">Foto QR Code</span>
+                                    <br><small class="text-gray-500">Akan diproses saat sync</small>
+                                </div>
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+                                <div class="col-span-1">
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'qr_photos[]';
+                    input.value = record.imageData;
                 hiddenInputs.appendChild(input);
+                }
             });
             
-            scannedList.innerHTML = html;
-            scanForm.style.display = 'block';
+            capturedList.innerHTML = html;
+            captureForm.style.display = 'block';
         }
 
-        // Remove student by NIS agar tidak bergantung pada urutan sort
-        function removeStudentByNis(nis) {
-            scannedStudents = scannedStudents.filter(s => s.nis !== nis);
-            updateScannedList();
+        // Remove photo by ID
+        function removePhotoById(photoId) {
+            capturedStudents = capturedStudents.filter(p => p.id !== photoId);
+            updateCapturedList();
         }
 
         // Synchronize button
         document.getElementById('syncButton').addEventListener('click', function() {
-            if (scannedStudents.length === 0) {
+            if (capturedStudents.length === 0) {
                 showNotification('Tidak ada data untuk disinkronkan', 'warning');
                 return;
             }
             
-            if (confirm(`Apakah Anda yakin ingin menyinkronkan ${scannedStudents.length} siswa ke sistem?`)) {
-                document.getElementById('scanForm').submit();
+            if (confirm(`Apakah Anda yakin ingin menyinkronkan ${capturedStudents.length} siswa ke sistem?`)) {
+                document.getElementById('captureForm').submit();
             }
         });
 
         // Clear all button
         document.getElementById('clearButton').addEventListener('click', function() {
-            if (scannedStudents.length === 0) {
+            if (capturedStudents.length === 0) {
                 showNotification('Tidak ada data untuk dihapus', 'warning');
                 return;
             }
             
-            if (confirm(`Apakah Anda yakin ingin menghapus semua ${scannedStudents.length} record?`)) {
-                scannedStudents = [];
-                updateScannedList();
+            if (confirm(`Apakah Anda yakin ingin menghapus semua ${capturedStudents.length} record?`)) {
+                capturedStudents = [];
+                updateCapturedList();
                 showNotification('Semua record telah dihapus', 'info');
             }
         });
@@ -516,19 +624,12 @@
 
         // Clean up on page unload
         window.addEventListener('beforeunload', function() {
-            if (qrScanner) {
-                try { qrScanner.destroy(); } catch (e) {}
-            } else {
-                const scanner = document.getElementById('scanner');
-                if (!scanner) return;
-                const video = scanner.querySelector('video');
-                if (video && video.srcObject) {
-                    try { video.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
-                }
+            if (cameraStream) {
+                try {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                } catch (e) {}
             }
         });
     </script>
 <?php $__env->stopPush(); ?>
-
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\FHL\.cursor\presensia-v2\starter-kit\resources\views/attendance/student-scan.blade.php ENDPATH**/ ?>
