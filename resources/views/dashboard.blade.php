@@ -506,7 +506,7 @@
     opacity:1; 
     transform: translateY(0) scale(1);
     z-index: 0; pointer-events: none;
-    background-size: contain; background-position: center; background-repeat: no-repeat;
+    background-size: contain; background-position: bottom; background-repeat: no-repeat;
 }
 .banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
