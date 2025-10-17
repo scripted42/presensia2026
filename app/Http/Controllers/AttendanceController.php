@@ -231,6 +231,15 @@ class AttendanceController extends Controller
             'qr_codes.*' => 'string',
         ]);
         
+        // Debug: Log all request data
+        \Log::info('Scan student request received:', [
+            'qr_photos_count' => $request->has('qr_photos') ? count($request->qr_photos) : 0,
+            'qr_codes_count' => $request->has('qr_codes') ? count($request->qr_codes) : 0,
+            'qr_codes' => $request->qr_codes ?? [],
+            'user_id' => Auth::id(),
+            'school_id' => Auth::user()->school_id
+        ]);
+        
         $scannedStudents = [];
         $duplicates = [];
         $errors = [];
@@ -259,27 +268,36 @@ class AttendanceController extends Controller
         
         // Process photo QR codes (decode from base64 images)
         if ($request->has('qr_photos')) {
-            foreach ($request->qr_photos as $photoData) {
+            \Log::info('Processing photo QR codes, count: ' . count($request->qr_photos));
+            foreach ($request->qr_photos as $index => $photoData) {
                 try {
+                    \Log::info("Processing photo {$index}, data length: " . strlen($photoData));
+                    
                     // Decode QR from base64 image
                     $qrCode = $this->decodeQRFromPhoto($photoData);
                     if ($qrCode) {
+                        \Log::info("QR decoded from photo {$index}: {$qrCode}");
                         $result = $this->processQRCode($qrCode);
                         if ($result['success']) {
                             $scannedStudents[] = $result['student'];
                             $processedCount++;
+                            \Log::info("Successfully processed photo QR: {$qrCode}");
                         } else {
                             if ($result['type'] === 'duplicate') {
                                 $duplicates[] = $result['message'];
+                                \Log::info("Duplicate photo QR: {$qrCode}");
                             } else {
                                 $errors[] = $result['message'];
+                                \Log::error("Error processing photo QR: {$qrCode} - {$result['message']}");
                             }
                         }
                     } else {
                         $errors[] = 'QR Code tidak terdeteksi dari foto';
+                        \Log::warning("No QR code found in photo {$index}");
                     }
                 } catch (\Exception $e) {
                     $errors[] = 'Gagal memproses foto: ' . $e->getMessage();
+                    \Log::error("Exception processing photo {$index}: " . $e->getMessage());
                 }
             }
         }
@@ -385,25 +403,22 @@ class AttendanceController extends Controller
     }
     
     /**
-     * Basic QR decode using SimpleSoftwareIO QR Code library.
+     * Basic QR decode using khanamiryan/qrcode-detector-decoder library.
      */
     private function basicQRDecode($imagePath)
     {
         try {
-            // Use ZXing for QR decoding (if available)
-            // For now, we'll use a simple approach with GD library
-            $image = imagecreatefromstring(file_get_contents($imagePath));
-            if (!$image) {
+            // Use khanamiryan/qrcode-detector-decoder for QR decoding
+            $qrcode = new \Zxing\QrReader($imagePath);
+            $text = $qrcode->text();
+            
+            if ($text) {
+                \Log::info("QR decoded successfully: {$text}");
+                return $text;
+            } else {
+                \Log::warning("No QR code found in image: {$imagePath}");
                 return null;
             }
-            
-            // This is a simplified approach - in production you'd use a proper QR decoder
-            // For now, we'll return a test QR code to demonstrate the flow
-            // You can integrate with ZXing, QrReader, or other QR decoding libraries
-            
-            // Placeholder: return a test QR code for demonstration
-            // In real implementation, you'd decode the actual QR from the image
-            return 'SISWA001|Test Student';
             
         } catch (\Exception $e) {
             \Log::error('QR decode error: ' . $e->getMessage());
