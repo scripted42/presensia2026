@@ -279,6 +279,9 @@ class AttendanceController extends Controller
      */
     public function scanStudent(Request $request)
     {
+        // Increase execution time for bulk processing
+        set_time_limit(300); // 5 minutes
+        
         $request->validate([
             'qr_photos' => 'sometimes|array',
             'qr_photos.*' => 'string',
@@ -321,38 +324,28 @@ class AttendanceController extends Controller
             }
         }
         
-        // Process photo QR codes (decode from base64 images)
+        // Process photo QR codes (decode from base64 images) - OPTIMIZED
         if ($request->has('qr_photos')) {
             \Log::info('Processing photo QR codes, count: ' . count($request->qr_photos));
-            foreach ($request->qr_photos as $index => $photoData) {
+            
+            // Limit processing to prevent timeout
+            $maxPhotos = 10; // Limit to 10 photos per request
+            $photosToProcess = array_slice($request->qr_photos, 0, $maxPhotos);
+            
+            if (count($request->qr_photos) > $maxPhotos) {
+                \Log::warning("Too many photos ({$maxPhotos}), processing first {$maxPhotos} only");
+            }
+            
+            foreach ($photosToProcess as $index => $photoData) {
                 try {
                     \Log::info("Processing photo {$index}, data length: " . strlen($photoData));
                     
-                    // Try multiple times with different approaches
-                    $qrCode = null;
-                    $attempts = 0;
-                    $maxAttempts = 3;
-                    
-                    while (!$qrCode && $attempts < $maxAttempts) {
-                        $attempts++;
-                        \Log::info("QR decode attempt {$attempts} for photo {$index}");
-                        
-                        $qrCode = $this->decodeQRFromPhoto($photoData);
-                        
-                        if ($qrCode) {
-                            \Log::info("QR decoded from photo {$index} on attempt {$attempts}: {$qrCode}");
-                            break;
-                        } else {
-                            \Log::warning("QR decode attempt {$attempts} failed for photo {$index}");
-                            
-                            // Add small delay between attempts
-                            if ($attempts < $maxAttempts) {
-                                usleep(100000); // 0.1 second delay
-                            }
-                        }
-                    }
+                    // Single attempt only to prevent timeout
+                    $qrCode = $this->decodeQRFromPhoto($photoData);
                     
                     if ($qrCode) {
+                        \Log::info("QR decoded from photo {$index}: {$qrCode}");
+                        
                         $result = $this->processQRCode($qrCode);
                         if ($result['success']) {
                             $scannedStudents[] = $result['student'];
@@ -368,8 +361,8 @@ class AttendanceController extends Controller
                             }
                         }
                     } else {
-                        $errors[] = "QR Code tidak terdeteksi dari foto (setelah {$maxAttempts} percobaan)";
-                        \Log::warning("No QR code found in photo {$index} after {$maxAttempts} attempts");
+                        $errors[] = "QR Code tidak terdeteksi dari foto {$index}";
+                        \Log::warning("No QR code found in photo {$index}");
                     }
                 } catch (\Exception $e) {
                     $errors[] = 'Gagal memproses foto: ' . $e->getMessage();
@@ -452,7 +445,7 @@ class AttendanceController extends Controller
     }
     
     /**
-     * Decode QR code from base64 photo with image preprocessing.
+     * Decode QR code from base64 photo - SIMPLIFIED for performance.
      */
     private function decodeQRFromPhoto($base64Data)
     {
@@ -460,59 +453,16 @@ class AttendanceController extends Controller
             // Remove data:image/jpeg;base64, prefix
             $imageData = base64_decode(preg_replace('#^data:image/[^;]+;base64,#', '', $base64Data));
             
-            // Create multiple versions of the image for better QR detection
-            $tempFiles = [];
+            // Create single temporary file for faster processing
+            $tempFile = tempnam(sys_get_temp_dir(), 'qr_');
+            file_put_contents($tempFile, $imageData);
             
-            // Original image
-            $originalFile = tempnam(sys_get_temp_dir(), 'qr_orig_');
-            file_put_contents($originalFile, $imageData);
-            $tempFiles[] = $originalFile;
+            // Try to decode QR from original image only
+            $qrCode = $this->basicQRDecode($tempFile);
             
-            // Try to create processed versions
-            try {
-                // Create image resource
-                $image = imagecreatefromstring($imageData);
-                if ($image) {
-                    // Version 1: Increase contrast
-                    $contrastFile = tempnam(sys_get_temp_dir(), 'qr_contrast_');
-                    imagefilter($image, IMG_FILTER_CONTRAST, 50);
-                    imagejpeg($image, $contrastFile, 90);
-                    $tempFiles[] = $contrastFile;
-                    
-                    // Version 2: Convert to grayscale
-                    $grayFile = tempnam(sys_get_temp_dir(), 'qr_gray_');
-                    imagefilter($image, IMG_FILTER_GRAYSCALE);
-                    imagejpeg($image, $grayFile, 90);
-                    $tempFiles[] = $grayFile;
-                    
-                    // Version 3: Brightness adjustment
-                    $brightFile = tempnam(sys_get_temp_dir(), 'qr_bright_');
-                    imagefilter($image, IMG_FILTER_BRIGHTNESS, 30);
-                    imagejpeg($image, $brightFile, 90);
-                    $tempFiles[] = $brightFile;
-                    
-                    imagedestroy($image);
-                }
-            } catch (\Exception $e) {
-                \Log::warning("Image preprocessing failed: " . $e->getMessage());
-            }
-            
-            // Try to decode QR from all versions
-            $qrCode = null;
-            foreach ($tempFiles as $index => $tempFile) {
-                \Log::info("Trying QR decode from image version {$index}");
-                $qrCode = $this->basicQRDecode($tempFile);
-                if ($qrCode) {
-                    \Log::info("QR decoded successfully from image version {$index}: {$qrCode}");
-                    break;
-                }
-            }
-            
-            // Clean up all temporary files
-            foreach ($tempFiles as $tempFile) {
-                if (file_exists($tempFile)) {
-                    unlink($tempFile);
-                }
+            // Clean up
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
             }
             
             return $qrCode;
@@ -523,54 +473,25 @@ class AttendanceController extends Controller
     }
     
     /**
-     * Enhanced QR decode using multiple methods and image preprocessing.
+     * Simple QR decode - single method for performance.
      */
     private function basicQRDecode($imagePath)
     {
-        $methods = [
-            'khanamiryan' => function($path) {
-                try {
-                    $qrcode = new \Zxing\QrReader($path);
-                    return $qrcode->text();
-                } catch (\Exception $e) {
-                    \Log::warning("khanamiryan method failed: " . $e->getMessage());
-                    return null;
-                }
-            },
-            'khanamiryan_enhanced' => function($path) {
-                try {
-                    // Try with enhanced image preprocessing
-                    $enhancedPath = $this->preprocessImage($path);
-                    if ($enhancedPath) {
-                        $qrcode = new \Zxing\QrReader($enhancedPath);
-                        $result = $qrcode->text();
-                        unlink($enhancedPath); // Clean up
-                        return $result;
-                    }
-                    return null;
-                } catch (\Exception $e) {
-                    \Log::warning("khanamiryan enhanced method failed: " . $e->getMessage());
-                    return null;
-                }
+        try {
+            $qrcode = new \Zxing\QrReader($imagePath);
+            $text = $qrcode->text();
+            
+            if ($text && !empty(trim($text))) {
+                \Log::info("QR decoded successfully: {$text}");
+                return $text;
             }
-        ];
-        
-        foreach ($methods as $methodName => $method) {
-            try {
-                \Log::info("Trying QR decode with method: {$methodName}");
-                $text = $method($imagePath);
-                
-                if ($text && !empty(trim($text))) {
-                    \Log::info("QR decoded successfully with {$methodName}: {$text}");
-                    return $text;
-                }
-            } catch (\Exception $e) {
-                \Log::warning("QR decode method {$methodName} failed: " . $e->getMessage());
-            }
+            
+            \Log::warning("No QR code found in image: {$imagePath}");
+            return null;
+        } catch (\Exception $e) {
+            \Log::warning("QR decode failed: " . $e->getMessage());
+            return null;
         }
-        
-        \Log::warning("All QR decode methods failed for image: {$imagePath}");
-        return null;
     }
     
     /**
