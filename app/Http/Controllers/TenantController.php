@@ -92,63 +92,20 @@ class TenantController extends Controller
         $user = Auth::user();
         $school = $user->school;
         
-        // Debug: Log request data
-        \Log::info('=== UPDATEBANNER DEBUG START ===');
-        \Log::info('Request method: ' . $request->method());
-        \Log::info('Request URL: ' . $request->fullUrl());
-        \Log::info('Has banner_image: ' . ($request->hasFile('banner_image') ? 'true' : 'false'));
-        \Log::info('Has school_photo: ' . ($request->hasFile('school_photo') ? 'true' : 'false'));
         
-        // Debug file details
-        if ($request->hasFile('banner_image')) {
-            $bannerFile = $request->file('banner_image');
-            \Log::info('Banner file details:', [
-                'original_name' => $bannerFile->getClientOriginalName(),
-                'mime_type' => $bannerFile->getMimeType(),
-                'size' => $bannerFile->getSize(),
-                'extension' => $bannerFile->getClientOriginalExtension()
-            ]);
-        }
-        
-        if ($request->hasFile('school_photo')) {
-            $schoolPhotoFile = $request->file('school_photo');
-            \Log::info('School photo file details:', [
-                'original_name' => $schoolPhotoFile->getClientOriginalName(),
-                'mime_type' => $schoolPhotoFile->getMimeType(),
-                'size' => $schoolPhotoFile->getSize(),
-                'extension' => $schoolPhotoFile->getClientOriginalExtension()
-            ]);
-        }
-        
-        \Log::info('All files:', $request->allFiles());
-        \Log::info('All input:', $request->all());
-        \Log::info('Content type: ' . $request->header('Content-Type'));
-        \Log::info('Content length: ' . $request->header('Content-Length'));
-        
-        try {
-            $request->validate([
-                'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
-                'banner_text' => 'nullable|string|max:255',
-                'school_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
-                'school_photo_opacity' => 'nullable|integer|min:0|max:100',
-                'school_photo_position_x' => 'nullable|string|in:left,center,right',
-                'school_photo_position_y' => 'nullable|string|in:top,center,bottom',
-                'school_photo_scale' => 'nullable|integer|min:50|max:200',
-                'topbar_announcement' => 'nullable|string|max:500',
-                'show_announcement' => 'nullable|boolean',
-            ]);
-            \Log::info('Validation passed successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed:', ['errors' => $e->errors()]);
-            throw $e;
-        } catch (\Exception $e) {
-            \Log::error('Validation error:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            throw $e;
-        }
+        $request->validate([
+            'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
+            'banner_text' => 'nullable|string|max:255',
+            'school_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:10240',
+            'school_photo_opacity' => 'nullable|integer|min:0|max:100',
+            'school_photo_position_x' => 'nullable|string|in:left,center,right',
+            'school_photo_position_y' => 'nullable|string|in:top,center,bottom',
+            'school_photo_scale' => 'nullable|integer|min:50|max:200',
+            'topbar_announcement' => 'nullable|string|max:500',
+            'show_announcement' => 'nullable|boolean',
+        ]);
 
-        \Log::info('Getting tenant settings...');
         $tenantSettings = $school->tenantSettings;
-        \Log::info('Tenant settings found: ' . ($tenantSettings ? 'Yes' : 'No'));
         
         $data = [
             'banner_text' => $request->banner_text,
@@ -159,70 +116,22 @@ class TenantController extends Controller
             'topbar_announcement' => $request->topbar_announcement,
             'show_announcement' => $request->has('show_announcement'),
         ];
-        \Log::info('Data array prepared:', $data);
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
-            try {
-                $bannerFile = $request->file('banner_image');
-                \Log::info('Banner file details:', [
-                    'original_name' => $bannerFile->getClientOriginalName(),
-                    'size' => $bannerFile->getSize(),
-                    'mime_type' => $bannerFile->getMimeType(),
-                    'is_valid' => $bannerFile->isValid()
-                ]);
-                
-                $bannerPath = $bannerFile->store('tenant/banners', 'public');
-                $data['banner_image'] = $bannerPath;
-                \Log::info('Banner uploaded successfully:', ['path' => $bannerPath]);
-                
-                // Verify file exists
-                if (\Storage::disk('public')->exists($bannerPath)) {
-                    \Log::info('Banner file verified to exist in storage');
-                } else {
-                    \Log::error('Banner file does not exist in storage after upload');
-                }
-            } catch (\Exception $e) {
-                \Log::error('Banner upload failed:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                return redirect()->back()->with('error', 'Gagal mengupload banner: ' . $e->getMessage());
-            }
+            $bannerPath = $request->file('banner_image')->store('tenant/banners', 'public');
+            $data['banner_image'] = $bannerPath;
         }
 
         // Handle school photo upload
         if ($request->hasFile('school_photo')) {
-            try {
-                $schoolPhotoFile = $request->file('school_photo');
-                \Log::info('School photo file details:', [
-                    'original_name' => $schoolPhotoFile->getClientOriginalName(),
-                    'size' => $schoolPhotoFile->getSize(),
-                    'mime_type' => $schoolPhotoFile->getMimeType(),
-                    'is_valid' => $schoolPhotoFile->isValid()
-                ]);
-                
-                $schoolPhotoPath = $schoolPhotoFile->store('tenant/school-photos', 'public');
-                $data['school_photo'] = $schoolPhotoPath;
-                \Log::info('School photo uploaded successfully:', ['path' => $schoolPhotoPath]);
-                
-                // Verify file exists
-                if (\Storage::disk('public')->exists($schoolPhotoPath)) {
-                    \Log::info('School photo file verified to exist in storage');
-                } else {
-                    \Log::error('School photo file does not exist in storage after upload');
-                }
-            } catch (\Exception $e) {
-                \Log::error('School photo upload failed:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                return redirect()->back()->with('error', 'Gagal mengupload foto sekolah: ' . $e->getMessage());
-            }
+            $schoolPhotoPath = $request->file('school_photo')->store('tenant/school-photos', 'public');
+            $data['school_photo'] = $schoolPhotoPath;
         }
 
-        \Log::info('Data to be saved:', $data);
-        
         if ($tenantSettings) {
-            \Log::info('Updating existing tenant settings with ID: ' . $tenantSettings->id);
             $tenantSettings->update($data);
-            \Log::info('Tenant settings updated successfully');
         } else {
-            \Log::info('Creating new tenant settings');
             $data['school_id'] = $school->id;
             $data['app_name'] = $school->name;
             $data['primary_color'] = '#3B82F6';
@@ -231,20 +140,8 @@ class TenantController extends Controller
             $data['branding'] = TenantSetting::getDefaultBranding();
             $data['features'] = TenantSetting::getDefaultFeatures();
             $data['is_active'] = true;
-            $tenantSettings = TenantSetting::create($data);
-            \Log::info('New tenant settings created with ID: ' . $tenantSettings->id);
+            TenantSetting::create($data);
         }
-
-        // Verify data was saved
-        $updatedSettings = $school->tenantSettings()->latest()->first();
-        \Log::info('Final tenant settings data:', [
-            'banner_image' => $updatedSettings->banner_image,
-            'school_photo' => $updatedSettings->school_photo,
-            'school_photo_opacity' => $updatedSettings->school_photo_opacity,
-            'school_photo_position_x' => $updatedSettings->school_photo_position_x,
-            'school_photo_position_y' => $updatedSettings->school_photo_position_y,
-            'school_photo_scale' => $updatedSettings->school_photo_scale
-        ]);
 
         $message = 'Pengaturan banner dan layout berhasil diperbarui.';
         
@@ -255,8 +152,6 @@ class TenantController extends Controller
         if ($request->hasFile('school_photo')) {
             $message .= ' Foto sekolah berhasil diupload.';
         }
-        
-        \Log::info('=== UPDATEBANNER DEBUG END ===');
         
         return redirect()->route('tenant.settings')
             ->with('success', $message);

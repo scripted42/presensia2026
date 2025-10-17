@@ -13742,3 +13742,33 @@ Did you mean one of these?
 [2025-10-17 00:06:10] local.INFO: School ID: 1  
 [2025-10-17 00:06:10] local.INFO: Tenant Settings exists: Yes  
 [2025-10-17 00:06:10] local.INFO: Tenant Settings data: {"banner_image":null,"school_photo":null,"banner_text":null,"school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 
+[2025-10-17 00:07:10] local.INFO: === DASHBOARD DEBUG ===  
+[2025-10-17 00:07:10] local.INFO: School ID: 1  
+[2025-10-17 00:07:10] local.INFO: Tenant Settings exists: Yes  
+[2025-10-17 00:07:10] local.INFO: Tenant Settings data: {"banner_image":null,"school_photo":null,"banner_text":null,"school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 
+[2025-10-17 00:07:38] local.INFO: === UPDATEBANNER DEBUG START ===  
+[2025-10-17 00:07:38] local.INFO: Request method: PUT  
+[2025-10-17 00:07:38] local.INFO: Request URL: http://localhost:8000/tenant/banner  
+[2025-10-17 00:07:38] local.INFO: Has banner_image: false  
+[2025-10-17 00:07:38] local.INFO: Has school_photo: true  
+[2025-10-17 00:07:38] local.INFO: School photo file details: {"original_name":"IMG-20250617-WA0169.webp","mime_type":"image/webp","size":237586,"extension":"webp"} 
+[2025-10-17 00:07:38] local.INFO: All files: {"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpFEE4.tmp"}} 
+[2025-10-17 00:07:38] local.INFO: All input: {"_token":"5hPyKOMWwR00xMv1x1Bv8I5WoM3uwal6KPWDnCzG","_method":"PUT","banner_text":null,"school_photo_opacity":"10","school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":"100","topbar_announcement":"Pengumuman akhir Semester akan segera tiba.","show_announcement":"1","school_id":1,"school_photo":{"Illuminate\\Http\\UploadedFile":"C:\\xampp\\tmp\\phpFEE4.tmp"}} 
+[2025-10-17 00:07:38] local.INFO: Content type: multipart/form-data; boundary=----WebKitFormBoundaryQosWQDkftHGfeIBN  
+[2025-10-17 00:07:38] local.INFO: Content length: 238975  
+[2025-10-17 00:07:38] local.INFO: Validation passed successfully  
+[2025-10-17 00:07:38] local.INFO: Getting tenant settings...  
+[2025-10-17 00:07:38] local.INFO: Tenant settings found: Yes  
+[2025-10-17 00:07:38] local.INFO: Data array prepared: {"banner_text":null,"school_photo_opacity":"10","school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":"100","topbar_announcement":"Pengumuman akhir Semester akan segera tiba.","show_announcement":true} 
+[2025-10-17 00:07:38] local.INFO: School photo file details: {"original_name":"IMG-20250617-WA0169.webp","size":237586,"mime_type":"image/webp","is_valid":true} 
+[2025-10-17 00:07:38] local.INFO: School photo uploaded successfully: {"path":"tenant/school-photos/kcheV6nLKRo6lvydf4soWbKmbJ1QdeZjT0GX51up.webp"} 
+[2025-10-17 00:07:38] local.INFO: School photo file verified to exist in storage  
+[2025-10-17 00:07:38] local.INFO: Data to be saved: {"banner_text":null,"school_photo_opacity":"10","school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":"100","topbar_announcement":"Pengumuman akhir Semester akan segera tiba.","show_announcement":true,"school_photo":"tenant/school-photos/kcheV6nLKRo6lvydf4soWbKmbJ1QdeZjT0GX51up.webp"} 
+[2025-10-17 00:07:38] local.INFO: Updating existing tenant settings with ID: 4  
+[2025-10-17 00:07:38] local.INFO: Tenant settings updated successfully  
+[2025-10-17 00:07:38] local.INFO: Final tenant settings data: {"banner_image":null,"school_photo":"tenant/school-photos/kcheV6nLKRo6lvydf4soWbKmbJ1QdeZjT0GX51up.webp","school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 
+[2025-10-17 00:07:38] local.INFO: === UPDATEBANNER DEBUG END ===  
+[2025-10-17 00:07:42] local.INFO: === DASHBOARD DEBUG ===  
+[2025-10-17 00:07:42] local.INFO: School ID: 1  
+[2025-10-17 00:07:42] local.INFO: Tenant Settings exists: Yes  
+[2025-10-17 00:07:42] local.INFO: Tenant Settings data: {"banner_image":null,"school_photo":"tenant/school-photos/kcheV6nLKRo6lvydf4soWbKmbJ1QdeZjT0GX51up.webp","banner_text":null,"school_photo_opacity":10,"school_photo_position_x":"center","school_photo_position_y":"center","school_photo_scale":100} 

@@ -29,21 +29,6 @@ class DashboardController extends Controller
         $school = $user->school->load('tenantSettings');
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         
-        // Debug: Log tenant settings data
-        \Log::info('=== DASHBOARD DEBUG ===');
-        \Log::info('School ID: ' . $school->id);
-        \Log::info('Tenant Settings exists: ' . ($school->tenantSettings ? 'Yes' : 'No'));
-        if ($school->tenantSettings) {
-            \Log::info('Tenant Settings data:', [
-                'banner_image' => $school->tenantSettings->banner_image,
-                'school_photo' => $school->tenantSettings->school_photo,
-                'banner_text' => $school->tenantSettings->banner_text,
-                'school_photo_opacity' => $school->tenantSettings->school_photo_opacity,
-                'school_photo_position_x' => $school->tenantSettings->school_photo_position_x,
-                'school_photo_position_y' => $school->tenantSettings->school_photo_position_y,
-                'school_photo_scale' => $school->tenantSettings->school_photo_scale
-            ]);
-        }
 
         // Optional filter role untuk agregasi: all|employee|student
         $roleFilter = request('role');
