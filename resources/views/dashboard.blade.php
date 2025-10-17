@@ -499,20 +499,16 @@
 
 /* Custom banner image: same styling as welcome-hero-image */
 .banner-custom-image{
-    position:absolute; right:30px; top:-12px; height:200px; width:auto; border-radius:12px;
-    opacity:0; mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 25%, rgba(0,0,0,1) 100%);
-    -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 20%, rgba(0,0,0,1) 100%);
-    transform: translateY(8px) scale(1.02);
-    transition: opacity .8s ease, transform .8s ease;
-    z-index: 0; pointer-events: none;
+    position:absolute; right:30px; top:-12px; height:200px; width:300px; border-radius:12px;
+    opacity:1; 
+    transform: translateY(0) scale(1);
+    z-index: 1; pointer-events: none;
     background-size: cover; background-position: center; background-repeat: no-repeat;
+    border: 2px solid red; /* Debug border */
 }
 .banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
 @media (min-width:768px){ .banner-custom-image{ height:240px; right:34px; top:-16px; } }
 @media (min-width:1024px){ .banner-custom-image{ height:280px; right:40px; top:-20px; } }
-
-/* Debug: Make banner visible immediately for testing */
-.banner-custom-image{ opacity: 1 !important; transform: translateY(0) scale(1) !important; }
 
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
