@@ -10,7 +10,7 @@
                 @php
                     $bannerScale = $school->tenantSettings->banner_scale ?? 100;
                 @endphp
-                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); transform: scale({{ $bannerScale / 100 }});"></div>
+                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}'); transform: scale({{ $bannerScale / 100 }}); transform-origin: center;"></div>
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
@@ -500,17 +500,17 @@
 <style>
 /* Welcome image: REMOVED - using custom banner image instead */
 
-/* Custom banner image: same styling as welcome-hero-image */
+/* Custom banner image: full height background */
 .banner-custom-image{
-    position:absolute; right:30px; top:-12px; height:220px; width:350px; border-radius:12px;
+    position:absolute; right:0; top:0; height:100%; width:50%; border-radius:0 12px 12px 0;
     opacity:1; 
     transform: translateY(0) scale(1);
-    z-index: 1; pointer-events: none;
+    z-index: 0; pointer-events: none;
     background-size: cover; background-position: center; background-repeat: no-repeat;
 }
 .banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
-@media (min-width:768px){ .banner-custom-image{ height:260px; width:380px; right:34px; top:-16px; } }
-@media (min-width:1024px){ .banner-custom-image{ height:300px; width:420px; right:40px; top:-20px; } }
+@media (min-width:768px){ .banner-custom-image{ width:45%; } }
+@media (min-width:1024px){ .banner-custom-image{ width:40%; } }
 
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
