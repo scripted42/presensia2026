@@ -58,6 +58,15 @@
                                         <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
                                     </div>
                                 </div>
+                                
+                                <!-- Detection Status -->
+                                <div id="detection-status" class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-medium" style="display: none;">
+                                    <i class="fas fa-eye mr-1"></i>Detecting...
+                                </div>
+                                <!-- Detection Count -->
+                                <div id="detection-count" class="absolute bottom-2 right-2 bg-yellow-500 text-white px-3 py-1 rounded-lg text-sm font-medium" style="display: none;">
+                                    <i class="fas fa-bullseye mr-1"></i>Count: 0
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -71,7 +80,7 @@
                             <i class="fas fa-stop mr-2"></i>Stop Kamera
                         </button>
                         <button id="capturePhoto" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors" style="display: none;">
-                            <i class="fas fa-camera mr-2"></i>Capture QR
+                            <i class="fas fa-qrcode mr-2"></i>Detect QR
                         </button>
                     </div>
 
@@ -154,6 +163,8 @@
 @endsection
 
 @push('scripts')
+    <!-- QR Code decoder untuk real-time detection -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         let capturedStudents = [];
         let cameraStream = null;
@@ -237,70 +248,149 @@
             const guide = document.getElementById('qr-guide');
             guide.style.display = 'none';
             camera.innerHTML = `
-                <div class="text-center">
+                    <div class="text-center">
                     <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                     <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                </div>
-            `;
-            
+                    </div>
+                `;
+                
             showNotification('Kamera dihentikan', 'info');
         });
 
-        // Enhanced photo capture with quality optimization
+        // Real-time QR detection with auto-capture
+        let qrDetectionActive = false;
+        let lastDetectedQR = '';
+        let detectionCount = 0;
+        
+        // Start/Stop QR Detection
         document.getElementById('capturePhoto').addEventListener('click', function() {
             if (!cameraActive || !video) {
                 showNotification('Kamera belum aktif', 'warning');
                 return;
             }
             
-            try {
-                // Show loading state
-                const captureBtn = document.getElementById('capturePhoto');
-                const originalText = captureBtn.innerHTML;
-                captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengambil Foto...';
-                captureBtn.disabled = true;
+            if (!qrDetectionActive) {
+                startQRDetection();
+            } else {
+                stopQRDetection();
+            }
+        });
+        
+        function startQRDetection() {
+            qrDetectionActive = true;
+            detectionCount = 0;
+            lastDetectedQR = '';
+            
+            const captureBtn = document.getElementById('capturePhoto');
+            captureBtn.innerHTML = '<i class="fas fa-stop mr-2"></i>Stop Detection';
+            captureBtn.className = 'bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors';
+            
+            // Show detection status
+            document.getElementById('detection-status').style.display = 'block';
+            document.getElementById('detection-count').style.display = 'block';
+            document.getElementById('detection-count').innerHTML = '<i class="fas fa-bullseye mr-1"></i>Count: 0';
+            
+            showNotification('QR Detection aktif - Arahkan QR ke kamera', 'info');
+            
+            // Start real-time QR detection
+            const detectionInterval = setInterval(() => {
+                if (!qrDetectionActive) {
+                    clearInterval(detectionInterval);
+                    return;
+                }
                 
-                // Wait for video to be ready
-                setTimeout(() => {
-                    // Buat canvas dengan resolusi tinggi
+                try {
+                    // Create canvas for detection
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size dengan resolusi tinggi
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    
-                    // Draw video frame ke canvas dengan kualitas tinggi
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
-                    // Apply image enhancement
+                    // Get image data for QR detection
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const enhancedData = enhanceImage(imageData);
-                    ctx.putImageData(enhancedData, 0, 0);
                     
-                    // Convert ke base64 dengan kualitas tinggi
-                    const base64Image = canvas.toDataURL('image/jpeg', 0.95);
+                    // Try to detect QR code
+                    const qrCode = detectQRCode(imageData, canvas.width, canvas.height);
                     
-                    // Tambah ke list
-                    addCapturedPhoto(base64Image);
-                    showNotification('Foto berhasil diambil dengan kualitas tinggi!', 'success');
-                    
-                    // Reset button
-                    captureBtn.innerHTML = originalText;
-                    captureBtn.disabled = false;
-                    
-                }, 500); // Wait 500ms for camera stabilization
+                    if (qrCode && qrCode !== lastDetectedQR) {
+                        detectionCount++;
+                        console.log(`QR detected (${detectionCount}): ${qrCode}`);
+                        
+                        // Update detection count display
+                        document.getElementById('detection-count').innerHTML = `<i class="fas fa-bullseye mr-1"></i>Count: ${detectionCount}`;
+                        
+                        // Show detection feedback
+                        showNotification(`QR terdeteksi (${detectionCount}/3): ${qrCode}`, 'success');
+                        
+                        // Auto-capture after 3 successful detections
+                        if (detectionCount >= 3) {
+                            console.log('Auto-capturing QR after 3 detections');
+                            autoCaptureQR(qrCode, canvas);
+                            stopQRDetection();
+                        }
+                        
+                        lastDetectedQR = qrCode;
+                    }
+                } catch (err) {
+                    console.error('QR detection error:', err);
+                }
+            }, 200); // Check every 200ms
+        }
+        
+        function stopQRDetection() {
+            qrDetectionActive = false;
+            const captureBtn = document.getElementById('capturePhoto');
+            captureBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i>Detect QR';
+            captureBtn.className = 'bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors';
+            
+            // Hide detection status
+            document.getElementById('detection-status').style.display = 'none';
+            document.getElementById('detection-count').style.display = 'none';
+            
+            showNotification('QR Detection dihentikan', 'info');
+        }
+        
+        function autoCaptureQR(detectedQR, canvas) {
+            try {
+                // Apply image enhancement
+                const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+                const enhancedData = enhanceImage(imageData);
+                canvas.getContext('2d').putImageData(enhancedData, 0, 0);
+                
+                // Convert to base64
+                const base64Image = canvas.toDataURL('image/jpeg', 0.95);
+                
+                // Add to list
+                addCapturedPhoto(base64Image);
+                showNotification(`QR berhasil di-capture: ${detectedQR}`, 'success');
                 
             } catch (err) {
-                console.error('Error capturing photo:', err);
-                showNotification('Gagal capture foto', 'error');
-                
-                // Reset button
-                const captureBtn = document.getElementById('capturePhoto');
-                captureBtn.innerHTML = '<i class="fas fa-camera mr-2"></i>Ambil Foto QR';
-                captureBtn.disabled = false;
+                console.error('Auto-capture error:', err);
+                showNotification('Gagal auto-capture QR', 'error');
             }
-        });
+        }
+        
+        // Real-time QR detection using jsQR
+        function detectQRCode(imageData, width, height) {
+            try {
+                // Use jsQR for real-time QR detection
+                const code = jsQR(imageData.data, width, height, {
+                    inversionAttempts: 'attemptBoth'
+                });
+                
+                if (code && code.data) {
+                    console.log('QR detected:', code.data);
+                    return code.data;
+                }
+                
+                return null;
+            } catch (err) {
+                console.error('QR detection error:', err);
+                return null;
+            }
+        }
         
         // Image enhancement function
         function enhanceImage(imageData) {
