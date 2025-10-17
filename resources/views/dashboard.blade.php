@@ -7,7 +7,7 @@
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             @if($school->tenantSettings && $school->tenantSettings->banner_image)
-                <div class="absolute top-0 right-0 w-80 h-full bg-cover bg-center rounded-lg shadow-lg z-10" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
+                <div class="banner-custom-image" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
@@ -514,6 +514,20 @@
 @media (min-width:768px){ .welcome-hero-image{ height:240px; right:34px; top:-16px; } }
 @media (min-width:1024px){ .welcome-hero-image{ height:280px; right:40px; top:-20px; } }
 
+/* Custom banner image: same styling as welcome-hero-image */
+.banner-custom-image{
+    position:absolute; right:30px; top:-12px; height:200px; width:auto; border-radius:12px;
+    opacity:0; mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 25%, rgba(0,0,0,1) 100%);
+    -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.9) 20%, rgba(0,0,0,1) 100%);
+    transform: translateY(8px) scale(1.02);
+    transition: opacity .8s ease, transform .8s ease;
+    z-index: 0; pointer-events: none;
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+.banner-custom-image.loaded{ opacity:1; transform: translateY(0) scale(1); }
+@media (min-width:768px){ .banner-custom-image{ height:240px; right:34px; top:-16px; } }
+@media (min-width:1024px){ .banner-custom-image{ height:280px; right:40px; top:-20px; } }
+
 .welcome-hero-wrap{ position: relative; z-index: 1; }
 /* Mobile adjustments: keep text readable */
 @media (max-width: 639px){
@@ -586,6 +600,12 @@
                 if (img.src !== f1) { img.src = f1; }
                 else if (img.src !== location.origin + f2) { img.src = f2; }
             }, { once:true });
+        }
+        
+        // add loaded class to custom banner image
+        const bannerImg=document.querySelector('.banner-custom-image');
+        if(bannerImg){
+            bannerImg.classList.add('loaded');
         }
     });
 </script>
