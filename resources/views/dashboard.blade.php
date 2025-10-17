@@ -7,7 +7,7 @@
         <!-- Welcome Section -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6 relative">
             @if($school->tenantSettings && $school->tenantSettings->banner_image)
-                <div class="absolute top-4 right-4 w-48 h-32 bg-cover bg-center rounded-lg shadow-lg" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
+                <div class="absolute top-4 right-80 w-64 h-40 bg-cover bg-center rounded-lg shadow-lg z-10" style="background-image: url('{{ asset('storage/' . $school->tenantSettings->banner_image) }}');"></div>
             @endif
             <!-- School Photo Background -->
             @if($school->tenantSettings && $school->tenantSettings->school_photo)
