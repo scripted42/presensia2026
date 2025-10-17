@@ -105,15 +105,17 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-    <!-- ZXing (WASM-capable) UMD build -->
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <!-- ZXing via Nimiq QrScanner (v1.2.0 - kompatibel WORKER_PATH). Jika gagal dimuat, fallback ke jsQR di bawah -->
+    <script src="https://unpkg.com/qr-scanner@1.2.0/qr-scanner.min.js"></script>
+    <!-- Fallback decoder: jsQR -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         let scannedStudents = [];
         let qrScanner = null;
         let scannerActive = false;
         let lastDecodeTs = 0;
 
-        // Start scanner: prefer BarcodeDetector (super cepat), fallback ke Nimiq QR Scanner
+        // Start scanner: gunakan ZXing melalui QrScanner jika tersedia; jika tidak, fallback ke jsQR
         document.getElementById('startScanner').addEventListener('click', async function() {
             try {
                 const scanner = document.getElementById('scanner');
@@ -121,16 +123,39 @@
                 // Clear previous content
                 scanner.innerHTML = '';
                 
-                // Prefer native BarcodeDetector jika tersedia
-                const hasBD = 'BarcodeDetector' in window;
-                if (hasBD) {
-                    const video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.objectFit = 'cover';
-                    video.setAttribute('playsinline', 'true');
-                    scanner.appendChild(video);
+                // Buat elemen video
+                const video = document.createElement('video');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                video.setAttribute('playsinline', 'true');
+                scanner.appendChild(video);
 
+                if (window.QrScanner) {
+                    // Set path untuk worker lokal (same-origin, hindari CORS)
+                    QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
+
+                    // Inisialisasi QrScanner dengan preferensi kamera belakang
+                    qrScanner = new QrScanner(video, result => {
+                        const data = typeof result === 'string' ? result : (result && result.data ? result.data : '');
+                        if (!data) return;
+                        const n = Date.now();
+                        if (n - lastDecodeTs > 250) {
+                            lastDecodeTs = n;
+                            console.log('QR detected (QrScanner):', data);
+                            addScannedStudent(data);
+                        }
+                    }, {
+                        preferredCamera: 'environment',
+                        highlightScanRegion: true,
+                        highlightCodeOutline: true,
+                        returnDetailedScanResult: false,
+                        maxScansPerSecond: 12
+                    });
+
+                    await qrScanner.start();
+                } else {
+                    // Fallback ke jsQR manual loop
                     const constraints = {
                         video: {
                             facingMode: { ideal: 'environment' },
@@ -142,63 +167,52 @@
                     const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     video.srcObject = stream; await video.play();
 
-                    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                    const off = document.createElement('canvas');
+                    const ctx = off.getContext('2d');
 
-                    let running = true; scannerActive = true;
-                    const loop = async () => {
-                        if (!running) return;
-                        try {
-                            // Debounce agar tidak double proses
-                            const now = Date.now();
-                            if (now - lastDecodeTs < 250) { requestAnimationFrame(loop); return; }
-                            const barcodes = await detector.detect(video);
-                            if (barcodes && barcodes.length) {
-                                lastDecodeTs = now;
-                                const data = barcodes[0].rawValue || barcodes[0].rawValue === '' ? barcodes[0].rawValue : (barcodes[0].rawValue ?? barcodes[0].rawValue);
-                                addScannedStudent(data);
+                    function getROI(vw, vh) {
+                        const rw = Math.floor(vw * 0.7);
+                        const rh = Math.floor(vh * 0.7);
+                        const rx = Math.floor((vw - rw) / 2);
+                        const ry = Math.floor((vh - rh) / 2);
+                        return { rx, ry, rw, rh };
+                    }
+
+                    let lastScanTs = 0;
+                    const loop = () => {
+                        if (!scannerActive) return;
+                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                            const now = performance.now();
+                            if (now - lastScanTs > 80) {
+                                lastScanTs = now;
+                                const vw = video.videoWidth, vh = video.videoHeight;
+                                if (vw && vh) {
+                                    off.width = vw; off.height = vh;
+                                    ctx.drawImage(video, 0, 0, vw, vh);
+                                    const { rx, ry, rw, rh } = getROI(vw, vh);
+                                    const img = ctx.getImageData(rx, ry, rw, rh);
+                                    const code = window.jsQR ? jsQR(img.data, rw, rh, { inversionAttempts: 'attemptBoth' }) : null;
+                                    if (code && code.data) {
+                                        const n = Date.now();
+                                        if (n - lastDecodeTs > 250) {
+                                            lastDecodeTs = n;
+                                            console.log('QR detected (jsQR):', code.data);
+                                            addScannedStudent(code.data);
+                                        }
+                                    }
+                                }
                             }
-                        } catch (e) { /* ignore frame errors */ }
+                        }
                         requestAnimationFrame(loop);
                     };
-                    requestAnimationFrame(loop);
-                } else if (window.ZXing && ZXing.BrowserMultiFormatReader) {
-                    // Fallback 2: ZXing BrowserMultiFormatReader (WASM/ASM) – cepat dan akurat
-                    const video = document.createElement('video');
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    video.style.objectFit = 'cover';
-                    video.setAttribute('playsinline', 'true');
-                    scanner.appendChild(video);
-
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream; await video.play();
-
-                    const codeReader = new ZXing.BrowserMultiFormatReader();
-                    // ROI tidak langsung tersedia di ZXing UMD; atur delay antar scan agar responsif
-                    await codeReader.decodeFromVideoDevice(null, video, (result, err, controls) => {
-                        if (result) {
-                            const now = Date.now();
-                            if (now - lastDecodeTs < 250) return; // debounce
-                            lastDecodeTs = now;
-                            const text = result.getText ? result.getText() : (result.text ?? '');
-                            if (text) addScannedStudent(text);
-                        }
-                    });
+                    scannerActive = true; requestAnimationFrame(loop);
                 }
-                
+
                 scannerActive = true;
                 document.getElementById('startScanner').style.display = 'none';
                 document.getElementById('stopScanner').style.display = 'inline-block';
                 
-                console.log('Nimiq QR Scanner started successfully');
+                console.log('QrScanner started successfully');
                 console.log('Scanner active:', scannerActive);
                 console.log('QR Scanner instance:', qrScanner);
                 showNotification('Scanner berhasil dimulai. Arahkan kamera ke QR Code siswa.', 'success');
@@ -213,29 +227,36 @@
             }
         });
 
-        // Stop scanner
+        // Stop scanner: hentikan QrScanner dan stream video
         document.getElementById('stopScanner').addEventListener('click', function() {
-            if (scannerActive && qrScanner) {
-                qrScanner.stop();
-                qrScanner.destroy();
+            if (qrScanner) {
+                try { qrScanner.stop(); } catch (e) {}
+                try { qrScanner.destroy(); } catch (e) {}
                 qrScanner = null;
-                scannerActive = false;
-                
-                document.getElementById('startScanner').style.display = 'inline-block';
-                document.getElementById('stopScanner').style.display = 'none';
-                
-                // Reset scanner display
+            } else {
                 const scanner = document.getElementById('scanner');
-                scanner.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-600">Kamera akan aktif saat tombol scan ditekan</p>
-                    </div>
-                `;
-                
-                console.log('Nimiq QR Scanner stopped');
-                showNotification('Scanner dihentikan', 'info');
+                const video = scanner.querySelector('video');
+                if (video && video.srcObject) {
+                    try { video.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
+                    video.srcObject = null;
+                }
             }
+            scannerActive = false;
+            
+            document.getElementById('startScanner').style.display = 'inline-block';
+            document.getElementById('stopScanner').style.display = 'none';
+            
+            // Reset scanner display
+            const scanner = document.getElementById('scanner');
+            scanner.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Kamera akan aktif saat tombol scan ditekan</p>
+                </div>
+            `;
+            
+            console.log('QrScanner stopped');
+            showNotification('Scanner dihentikan', 'info');
         });
 
         // Manual input
@@ -254,13 +275,12 @@
         console.log('Test 2 - SISWA002_Siswa 2:', parseQRCode('SISWA002_Siswa 2'));
         console.log('Test 3 - SISWA003:', parseQRCode('SISWA003'));
         
-        // Test scanner availability
-        console.log('Testing scanner availability:');
-        QrScanner.hasCamera().then(hasCamera => {
-            console.log('Device has camera:', hasCamera);
-        }).catch(err => {
-            console.log('Error checking camera:', err);
-        });
+        // Cek ketersediaan kamera (opsional)
+        if (window.QrScanner && typeof window.QrScanner.hasCamera === 'function') {
+            window.QrScanner.hasCamera().then(hasCamera => {
+                console.log('Device has camera:', hasCamera);
+            }).catch(err => console.log('Error checking camera:', err));
+        }
 
         // Parse QR code to extract NIS and name
         function parseQRCode(qrCode) {
@@ -429,7 +449,7 @@
                             <div class="col-span-5 text-gray-700">${student.name}</div>
                             <div class="col-span-2 text-gray-600">${student.scanTime}</div>
                             <div class="col-span-1">
-                                <button type="button" onclick="removeStudent(${index})" class="text-red-600 hover:text-red-800 p-1">
+                                <button type="button" onclick="removeStudentByNis('${'${student.nis}'.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 p-1">
                                     <i class="fas fa-times text-xs"></i>
                                 </button>
                             </div>
@@ -448,9 +468,9 @@
             scanForm.style.display = 'block';
         }
 
-        // Remove student
-        function removeStudent(index) {
-            scannedStudents.splice(index, 1);
+        // Remove student by NIS agar tidak bergantung pada urutan sort
+        function removeStudentByNis(nis) {
+            scannedStudents = scannedStudents.filter(s => s.nis !== nis);
             updateScannedList();
         }
 
@@ -497,7 +517,14 @@
         // Clean up on page unload
         window.addEventListener('beforeunload', function() {
             if (qrScanner) {
-                qrScanner.destroy();
+                try { qrScanner.destroy(); } catch (e) {}
+            } else {
+                const scanner = document.getElementById('scanner');
+                if (!scanner) return;
+                const video = scanner.querySelector('video');
+                if (video && video.srcObject) {
+                    try { video.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
+                }
             }
         });
     </script>
