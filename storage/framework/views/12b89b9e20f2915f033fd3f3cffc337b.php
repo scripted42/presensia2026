@@ -110,8 +110,9 @@
         let scannedStudents = [];
         let qrScanner = null;
         let scannerActive = false;
+        let lastDecodeTs = 0;
 
-        // Start scanner using Nimiq QR Scanner
+        // Start scanner: prefer BarcodeDetector (super cepat), fallback ke Nimiq QR Scanner
         document.getElementById('startScanner').addEventListener('click', async function() {
             try {
                 const scanner = document.getElementById('scanner');
@@ -119,35 +120,81 @@
                 // Clear previous content
                 scanner.innerHTML = '';
                 
-                // Create video element for Nimiq QR Scanner
-                const video = document.createElement('video');
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.objectFit = 'cover';
-                video.setAttribute('playsinline', 'true');
-                scanner.appendChild(video);
-                
-                // Initialize Nimiq QR Scanner (worker path handled automatically)
-                qrScanner = new QrScanner(video, result => {
-                    console.log('=== SCANNER CALLBACK TRIGGERED ===');
-                    console.log('QR Code detected (Nimiq):', result.data);
-                    console.log('QR Code type:', typeof result.data);
-                    console.log('QR Code length:', result.data.length);
-                    console.log('Full result object:', result);
-                    addScannedStudent(result.data);
-                }, {
-                    highlightScanRegion: true,
-                    highlightCodeOutline: true,
-                    preferredCamera: 'environment',
-                    returnDetailedScanResult: true,
-                    onDecodeError: (error) => {
-                        console.log('QR Scanner decode error:', error);
-                    }
-                });
-                
-                // Start scanning
-                console.log('Starting QR Scanner...');
-                await qrScanner.start();
+                // Prefer native BarcodeDetector jika tersedia
+                const hasBD = 'BarcodeDetector' in window;
+                if (hasBD) {
+                    const video = document.createElement('video');
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'cover';
+                    video.setAttribute('playsinline', 'true');
+                    scanner.appendChild(video);
+
+                    const constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        },
+                        audio: false
+                    };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream; await video.play();
+
+                    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+
+                    let running = true; scannerActive = true;
+                    const loop = async () => {
+                        if (!running) return;
+                        try {
+                            // Debounce agar tidak double proses
+                            const now = Date.now();
+                            if (now - lastDecodeTs < 250) { requestAnimationFrame(loop); return; }
+                            const barcodes = await detector.detect(video);
+                            if (barcodes && barcodes.length) {
+                                lastDecodeTs = now;
+                                const data = barcodes[0].rawValue || barcodes[0].rawValue === '' ? barcodes[0].rawValue : (barcodes[0].rawValue ?? barcodes[0].rawValue);
+                                addScannedStudent(data);
+                            }
+                        } catch (e) { /* ignore frame errors */ }
+                        requestAnimationFrame(loop);
+                    };
+                    requestAnimationFrame(loop);
+                } else {
+                    // Fallback: Nimiq QrScanner (dioptimasi)
+                    const video = document.createElement('video');
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'cover';
+                    video.setAttribute('playsinline', 'true');
+                    scanner.appendChild(video);
+
+                    // Region-of-Interest (ROI) tengah 70% untuk percepat decode
+                    const calcROI = (videoDimensions) => {
+                        const { width, height } = videoDimensions;
+                        const roiW = Math.floor(width * 0.7);
+                        const roiH = Math.floor(height * 0.7);
+                        const x = Math.floor((width - roiW) / 2);
+                        const y = Math.floor((height - roiH) / 2);
+                        return { x, y, width: roiW, height: roiH };
+                    };
+
+                    qrScanner = new QrScanner(video, result => {
+                        const now = Date.now();
+                        if (now - lastDecodeTs < 250) return; // debounce
+                        lastDecodeTs = now;
+                        addScannedStudent(result.data);
+                    }, {
+                        preferredCamera: 'environment',
+                        returnDetailedScanResult: false,
+                        highlightScanRegion: false,
+                        highlightCodeOutline: false,
+                        maxScansPerSecond: 24,
+                        calculateScanRegion: calcROI,
+                        onDecodeError: () => {}
+                    });
+                    await qrScanner.start();
+                }
                 
                 scannerActive = true;
                 document.getElementById('startScanner').style.display = 'none';
@@ -273,21 +320,19 @@
                 return;
             }
             
-            // Fetch student name from server if not available in QR
+            // Hindari request network saat antrian panjang: gunakan nama dari QR jika ada,
+            // jika tidak ada, tampilkan NIS; sinkronisasi nama bisa dilakukan kemudian.
             if (parsed.name === parsed.nis) {
-                fetchStudentName(parsed.nis).then(studentName => {
-                    const studentRecord = {
-                        qrCode: qrCode,
-                        nis: parsed.nis,
-                        name: studentName || parsed.nis,
-                        scanTime: currentTime,
-                        timestamp: Date.now()
-                    };
-                    
-                    scannedStudents.push(studentRecord);
-                    updateScannedList();
-                    showNotification(`${studentName || parsed.nis} (${parsed.nis}) berhasil ditambahkan`, 'success');
-                });
+                const studentRecord = {
+                    qrCode: qrCode,
+                    nis: parsed.nis,
+                    name: parsed.nis,
+                    scanTime: currentTime,
+                    timestamp: Date.now()
+                };
+                scannedStudents.push(studentRecord);
+                updateScannedList();
+                showNotification(`${parsed.nis} berhasil ditambahkan`, 'success');
             } else {
                 // Add to scanned list with timestamp
                 const studentRecord = {

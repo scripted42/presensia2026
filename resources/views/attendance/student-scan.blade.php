@@ -106,6 +106,9 @@
 @endsection
 
 @push('scripts')
+    <!-- ZXing (WASM-capable) UMD build -->
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <!-- Nimiq QR Scanner as last fallback -->
     <script src="https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.legacy.min.js"></script>
     <script>
         let scannedStudents = [];
@@ -161,6 +164,37 @@
                         requestAnimationFrame(loop);
                     };
                     requestAnimationFrame(loop);
+                } else if (window.ZXing && ZXing.BrowserMultiFormatReader) {
+                    // Fallback 2: ZXing BrowserMultiFormatReader (WASM/ASM) – cepat dan akurat
+                    const video = document.createElement('video');
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'cover';
+                    video.setAttribute('playsinline', 'true');
+                    scanner.appendChild(video);
+
+                    const constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        },
+                        audio: false
+                    };
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = stream; await video.play();
+
+                    const codeReader = new ZXing.BrowserMultiFormatReader();
+                    // ROI tidak langsung tersedia di ZXing UMD; atur delay antar scan agar responsif
+                    await codeReader.decodeFromVideoDevice(null, video, (result, err, controls) => {
+                        if (result) {
+                            const now = Date.now();
+                            if (now - lastDecodeTs < 250) return; // debounce
+                            lastDecodeTs = now;
+                            const text = result.getText ? result.getText() : (result.text ?? '');
+                            if (text) addScannedStudent(text);
+                        }
+                    });
                 } else {
                     // Fallback: Nimiq QrScanner (dioptimasi)
                     const video = document.createElement('video');
