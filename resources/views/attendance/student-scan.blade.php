@@ -230,10 +230,57 @@
                 console.log('Guide element:', guide);
                 
                 if (!camera) {
-                    throw new Error('Camera element not found - check if element with id="camera" exists');
+                    console.log('Camera element not found, creating fallback...');
+                    // Try to find camera container and create camera element
+                    const cameraContainer = document.getElementById('camera-container');
+                    if (cameraContainer) {
+                        const newCamera = document.createElement('div');
+                        newCamera.id = 'camera';
+                        newCamera.className = 'w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden';
+                        newCamera.innerHTML = `
+                            <div class="text-center">
+                                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                            </div>
+                        `;
+                        cameraContainer.appendChild(newCamera);
+                        console.log('✅ Camera element created');
+                        // Update camera reference
+                        camera = newCamera;
+                    } else {
+                        throw new Error('Camera element not found and cannot create fallback');
+                    }
                 }
-                if (!guide) {
-                    throw new Error('Guide element not found - check if element with id="qr-guide" exists');
+                
+                // Guide element is optional, create if not found
+                let guideElement = guide;
+                if (!guideElement) {
+                    console.log('Guide element not found, creating fallback...');
+                    // Create guide element if not found
+                    const cameraContainer = document.getElementById('camera-container');
+                    if (cameraContainer) {
+                        const newGuide = document.createElement('div');
+                        newGuide.id = 'qr-guide';
+                        newGuide.className = 'absolute inset-0 pointer-events-none';
+                        newGuide.style.display = 'none';
+                        newGuide.innerHTML = `
+                            <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
+                            <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
+                            <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
+                            <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
+                                    <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                                <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
+                            </div>
+                        `;
+                        cameraContainer.appendChild(newGuide);
+                        guideElement = newGuide;
+                        console.log('✅ Guide element created');
+                    }
                 }
                 
                 // Clean up any existing scanner
@@ -249,7 +296,9 @@
                 
                 // Clear previous content and add scanner container
                 camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
-                guide.style.display = 'block';
+                if (guideElement) {
+                    guideElement.style.display = 'block';
+                }
                 
                 // Wait for DOM update
                 await new Promise(resolve => setTimeout(resolve, 200));
@@ -275,28 +324,36 @@
                 }
 
                 // Get available cameras and select camera 2 (back camera)
-                const cameras = await Html5Qrcode.getCameras();
-                console.log('Available cameras:', cameras);
-                console.log('Camera count:', cameras.length);
-                cameras.forEach((camera, index) => {
-                    console.log(`Camera ${index}:`, camera.id, camera.label);
-                });
+                let cameras = [];
+                try {
+                    cameras = await Html5Qrcode.getCameras();
+                    console.log('Available cameras:', cameras);
+                    console.log('Camera count:', cameras.length);
+                    cameras.forEach((camera, index) => {
+                        console.log(`Camera ${index}:`, camera.id, camera.label);
+                    });
+                } catch (e) {
+                    console.log('Failed to get cameras:', e.message);
+                    // Continue without specific camera selection
+                }
                 
                 if (cameras.length === 0) {
-                    throw new Error('No cameras found');
+                    console.log('No cameras found, will use default camera');
                 }
                 
                 // Use camera 2 (back camera) - try camera 2 first, then fallback to others
-                let cameraId;
+                let cameraId = null;
                 if (cameras.length >= 3) {
                     cameraId = cameras[2].id; // Camera 2
                     console.log('Using camera 2:', cameraId);
                 } else if (cameras.length >= 2) {
                     cameraId = cameras[1].id; // Camera 1
                     console.log('Using camera 1:', cameraId);
-                } else {
+                } else if (cameras.length >= 1) {
                     cameraId = cameras[0].id; // Camera 0
                     console.log('Using camera 0:', cameraId);
+                } else {
+                    console.log('No specific camera selected, will use default');
                 }
                 
                 // Test camera access with fallback
@@ -373,15 +430,20 @@
                 // Start scanning with specific camera
                 try {
                     if (html5QrcodeScanner) {
-                        html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                            cameraIdOrConfig: finalCameraId
-                        });
-                        console.log('✅ Scanner started with camera:', finalCameraId);
+                        if (finalCameraId) {
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
+                                cameraIdOrConfig: finalCameraId
+                            });
+                            console.log('✅ Scanner started with camera:', finalCameraId);
+                        } else {
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                            console.log('✅ Scanner started without specific camera');
+                        }
                     } else {
                         throw new Error('Scanner not initialized');
                     }
                 } catch (e) {
-                    console.log('Specific camera failed, trying without specific camera:', e.message);
+                    console.log('Scanner failed, trying fallback:', e.message);
                     try {
                         // Fallback: start without specific camera
                         if (html5QrcodeScanner) {
