@@ -70,13 +70,10 @@
                     <!-- Camera Controls -->
                     <div class="flex space-x-3 mb-4">
                         <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-camera mr-2"></i>Mulai Kamera
+                            <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
                         </button>
                         <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
-                            <i class="fas fa-stop mr-2"></i>Stop Kamera
-                        </button>
-                        <button id="capturePhoto" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors" style="display: none;">
-                            <i class="fas fa-camera mr-2"></i>Ambil Foto QR
+                            <i class="fas fa-stop mr-2"></i>Stop Scan
                         </button>
                     </div>
 
@@ -197,6 +194,19 @@
         /* Hide camera selection buttons */
         #html5-qrcode-reader button[data-camera-id] {
             display: none !important;
+        }
+        
+        /* Hide all text elements in scanner */
+        #html5-qrcode-reader div:not(:has(video)) {
+            display: none !important;
+        }
+        
+        /* Show only video element */
+        #html5-qrcode-reader video {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
     </style>
     <script>
@@ -340,7 +350,6 @@
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
-                document.getElementById('capturePhoto').style.display = 'inline-block';
                 
                 showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
                 console.log('✅ HTML5 QR Code Scanner started successfully');
@@ -370,7 +379,6 @@
                 cameraActive = false;
                 document.getElementById('startCamera').style.display = 'inline-block';
                 document.getElementById('stopCamera').style.display = 'none';
-                document.getElementById('capturePhoto').style.display = 'none';
                 
                 // Reset camera display
                 const camera = document.getElementById('camera');
@@ -405,16 +413,6 @@
             }
         }
 
-        // SIMPLE PHOTO CAPTURE - Fallback method
-        document.getElementById('capturePhoto').addEventListener('click', function() {
-            if (!cameraActive) {
-                showNotification('Scanner belum aktif', 'warning');
-                return;
-            }
-            
-            // Simple photo capture - just take photo and add to list
-            capturePhotoSimple();
-        });
         
         // REMOVED COMPLEX QR DETECTION - Using simple photo capture instead
         
@@ -460,60 +458,6 @@
         }
         
         // SIMPLE PHOTO CAPTURE - Just take photo, no QR detection
-        function capturePhotoSimple() {
-            try {
-                console.log('📸 Capturing photo...');
-                
-                // Show loading state
-                const captureBtn = document.getElementById('capturePhoto');
-                const originalText = captureBtn.innerHTML;
-                captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Capturing...';
-                captureBtn.disabled = true;
-                
-                // Wait a moment for camera stabilization
-                setTimeout(() => {
-                    try {
-                        // Create canvas
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        
-                        // Set canvas size
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        
-                        // Draw video frame
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        // Convert to base64
-                        const base64Image = canvas.toDataURL('image/jpeg', 0.9);
-                        
-                        // Add to captured list
-                        addCapturedPhoto(base64Image);
-                        
-                        // Show success
-                        showNotification('Foto berhasil diambil! QR akan diproses saat synchronize.', 'success');
-                        
-                        // Reset button
-                        captureBtn.innerHTML = originalText;
-                        captureBtn.disabled = false;
-                        
-                        console.log('✅ Photo captured successfully');
-                        
-                    } catch (err) {
-                        console.error('Capture error:', err);
-                        showNotification('Gagal mengambil foto: ' + err.message, 'error');
-                        
-                        // Reset button
-                        captureBtn.innerHTML = originalText;
-                        captureBtn.disabled = false;
-                    }
-                }, 500);
-                
-            } catch (err) {
-                console.error('Capture error:', err);
-                showNotification('Gagal mengambil foto: ' + err.message, 'error');
-            }
-        }
 
         // Manual input - untuk QR code manual
         document.getElementById('addManual').addEventListener('click', function() {
