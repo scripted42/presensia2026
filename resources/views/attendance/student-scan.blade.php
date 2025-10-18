@@ -260,7 +260,8 @@
             border-top-left-radius: 24px;
             border-top-right-radius: 24px;
             padding: 24px;
-            max-height: 60vh;
+            max-height: 85vh;
+            min-height: 70vh;
             overflow-y: auto;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
             position: absolute;
@@ -382,9 +383,11 @@
             .students-section {
                 flex: 1;
                 max-height: none;
+                min-height: 100vh;
                 transform: none;
                 border-radius: 0;
                 box-shadow: none;
+                padding: 32px;
             }
         }
         
