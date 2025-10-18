@@ -192,6 +192,11 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .camera-section.swiped-up {
+            transform: translateY(-50%);
         }
         
         .camera-header {
@@ -232,6 +237,10 @@
             max-height: 50vh;
             overflow-y: auto;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
             transform: translateY(100%);
             transition: transform 0.3s ease;
         }
@@ -532,7 +541,7 @@
             addCapturedPhoto(decodedText, true);
         }
         
-        // Swipe gesture handling
+        // Smooth swipe gesture handling
         let startY = 0;
         let currentY = 0;
         let isDragging = false;
@@ -553,11 +562,10 @@
             currentY = e.touches[0].clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY > 50) {
-                // Swipe up - show students section
+            if (deltaY > 30) {
+                // Swipe up - show students section with smooth animation
                 if (!isStudentsSectionVisible) {
-                    studentsSection.classList.add('show');
-                    isStudentsSectionVisible = true;
+                    showStudentsSectionSmooth();
                 }
             }
         });
@@ -578,11 +586,10 @@
             currentY = e.touches[0].clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY < -50) {
-                // Swipe down - hide students section
+            if (deltaY < -30) {
+                // Swipe down - hide students section with smooth animation
                 if (isStudentsSectionVisible) {
-                    studentsSection.classList.remove('show');
-                    isStudentsSectionVisible = false;
+                    hideStudentsSectionSmooth();
                 }
             }
         });
@@ -603,10 +610,9 @@
             currentY = e.clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY > 50) {
+            if (deltaY > 30) {
                 if (!isStudentsSectionVisible) {
-                    studentsSection.classList.add('show');
-                    isStudentsSectionVisible = true;
+                    showStudentsSectionSmooth();
                 }
             }
         });
@@ -626,10 +632,9 @@
             currentY = e.clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY < -50) {
+            if (deltaY < -30) {
                 if (isStudentsSectionVisible) {
-                    studentsSection.classList.remove('show');
-                    isStudentsSectionVisible = false;
+                    hideStudentsSectionSmooth();
                 }
             }
         });
@@ -638,10 +643,23 @@
             isDragging = false;
         });
         
+        // Smooth show students section
+        function showStudentsSectionSmooth() {
+            studentsSection.classList.add('show');
+            cameraSection.classList.add('swiped-up');
+            isStudentsSectionVisible = true;
+        }
+        
+        // Smooth hide students section
+        function hideStudentsSectionSmooth() {
+            studentsSection.classList.remove('show');
+            cameraSection.classList.remove('swiped-up');
+            isStudentsSectionVisible = false;
+        }
+        
         // Auto show students section when students are added
         function showStudentsSection() {
-            studentsSection.classList.add('show');
-            isStudentsSectionVisible = true;
+            showStudentsSectionSmooth();
         }
         
         // Update record count
