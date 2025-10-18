@@ -170,6 +170,7 @@
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
+        let scannerObserver = null;
 
         // Start HTML5 QR Code Scanner
         document.getElementById('startCamera').addEventListener('click', async function() {
@@ -224,28 +225,21 @@
                 // Start scanning with callbacks and auto-request camera permission
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
-                // Auto-skip camera selection dialog and force back camera
-                setTimeout(() => {
+                // Auto-select back camera and auto-start scanning
+                const autoSelectAndStart = () => {
                     try {
-                        // Auto-click any camera selection buttons to skip dialog
-                        const cameraBtns = document.querySelectorAll('#html5-qrcode-reader button, #html5-qrcode-reader select');
-                        cameraBtns.forEach(btn => {
-                            if (btn.textContent.includes('Start') || btn.textContent.includes('Scanning') || btn.textContent.includes('Camera')) {
-                                btn.click();
-                                console.log('✅ Auto-clicked camera button:', btn.textContent);
-                            }
-                        });
-                        
-                        // Force select back camera if dropdown appears
+                        // 1. Auto-select back camera from dropdown
                         const cameraSelect = document.querySelector('#html5-qrcode-reader select');
                         if (cameraSelect) {
-                            // Find and select back camera option
                             const options = Array.from(cameraSelect.options);
                             const backCamera = options.find(option => 
                                 option.text.toLowerCase().includes('back') || 
                                 option.text.toLowerCase().includes('environment') || 
                                 option.text.toLowerCase().includes('rear') ||
-                                option.value.includes('environment')
+                                option.value.includes('environment') ||
+                                option.text.toLowerCase().includes('camera 2') ||
+                                option.text.toLowerCase().includes('camera 3') ||
+                                option.text.toLowerCase().includes('camera 4')
                             );
                             if (backCamera) {
                                 cameraSelect.value = backCamera.value;
@@ -254,37 +248,57 @@
                             }
                         }
                         
-                        // Auto-click "Start Scanning" if it appears
-                        const startBtn = document.querySelector('#html5-qrcode-reader button[data-camera-id], #html5-qrcode-reader button:contains("Start")');
-                        if (startBtn) {
-                            startBtn.click();
-                            console.log('✅ Auto-clicked start scanning');
-                        }
-                    } catch (e) {
-                        console.log('Auto camera selection completed');
-                    }
-                }, 100);
-
-                // More aggressive auto-click for camera selection
-                setTimeout(() => {
-                    try {
-                        // Click any visible buttons in scanner area
-                        const allBtns = document.querySelectorAll('#html5-qrcode-reader *');
-                        allBtns.forEach(element => {
-                            if (element.tagName === 'BUTTON' || element.onclick) {
-                                if (element.textContent.includes('Start') || 
-                                    element.textContent.includes('Scanning') || 
-                                    element.textContent.includes('Camera') ||
-                                    element.textContent.includes('Allow')) {
-                                    element.click();
-                                    console.log('✅ Auto-clicked element:', element.textContent);
-                                }
+                        // 2. Auto-click "Start Scanning" button
+                        const startBtns = document.querySelectorAll('#html5-qrcode-reader button');
+                        startBtns.forEach(btn => {
+                            if (btn.textContent.includes('Start Scanning') || 
+                                btn.textContent.includes('Start') || 
+                                btn.textContent.includes('Scanning')) {
+                                btn.click();
+                                console.log('✅ Auto-clicked start scanning:', btn.textContent);
+                            }
+                        });
+                        
+                        // 3. Auto-click any camera selection buttons
+                        const allBtns = document.querySelectorAll('#html5-qrcode-reader button, #html5-qrcode-reader select');
+                        allBtns.forEach(btn => {
+                            if (btn.textContent.includes('Camera') || 
+                                btn.textContent.includes('Select') ||
+                                btn.textContent.includes('facing')) {
+                                btn.click();
+                                console.log('✅ Auto-clicked camera selection:', btn.textContent);
                             }
                         });
                     } catch (e) {
-                        console.log('Aggressive auto-click completed');
+                        console.log('Auto camera selection completed');
                     }
-                }, 300);
+                };
+
+                // Multiple attempts to auto-select and start
+                setTimeout(autoSelectAndStart, 100);
+                setTimeout(autoSelectAndStart, 300);
+                setTimeout(autoSelectAndStart, 500);
+                setTimeout(autoSelectAndStart, 800);
+                setTimeout(autoSelectAndStart, 1000);
+
+                // Observer untuk auto-click saat DOM berubah
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            setTimeout(autoSelectAndStart, 50);
+                        }
+                    });
+                });
+
+                // Start observing
+                const scannerElement = document.getElementById('html5-qrcode-reader');
+                if (scannerElement) {
+                    scannerObserver = observer;
+                    observer.observe(scannerElement, {
+                        childList: true,
+                        subtree: true
+                    });
+                }
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
@@ -308,6 +322,12 @@
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.clear();
                     html5QrcodeScanner = null;
+                }
+                
+                // Stop observer
+                if (scannerObserver) {
+                    scannerObserver.disconnect();
+                    scannerObserver = null;
                 }
                 
                 cameraActive = false;
