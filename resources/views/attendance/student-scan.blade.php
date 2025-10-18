@@ -429,6 +429,28 @@
             min-height: 100vh !important;
         }
         
+        /* QR Code scanning area styling */
+        #html5-qrcode-reader div[style*="border"] {
+            border: 2px solid #3b82f6 !important;
+            border-radius: 12px !important;
+            background: rgba(59, 130, 246, 0.1) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        /* QR Code scanning area when scanning */
+        #html5-qrcode-reader div[style*="border"].scanning {
+            border: 2px solid #10b981 !important;
+            background: rgba(16, 185, 129, 0.2) !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+        }
+        
+        /* QR Code scanning area when success */
+        #html5-qrcode-reader div[style*="border"].success {
+            border: 2px solid #10b981 !important;
+            background: rgba(16, 185, 129, 0.3) !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5) !important;
+        }
+        
         /* Custom UI for permission request */
         #html5-qrcode-reader div[style*="background-color: rgba"] {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
@@ -452,37 +474,31 @@
             margin-bottom: 15px !important;
         }
         
-        /* Custom UI for camera selection */
+        /* Hide camera selection dropdown completely */
         #html5-qrcode-reader select {
-            background: white !important;
-            border: 2px solid #667eea !important;
-            border-radius: 8px !important;
-            padding: 10px 15px !important;
-            font-size: 14px !important;
-            color: #333 !important;
-            margin-bottom: 15px !important;
-            width: 100% !important;
-            max-width: 300px !important;
+            display: none !important;
         }
         
         #html5-qrcode-reader button[data-camera-id] {
-            background: #667eea !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 8px !important;
-            padding: 12px 24px !important;
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            width: 100% !important;
-            max-width: 300px !important;
+            display: none !important;
         }
         
-        #html5-qrcode-reader button[data-camera-id]:hover {
-            background: #5a6fd8 !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+        /* Hide camera selection UI elements */
+        #html5-qrcode-reader div[style*="position: absolute"]:not(:has(video)) {
+            display: none !important;
+        }
+        
+        #html5-qrcode-reader div[style*="background-color: rgba"]:not(:has(video)) {
+            display: none !important;
+        }
+        
+        #html5-qrcode-reader div[style*="z-index"]:not(:has(video)) {
+            display: none !important;
+        }
+        
+        /* Hide any camera selection text or dropdown */
+        #html5-qrcode-reader div:not(:has(video)):not(.camera-permission-message) {
+            display: none !important;
         }
         
         /* Mobile responsive */
@@ -544,6 +560,14 @@
                 // Render scanner
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
+                // Add scanning visual feedback after scanner is rendered
+                setTimeout(() => {
+                    const scanArea = document.querySelector('#html5-qrcode-reader div[style*="border"]');
+                    if (scanArea) {
+                        scanArea.classList.add('scanning');
+                    }
+                }, 1000);
+                
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
@@ -593,6 +617,16 @@
         // QR Code scan success callback
         function onScanSuccess(decodedText, decodedResult) {
             console.log('QR Code detected:', decodedText);
+            
+            // Add success visual feedback
+            const scanArea = document.querySelector('#html5-qrcode-reader div[style*="border"]');
+            if (scanArea) {
+                scanArea.classList.add('success');
+                setTimeout(() => {
+                    scanArea.classList.remove('success');
+                }, 2000);
+            }
+            
             addCapturedPhoto(decodedText, true);
         }
         
