@@ -245,10 +245,13 @@
                 // Add event listener for manual permission button
                 const manualPermissionBtn = document.getElementById('manualPermissionBtn');
                 if (manualPermissionBtn) {
+                    console.log('✅ Manual permission button found and event listener added');
                     manualPermissionBtn.addEventListener('click', function() {
                         console.log('🎥 Manual permission button clicked');
                         requestCameraPermission();
                     });
+                } else {
+                    console.error('❌ Manual permission button not found');
                 }
                 
                 // Initialize scanner with back camera forced
