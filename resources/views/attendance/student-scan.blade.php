@@ -429,27 +429,7 @@
             min-height: 100vh !important;
         }
         
-        /* QR Code scanning area styling */
-        #html5-qrcode-reader div[style*="border"] {
-            border: 2px solid #3b82f6 !important;
-            border-radius: 12px !important;
-            background: rgba(59, 130, 246, 0.1) !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        /* QR Code scanning area when scanning */
-        #html5-qrcode-reader div[style*="border"].scanning {
-            border: 2px solid #10b981 !important;
-            background: rgba(16, 185, 129, 0.2) !important;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
-        }
-        
-        /* QR Code scanning area when success */
-        #html5-qrcode-reader div[style*="border"].success {
-            border: 2px solid #10b981 !important;
-            background: rgba(16, 185, 129, 0.3) !important;
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5) !important;
-        }
+        /* Use default QR code scanning area styling - let library handle it */
         
         /* Custom UI for permission request */
         #html5-qrcode-reader div[style*="background-color: rgba"] {
@@ -560,14 +540,6 @@
                 // Render scanner
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
-                // Add scanning visual feedback after scanner is rendered
-                setTimeout(() => {
-                    const scanArea = document.querySelector('#html5-qrcode-reader div[style*="border"]');
-                    if (scanArea) {
-                        scanArea.classList.add('scanning');
-                    }
-                }, 1000);
-                
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
@@ -617,16 +589,6 @@
         // QR Code scan success callback
         function onScanSuccess(decodedText, decodedResult) {
             console.log('QR Code detected:', decodedText);
-            
-            // Add success visual feedback
-            const scanArea = document.querySelector('#html5-qrcode-reader div[style*="border"]');
-            if (scanArea) {
-                scanArea.classList.add('success');
-                setTimeout(() => {
-                    scanArea.classList.remove('success');
-                }, 2000);
-            }
-            
             addCapturedPhoto(decodedText, true);
         }
         
@@ -807,8 +769,7 @@
             updateCapturedList();
             showNotification('Siswa berhasil ditambahkan: ' + data, 'success');
             
-            // Auto show students section when students are added
-            showStudentsSection();
+            // Don't auto show students section - let user swipe manually
         }
 
         // Update captured list display
