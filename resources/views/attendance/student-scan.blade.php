@@ -242,32 +242,70 @@
                     console.log('Back camera permission will be requested by scanner');
                 }
 
-                // Get available cameras and select camera 0 (back camera)
+                // Get available cameras and select camera 2 (back camera)
                 const cameras = await Html5Qrcode.getCameras();
                 console.log('Available cameras:', cameras);
+                console.log('Camera count:', cameras.length);
+                cameras.forEach((camera, index) => {
+                    console.log(`Camera ${index}:`, camera.id, camera.label);
+                });
                 
                 if (cameras.length === 0) {
                     throw new Error('No cameras found');
                 }
                 
-                // Use camera 0 (usually back camera)
-                const cameraId = cameras[0].id;
-                console.log('Using camera 0:', cameraId);
+                // Use camera 2 (back camera) - try camera 2 first, then fallback to others
+                let cameraId;
+                if (cameras.length >= 3) {
+                    cameraId = cameras[2].id; // Camera 2
+                    console.log('Using camera 2:', cameraId);
+                } else if (cameras.length >= 2) {
+                    cameraId = cameras[1].id; // Camera 1
+                    console.log('Using camera 1:', cameraId);
+                } else {
+                    cameraId = cameras[0].id; // Camera 0
+                    console.log('Using camera 0:', cameraId);
+                }
                 
-                // Test camera access
+                // Test camera access with fallback
+                let finalCameraId = cameraId;
                 try {
                     const testStream = await navigator.mediaDevices.getUserMedia({ 
                         video: { deviceId: { exact: cameraId } } 
                     });
                     testStream.getTracks().forEach(track => track.stop());
-                    console.log('✅ Camera 0 access confirmed');
+                    console.log('✅ Camera access confirmed:', cameraId);
                 } catch (e) {
-                    console.log('Camera 0 access failed, trying default camera');
-                    // Fallback to default camera
-                    const defaultStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: "environment" } 
-                    });
-                    defaultStream.getTracks().forEach(track => track.stop());
+                    console.log('Camera access failed, trying fallback cameras');
+                    
+                    // Try camera 1 if camera 2 failed
+                    if (cameras.length >= 2) {
+                        try {
+                            const fallbackId = cameras[1].id;
+                            const fallbackStream = await navigator.mediaDevices.getUserMedia({ 
+                                video: { deviceId: { exact: fallbackId } } 
+                            });
+                            fallbackStream.getTracks().forEach(track => track.stop());
+                            finalCameraId = fallbackId;
+                            console.log('✅ Fallback to camera 1:', fallbackId);
+                        } catch (e2) {
+                            console.log('Camera 1 also failed, trying camera 0');
+                            finalCameraId = cameras[0].id;
+                        }
+                    }
+                    
+                    // Final fallback to environment camera
+                    if (!finalCameraId) {
+                        try {
+                            const envStream = await navigator.mediaDevices.getUserMedia({ 
+                                video: { facingMode: "environment" } 
+                            });
+                            envStream.getTracks().forEach(track => track.stop());
+                            console.log('✅ Using environment camera');
+                        } catch (e3) {
+                            console.log('All camera access failed');
+                        }
+                    }
                 }
                 
                 // Initialize HTML5 QR Code Scanner with camera 0
@@ -287,11 +325,11 @@
                 // Start scanning with specific camera
                 try {
                     html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                        cameraIdOrConfig: cameraId
+                        cameraIdOrConfig: finalCameraId
                     });
-                    console.log('✅ Scanner started with camera 0');
+                    console.log('✅ Scanner started with camera:', finalCameraId);
                 } catch (e) {
-                    console.log('Camera 0 failed, trying without specific camera');
+                    console.log('Specific camera failed, trying without specific camera');
                     // Fallback: start without specific camera
                     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 }
