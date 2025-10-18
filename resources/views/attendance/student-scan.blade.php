@@ -147,7 +147,7 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- Custom CSS for better camera UI -->
+    <!-- Simple CSS for camera UI -->
     <style>
         /* Camera container styling */
         #html5-qrcode-reader {
@@ -160,110 +160,28 @@
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
-            border-radius: 8px !important;
+            border-radius: 4px !important;
         }
         
-        /* Camera permission UI improvements */
-        #html5-qrcode-reader div[style*="text-align"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: white !important;
-            padding: 20px !important;
-            border-radius: 12px !important;
-            text-align: center !important;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-        }
-        
-        /* Permission request text styling */
-        #html5-qrcode-reader div[style*="text-align"] p {
-            font-size: 16px !important;
-            font-weight: 500 !important;
-            margin: 10px 0 !important;
-        }
-        
-        /* Camera selection dropdown styling */
-        #html5-qrcode-reader select {
-            background: white !important;
-            border: 2px solid #e2e8f0 !important;
-            border-radius: 8px !important;
-            padding: 8px 12px !important;
-            font-size: 14px !important;
-            color: #2d3748 !important;
-        }
-        
-        /* Button styling */
-        #html5-qrcode-reader button {
-            background: #4299e1 !important;
-            color: white !important;
-            border: none !important;
-            padding: 10px 20px !important;
-            border-radius: 8px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        #html5-qrcode-reader button:hover {
-            background: #3182ce !important;
-            transform: translateY(-1px) !important;
-        }
-        
-        /* Loading spinner */
-        #html5-qrcode-reader .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 40px;
-        }
-        
-        #html5-qrcode-reader .loading::before {
-            content: '';
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4299e1;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Hide default camera selection UI */
-        #html5-qrcode-reader div[style*="margin"]:not(:has(video)) {
-            display: none !important;
-        }
-        
-        /* Custom permission message */
+        /* Simple permission message */
         .camera-permission-message {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
+            background: #f8f9fa;
+            color: #495057;
+            padding: 20px;
+            border-radius: 4px;
             text-align: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
         }
         
         .camera-permission-message h3 {
-            margin: 0 0 15px 0;
-            font-size: 20px;
-            font-weight: 600;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: 500;
         }
         
         .camera-permission-message p {
-            margin: 0 0 20px 0;
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .camera-permission-message .permission-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
+            margin: 0;
+            font-size: 14px;
         }
     </style>
     <script>
@@ -283,14 +201,12 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content with better UI
+                // Clear previous content with simple UI
                 camera.innerHTML = `
                     <div id="html5-qrcode-reader">
                         <div class="camera-permission-message">
-                            <div class="permission-icon">📷</div>
                             <h3>Mengaktifkan Kamera</h3>
-                            <p>Mohon izinkan akses kamera untuk memulai scanning QR Code</p>
-                            <div class="loading"></div>
+                            <p>Mohon izinkan akses kamera</p>
                         </div>
                     </div>
                 `;
@@ -312,26 +228,8 @@
                     false
                 );
                 
-                // Start scanning with better error handling
-                try {
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                    
-                    // Wait for camera to initialize
-                    setTimeout(() => {
-                        const video = document.querySelector('#html5-qrcode-reader video');
-                        if (video) {
-                            console.log('✅ Camera feed detected');
-                            showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
-                        } else {
-                            console.log('⚠️ Camera feed not detected, checking permission...');
-                            showNotification('Mohon izinkan akses kamera untuk memulai scanning', 'warning');
-                        }
-                    }, 2000);
-                    
-                } catch (renderError) {
-                    console.error('❌ Scanner render error:', renderError);
-                    showNotification('Gagal mengaktifkan scanner. Coba refresh halaman.', 'error');
-                }
+                // Start scanning
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
