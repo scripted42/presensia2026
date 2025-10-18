@@ -57,6 +57,20 @@
                                 <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
                             <i class="fas fa-stop mr-2"></i>Stop Scan
                         </button>
+                                <button id="switchCamera" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors" style="display: none;">
+                                    <i class="fas fa-sync-alt mr-2"></i>Ganti Kamera
+                                </button>
+                            </div>
+                            
+                            <!-- Camera Selection -->
+                            <div id="cameraSelection" class="mb-4" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kamera:</label>
+                                <select id="cameraSelect" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Memilih kamera...</option>
+                                </select>
+                                <button id="selectCamera" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-camera mr-2"></i>Gunakan Kamera Ini
+                        </button>
                     </div>
 
                     <!-- Manual Input -->
@@ -189,11 +203,92 @@
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
+        let availableCameras = [];
+        let currentCameraId = null;
 
-        // Simple HTML5 QR Code Scanner Implementation
-        document.getElementById('startCamera').addEventListener('click', function() {
+        // Start camera selection
+        document.getElementById('startCamera').addEventListener('click', async function() {
             try {
-                console.log('🎥 Starting HTML5 QR Code Scanner...');
+                console.log('🎥 Starting camera selection...');
+                
+                // Get available cameras
+                const cameras = await getAvailableCameras();
+                
+                if (cameras.length === 0) {
+                    showNotification('Tidak ada kamera yang tersedia', 'error');
+                    return;
+                }
+                
+                // Show camera selection
+                document.getElementById('cameraSelection').style.display = 'block';
+                document.getElementById('startCamera').style.display = 'none';
+                
+                showNotification('Pilih kamera yang ingin digunakan', 'info');
+                
+            } catch (err) {
+                console.error('❌ Camera selection error:', err);
+                showNotification('Gagal memulai pemilihan kamera: ' + err.message, 'error');
+            }
+        });
+
+        // Get available cameras
+        async function getAvailableCameras() {
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                availableCameras = cameras;
+                console.log('Available cameras:', cameras);
+                
+                // Populate camera selection dropdown
+                const cameraSelect = document.getElementById('cameraSelect');
+                cameraSelect.innerHTML = '<option value="">Pilih kamera...</option>';
+                
+                cameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.id;
+                    option.textContent = camera.label || `Kamera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+                
+                return cameras;
+            } catch (err) {
+                console.error('Failed to get cameras:', err);
+                showNotification('Gagal mendapatkan daftar kamera', 'error');
+                return [];
+            }
+        }
+
+        // Switch camera button
+        document.getElementById('switchCamera').addEventListener('click', function() {
+            try {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+                
+                cameraActive = false;
+                document.getElementById('stopCamera').style.display = 'none';
+                document.getElementById('switchCamera').style.display = 'none';
+                document.getElementById('cameraSelection').style.display = 'block';
+                
+                showNotification('Pilih kamera yang ingin digunakan', 'info');
+                
+            } catch (err) {
+                console.error('❌ Switch camera error:', err);
+                showNotification('Gagal mengganti kamera', 'error');
+            }
+        });
+
+        // Select camera and start scanning
+        document.getElementById('selectCamera').addEventListener('click', async function() {
+            try {
+                const selectedCameraId = document.getElementById('cameraSelect').value;
+                
+                if (!selectedCameraId) {
+                    showNotification('Pilih kamera terlebih dahulu', 'warning');
+                    return;
+                }
+                
+                console.log('🎥 Starting scanner with camera:', selectedCameraId);
                 
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
@@ -202,7 +297,7 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content with simple UI
+                // Clear previous content
                 camera.innerHTML = `
                     <div id="html5-qrcode-reader">
                         <div class="camera-permission-message">
@@ -215,13 +310,13 @@
                     guide.style.display = 'block';
                 }
                 
-                // Initialize scanner with larger camera and better UI
+                // Initialize scanner with selected camera
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
                         fps: 10,
                         qrbox: { width: 400, height: 400 },
-                        rememberLastUsedCamera: true,
+                        rememberLastUsedCamera: false,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
                         useBarCodeDetectorIfSupported: true
@@ -229,13 +324,18 @@
                     false
                 );
                 
-                // Start scanning
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                // Start scanning with selected camera
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
+                    cameraIdOrConfig: selectedCameraId
+                });
                 
+                currentCameraId = selectedCameraId;
                 cameraActive = true;
-                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('cameraSelection').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
+                document.getElementById('switchCamera').style.display = 'inline-block';
                 
+                showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
                 console.log('✅ HTML5 QR Code Scanner started successfully');
                 
             } catch (err) {
