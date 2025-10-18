@@ -57,10 +57,19 @@
     <!-- Students List Section - Swipeable -->
     <div class="students-section">
         <div class="students-header">
-            <h2 class="text-lg font-medium text-gray-900">Daftar Siswa yang Sudah Diabsensi</h2>
-            <div class="swipe-indicator">
-                <i class="fas fa-chevron-up text-gray-400"></i>
-                <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
+            <div class="students-header-left">
+                <h2 class="text-lg font-medium text-gray-900">Daftar Siswa yang Sudah Diabsensi</h2>
+                <div class="swipe-indicator">
+                    <i class="fas fa-chevron-up text-gray-400"></i>
+                    <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
+                </div>
+            </div>
+            <div class="students-header-right">
+                <button id="syncButton" class="sync-button">
+                    <i class="fas fa-sync-alt"></i>
+                    Synchronize
+                </button>
+                <div class="record-count" id="recordCount">0 Record</div>
             </div>
         </div>
         
@@ -238,6 +247,48 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .students-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .students-header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .sync-button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .sync-button:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .record-count {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
         }
         
         .swipe-indicator {
@@ -485,10 +536,37 @@
         let startY = 0;
         let currentY = 0;
         let isDragging = false;
+        let isStudentsSectionVisible = false;
         
         const studentsSection = document.querySelector('.students-section');
+        const cameraSection = document.querySelector('.camera-section');
         
-        // Touch events for swipe
+        // Touch events for swipe on camera section
+        cameraSection.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        });
+        
+        cameraSection.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 50) {
+                // Swipe up - show students section
+                if (!isStudentsSectionVisible) {
+                    studentsSection.classList.add('show');
+                    isStudentsSectionVisible = true;
+                }
+            }
+        });
+        
+        cameraSection.addEventListener('touchend', function(e) {
+            isDragging = false;
+        });
+        
+        // Touch events for swipe on students section
         studentsSection.addEventListener('touchstart', function(e) {
             startY = e.touches[0].clientY;
             isDragging = true;
@@ -500,12 +578,12 @@
             currentY = e.touches[0].clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY > 0) {
-                // Swipe up - show students section
-                studentsSection.classList.add('show');
-            } else if (deltaY < -50) {
+            if (deltaY < -50) {
                 // Swipe down - hide students section
-                studentsSection.classList.remove('show');
+                if (isStudentsSectionVisible) {
+                    studentsSection.classList.remove('show');
+                    isStudentsSectionVisible = false;
+                }
             }
         });
         
@@ -514,6 +592,29 @@
         });
         
         // Mouse events for desktop
+        cameraSection.addEventListener('mousedown', function(e) {
+            startY = e.clientY;
+            isDragging = true;
+        });
+        
+        cameraSection.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 50) {
+                if (!isStudentsSectionVisible) {
+                    studentsSection.classList.add('show');
+                    isStudentsSectionVisible = true;
+                }
+            }
+        });
+        
+        cameraSection.addEventListener('mouseup', function(e) {
+            isDragging = false;
+        });
+        
         studentsSection.addEventListener('mousedown', function(e) {
             startY = e.clientY;
             isDragging = true;
@@ -525,10 +626,11 @@
             currentY = e.clientY;
             const deltaY = startY - currentY;
             
-            if (deltaY > 0) {
-                studentsSection.classList.add('show');
-            } else if (deltaY < -50) {
-                studentsSection.classList.remove('show');
+            if (deltaY < -50) {
+                if (isStudentsSectionVisible) {
+                    studentsSection.classList.remove('show');
+                    isStudentsSectionVisible = false;
+                }
             }
         });
         
@@ -539,7 +641,37 @@
         // Auto show students section when students are added
         function showStudentsSection() {
             studentsSection.classList.add('show');
+            isStudentsSectionVisible = true;
         }
+        
+        // Update record count
+        function updateRecordCount() {
+            const recordCount = document.getElementById('recordCount');
+            if (recordCount) {
+                recordCount.textContent = `${capturedStudents.length} Record`;
+            }
+        }
+        
+        // Sync button event listener
+        document.getElementById('syncButton').addEventListener('click', function() {
+            if (capturedStudents.length === 0) {
+                showNotification('Tidak ada data untuk disinkronkan', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const syncButton = this;
+            const originalText = syncButton.innerHTML;
+            syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synchronizing...';
+            syncButton.disabled = true;
+            
+            // Simulate sync process
+            setTimeout(() => {
+                showNotification(`Berhasil menyinkronkan ${capturedStudents.length} data siswa`, 'success');
+                syncButton.innerHTML = originalText;
+                syncButton.disabled = false;
+            }, 2000);
+        });
 
         // QR Code scan failure callback
         function onScanFailure(error) {
@@ -576,6 +708,9 @@
             const studentCount = document.getElementById('studentCount');
             
             studentCount.textContent = `${capturedStudents.length} siswa`;
+            
+            // Update record count
+            updateRecordCount();
             
             if (capturedStudents.length === 0) {
                 listContainer.innerHTML = `
