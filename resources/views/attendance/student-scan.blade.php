@@ -166,6 +166,39 @@
     <!-- QR Code decoder untuk real-time detection -->
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- CSS to hide camera selection dialog -->
+    <style>
+        /* Hide camera selection dropdown */
+        #html5-qrcode-reader select {
+            display: none !important;
+        }
+        
+        /* Hide camera selection text elements */
+        #html5-qrcode-reader div[style*="text-align"],
+        #html5-qrcode-reader div[style*="margin"],
+        #html5-qrcode-reader div[style*="padding"] {
+            display: none !important;
+        }
+        
+        /* Hide specific text content */
+        #html5-qrcode-reader * {
+            font-size: 0 !important;
+            color: transparent !important;
+        }
+        
+        /* Show only the camera feed */
+        #html5-qrcode-reader video {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Hide camera selection buttons */
+        #html5-qrcode-reader button[data-camera-id] {
+            display: none !important;
+        }
+    </style>
     <script>
         let capturedStudents = [];
         let html5QrcodeScanner = null;
@@ -225,30 +258,33 @@
                 // Start scanning with callbacks and auto-request camera permission
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
-                // Auto-select back camera and auto-start scanning
-                const autoSelectAndStart = () => {
+                // Hide camera selection dialog and auto-select camera 0 (back camera)
+                const hideDialogAndAutoStart = () => {
                     try {
-                        // 1. Auto-select back camera from dropdown
+                        // 1. Hide camera selection dialog completely
                         const cameraSelect = document.querySelector('#html5-qrcode-reader select');
                         if (cameraSelect) {
-                            const options = Array.from(cameraSelect.options);
-                            const backCamera = options.find(option => 
-                                option.text.toLowerCase().includes('back') || 
-                                option.text.toLowerCase().includes('environment') || 
-                                option.text.toLowerCase().includes('rear') ||
-                                option.value.includes('environment') ||
-                                option.text.toLowerCase().includes('camera 2') ||
-                                option.text.toLowerCase().includes('camera 3') ||
-                                option.text.toLowerCase().includes('camera 4')
-                            );
-                            if (backCamera) {
-                                cameraSelect.value = backCamera.value;
-                                cameraSelect.dispatchEvent(new Event('change'));
-                                console.log('✅ Auto-selected back camera:', backCamera.text);
-                            }
+                            cameraSelect.style.display = 'none';
+                            // Auto-select camera 0 (back camera)
+                            cameraSelect.selectedIndex = 0;
+                            cameraSelect.dispatchEvent(new Event('change'));
+                            console.log('✅ Auto-selected camera 0 (back camera)');
                         }
                         
-                        // 2. Auto-click "Start Scanning" button
+                        // 2. Hide camera selection text
+                        const cameraText = document.querySelector('#html5-qrcode-reader');
+                        if (cameraText) {
+                            const textElements = cameraText.querySelectorAll('*');
+                            textElements.forEach(el => {
+                                if (el.textContent.includes('Select Camera') || 
+                                    el.textContent.includes('facing front') ||
+                                    el.textContent.includes('camera 1')) {
+                                    el.style.display = 'none';
+                                }
+                            });
+                        }
+                        
+                        // 3. Auto-click "Start Scanning" button
                         const startBtns = document.querySelectorAll('#html5-qrcode-reader button');
                         startBtns.forEach(btn => {
                             if (btn.textContent.includes('Start Scanning') || 
@@ -259,14 +295,15 @@
                             }
                         });
                         
-                        // 3. Auto-click any camera selection buttons
-                        const allBtns = document.querySelectorAll('#html5-qrcode-reader button, #html5-qrcode-reader select');
-                        allBtns.forEach(btn => {
+                        // 4. Force start camera with back camera
+                        const allButtons = document.querySelectorAll('#html5-qrcode-reader button');
+                        allButtons.forEach(btn => {
                             if (btn.textContent.includes('Camera') || 
                                 btn.textContent.includes('Select') ||
-                                btn.textContent.includes('facing')) {
+                                btn.textContent.includes('facing') ||
+                                btn.textContent.includes('Start')) {
                                 btn.click();
-                                console.log('✅ Auto-clicked camera selection:', btn.textContent);
+                                console.log('✅ Auto-clicked button:', btn.textContent);
                             }
                         });
                     } catch (e) {
@@ -274,18 +311,18 @@
                     }
                 };
 
-                // Multiple attempts to auto-select and start
-                setTimeout(autoSelectAndStart, 100);
-                setTimeout(autoSelectAndStart, 300);
-                setTimeout(autoSelectAndStart, 500);
-                setTimeout(autoSelectAndStart, 800);
-                setTimeout(autoSelectAndStart, 1000);
+                // Multiple attempts to hide dialog and auto-start
+                setTimeout(hideDialogAndAutoStart, 100);
+                setTimeout(hideDialogAndAutoStart, 300);
+                setTimeout(hideDialogAndAutoStart, 500);
+                setTimeout(hideDialogAndAutoStart, 800);
+                setTimeout(hideDialogAndAutoStart, 1000);
 
                 // Observer untuk auto-click saat DOM berubah
                 const observer = new MutationObserver((mutations) => {
                     mutations.forEach((mutation) => {
                         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            setTimeout(autoSelectAndStart, 50);
+                            setTimeout(hideDialogAndAutoStart, 50);
                         }
                     });
                 });
