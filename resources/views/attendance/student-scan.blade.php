@@ -242,110 +242,75 @@
                     console.log('Back camera permission will be requested by scanner');
                 }
 
-                // Initialize HTML5 QR Code Scanner with direct back camera
+                // Get available cameras and select camera 0 (back camera)
+                const cameras = await Html5Qrcode.getCameras();
+                console.log('Available cameras:', cameras);
+                
+                if (cameras.length === 0) {
+                    throw new Error('No cameras found');
+                }
+                
+                // Use camera 0 (usually back camera)
+                const cameraId = cameras[0].id;
+                console.log('Using camera 0:', cameraId);
+                
+                // Test camera access
+                try {
+                    const testStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { deviceId: { exact: cameraId } } 
+                    });
+                    testStream.getTracks().forEach(track => track.stop());
+                    console.log('✅ Camera 0 access confirmed');
+                } catch (e) {
+                    console.log('Camera 0 access failed, trying default camera');
+                    // Fallback to default camera
+                    const defaultStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: "environment" } 
+                    });
+                    defaultStream.getTracks().forEach(track => track.stop());
+                }
+                
+                // Initialize HTML5 QR Code Scanner with camera 0
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
                         fps: 10,
                         qrbox: { width: 250, height: 250 },
-                        rememberLastUsedCamera: true,
+                        rememberLastUsedCamera: false,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
-                        // Force back camera without selection dialog
-                        videoConstraints: {
-                            facingMode: { exact: "environment" },
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        },
-                        // Skip all dialogs and auto-start
-                        useBarCodeDetectorIfSupported: true,
-                        // Disable camera selection dialog
-                        showTorchButtonIfSupported: true
+                        useBarCodeDetectorIfSupported: true
                     },
                     false
                 );
 
-                // Start scanning with callbacks and auto-request camera permission
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                
-                // Hide camera selection dialog and auto-select camera 0 (back camera)
-                const hideDialogAndAutoStart = () => {
-                    try {
-                        // 1. Hide camera selection dialog completely
-                        const cameraSelect = document.querySelector('#html5-qrcode-reader select');
-                        if (cameraSelect) {
-                            cameraSelect.style.display = 'none';
-                            // Auto-select camera 0 (back camera)
-                            cameraSelect.selectedIndex = 0;
-                            cameraSelect.dispatchEvent(new Event('change'));
-                            console.log('✅ Auto-selected camera 0 (back camera)');
-                        }
-                        
-                        // 2. Hide camera selection text
-                        const cameraText = document.querySelector('#html5-qrcode-reader');
-                        if (cameraText) {
-                            const textElements = cameraText.querySelectorAll('*');
-                            textElements.forEach(el => {
-                                if (el.textContent.includes('Select Camera') || 
-                                    el.textContent.includes('facing front') ||
-                                    el.textContent.includes('camera 1')) {
-                                    el.style.display = 'none';
-                                }
-                            });
-                        }
-                        
-                        // 3. Auto-click "Start Scanning" button
-                        const startBtns = document.querySelectorAll('#html5-qrcode-reader button');
-                        startBtns.forEach(btn => {
-                            if (btn.textContent.includes('Start Scanning') || 
-                                btn.textContent.includes('Start') || 
-                                btn.textContent.includes('Scanning')) {
-                                btn.click();
-                                console.log('✅ Auto-clicked start scanning:', btn.textContent);
-                            }
-                        });
-                        
-                        // 4. Force start camera with back camera
-                        const allButtons = document.querySelectorAll('#html5-qrcode-reader button');
-                        allButtons.forEach(btn => {
-                            if (btn.textContent.includes('Camera') || 
-                                btn.textContent.includes('Select') ||
-                                btn.textContent.includes('facing') ||
-                                btn.textContent.includes('Start')) {
-                                btn.click();
-                                console.log('✅ Auto-clicked button:', btn.textContent);
-                            }
-                        });
-                    } catch (e) {
-                        console.log('Auto camera selection completed');
-                    }
-                };
-
-                // Multiple attempts to hide dialog and auto-start
-                setTimeout(hideDialogAndAutoStart, 100);
-                setTimeout(hideDialogAndAutoStart, 300);
-                setTimeout(hideDialogAndAutoStart, 500);
-                setTimeout(hideDialogAndAutoStart, 800);
-                setTimeout(hideDialogAndAutoStart, 1000);
-
-                // Observer untuk auto-click saat DOM berubah
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            setTimeout(hideDialogAndAutoStart, 50);
-                        }
+                // Start scanning with specific camera
+                try {
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
+                        cameraIdOrConfig: cameraId
                     });
-                });
-
-                // Start observing
-                const scannerElement = document.getElementById('html5-qrcode-reader');
-                if (scannerElement) {
-                    scannerObserver = observer;
-                    observer.observe(scannerElement, {
-                        childList: true,
-                        subtree: true
-                    });
+                    console.log('✅ Scanner started with camera 0');
+                } catch (e) {
+                    console.log('Camera 0 failed, trying without specific camera');
+                    // Fallback: start without specific camera
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 }
+                
+                // Hide camera selection dialog completely
+                setTimeout(() => {
+                    const cameraSelect = document.querySelector('#html5-qrcode-reader select');
+                    if (cameraSelect) {
+                        cameraSelect.style.display = 'none';
+                    }
+                    
+                    // Hide all text elements
+                    const textElements = document.querySelectorAll('#html5-qrcode-reader *');
+                    textElements.forEach(el => {
+                        if (el.tagName !== 'VIDEO' && el.tagName !== 'CANVAS') {
+                            el.style.display = 'none';
+                        }
+                    });
+                }, 100);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
