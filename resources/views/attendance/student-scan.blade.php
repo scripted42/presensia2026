@@ -184,6 +184,13 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            touch-action: pan-y;
+        }
+        
+        /* Prevent page refresh on swipe */
+        body {
+            overscroll-behavior: none;
+            touch-action: pan-y;
         }
         
         .camera-section {
@@ -193,10 +200,11 @@
             flex-direction: column;
             position: relative;
             transition: transform 0.3s ease;
+            min-height: 100vh;
         }
         
         .camera-section.swiped-up {
-            transform: translateY(-50%);
+            transform: translateY(-40%);
         }
         
         .camera-header {
@@ -227,6 +235,8 @@
             flex: 1;
             position: relative;
             overflow: hidden;
+            height: 100vh;
+            width: 100%;
         }
         
         .students-section {
@@ -366,12 +376,23 @@
             height: 100% !important;
             max-width: 100vw !important;
             max-height: 100vh !important;
+            position: relative !important;
         }
         
         #html5-qrcode-reader video {
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        
+        /* Ensure camera container takes full space */
+        #camera {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100vh !important;
         }
         
         /* Custom UI for permission request */
@@ -565,6 +586,7 @@
             if (deltaY > 30) {
                 // Swipe up - show students section with smooth animation
                 if (!isStudentsSectionVisible) {
+                    e.preventDefault(); // Prevent default browser behavior
                     showStudentsSectionSmooth();
                 }
             }
@@ -589,6 +611,7 @@
             if (deltaY < -30) {
                 // Swipe down - hide students section with smooth animation
                 if (isStudentsSectionVisible) {
+                    e.preventDefault(); // Prevent default browser behavior
                     hideStudentsSectionSmooth();
                 }
             }
