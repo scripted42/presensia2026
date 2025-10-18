@@ -164,6 +164,28 @@
         }
         
         
+        /* Hide camera selection popup completely */
+        #html5-qrcode-reader div[style*="position: absolute"],
+        #html5-qrcode-reader div[style*="background-color: rgba"],
+        #html5-qrcode-reader div[style*="z-index"] {
+            display: none !important;
+        }
+        
+        /* Hide camera selection dropdown */
+        #html5-qrcode-reader select {
+            display: none !important;
+        }
+        
+        /* Hide camera selection buttons */
+        #html5-qrcode-reader button[data-camera-id] {
+            display: none !important;
+        }
+        
+        /* Hide all camera selection UI elements */
+        #html5-qrcode-reader div:not(:has(video)) {
+            display: none !important;
+        }
+        
         /* Simple permission message */
         .camera-permission-message {
             background: #f8f9fa;
@@ -233,6 +255,24 @@
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
                     facingMode: "environment" // Force back camera
                 });
+                
+                // Hide camera selection popup after a short delay
+                setTimeout(() => {
+                    const popups = document.querySelectorAll('#html5-qrcode-reader div[style*="position: absolute"]');
+                    popups.forEach(popup => {
+                        popup.style.display = 'none';
+                    });
+                    
+                    const selects = document.querySelectorAll('#html5-qrcode-reader select');
+                    selects.forEach(select => {
+                        select.style.display = 'none';
+                    });
+                    
+                    const buttons = document.querySelectorAll('#html5-qrcode-reader button[data-camera-id]');
+                    buttons.forEach(button => {
+                        button.style.display = 'none';
+                    });
+                }, 100);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
