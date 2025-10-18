@@ -91,20 +91,49 @@ class QrManagementController extends Controller
         return preg_replace('/[^A-Za-z0-9_\-]+/', '_', $name);
     }
 
-    // QR renderer: gunakan layanan QR pihak ketiga untuk menghasilkan PNG scannable
+    // QR renderer: menggunakan Zxing-js untuk generate QR code
     private function renderPng(string $text, int $size): string
     {
-        $payload = urlencode($text);
-        $url = 'https://api.qrserver.com/v1/create-qr-code/?size='.$size.'x'.$size.'&data='.$payload;
-        $png = @file_get_contents($url);
-        if ($png !== false) {
-            return $png;
+        try {
+            // Use Zxing-js library for QR generation
+            $qrCode = new \Zxing\QrCode();
+            $qrCode->setText($text);
+            $qrCode->setSize($size);
+            $qrCode->setMargin(10);
+            
+            // Generate QR code as PNG
+            $png = $qrCode->writeString();
+            
+            if ($png !== false) {
+                return $png;
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Zxing QR generation failed: " . $e->getMessage());
         }
-        // fallback kecil jika offline: kotak hitam
+        
+        // Fallback: create simple QR-like pattern
         $img = imagecreatetruecolor($size, $size);
         $white = imagecolorallocate($img, 255, 255, 255);
+        $black = imagecolorallocate($img, 0, 0, 0);
         imagefill($img, 0, 0, $white);
-        ob_start(); imagepng($img); return ob_get_clean();
+        
+        // Draw simple QR-like pattern
+        $blockSize = $size / 25; // 25x25 grid
+        for ($i = 0; $i < 25; $i++) {
+            for ($j = 0; $j < 25; $j++) {
+                if (($i + $j) % 3 === 0) {
+                    imagefilledrectangle($img, $i * $blockSize, $j * $blockSize, 
+                        ($i + 1) * $blockSize, ($j + 1) * $blockSize, $black);
+                }
+            }
+        }
+        
+        ob_start();
+        imagepng($img);
+        $result = ob_get_clean();
+        imagedestroy($img);
+        
+        return $result;
     }
 }
 

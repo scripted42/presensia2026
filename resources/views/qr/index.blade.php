@@ -114,19 +114,55 @@
 @endsection
 
 @push('scripts')
+<!-- Zxing-js Library for QR Generation -->
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
 let currentQRData = '';
 let currentDownloadUrl = '';
 
 function showQRPreview(nis, name, downloadUrl) {
     const qrData = nis + '|' + name;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
     
     // Update modal content
     document.getElementById('modalNIS').textContent = nis;
     document.getElementById('modalName').textContent = name;
     document.getElementById('qrData').textContent = qrData;
-    document.getElementById('qrPreview').src = qrUrl;
+    
+    // Generate QR code using Zxing-js
+    try {
+        const qrCode = new ZXing.QRCodeWriter();
+        const bitMatrix = qrCode.encode(qrData, ZXing.BarcodeFormat.QR_CODE, 200, 200);
+        
+        // Create canvas and draw QR code
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Draw QR code
+        ctx.fillStyle = '#000000';
+        for (let x = 0; x < 200; x++) {
+            for (let y = 0; y < 200; y++) {
+                if (bitMatrix.get(x, y)) {
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+        
+        // Convert canvas to data URL
+        const qrUrl = canvas.toDataURL('image/png');
+        document.getElementById('qrPreview').src = qrUrl;
+        
+    } catch (error) {
+        console.error('QR generation failed:', error);
+        // Fallback to external service
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+        document.getElementById('qrPreview').src = qrUrl;
+    }
     
     // Store for download
     currentQRData = qrData;
