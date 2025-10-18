@@ -1,8 +1,8 @@
+@extends('layouts.app')
 
+@section('title', 'Scan Absensi Siswa - Presensia')
 
-<?php $__env->startSection('title', 'Scan Absensi Siswa - Presensia'); ?>
-
-<?php $__env->startSection('content'); ?>
+@section('content')
     <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
@@ -10,9 +10,9 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Capture QR Code Siswa</h1>
-                        <p class="text-gray-600 mt-1"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('d F Y')); ?> - <span id="currentTime"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('H:i:s')); ?></span></p>
+                        <p class="text-gray-600 mt-1">{{ now()->setTimezone('Asia/Jakarta')->format('d F Y') }} - <span id="currentTime">{{ now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}</span></p>
                     </div>
-                    <a href="<?php echo e(route('attendance.index')); ?>" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('attendance.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
@@ -20,12 +20,11 @@
         </div>
 
         <!-- Success Message -->
-        <?php if(session('success')): ?>
+        @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <i class="fas fa-check-circle mr-2"></i><?php echo e(session('success')); ?>
-
+            <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
         </div>
-        <?php endif; ?>
+        @endif
 
         <!-- Scanner Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -149,8 +148,8 @@
                     </div>
 
                     <!-- Submit Form -->
-                    <form id="captureForm" method="POST" action="<?php echo e(route('attendance.student-scan')); ?>" style="display: none;">
-                        <?php echo csrf_field(); ?>
+                    <form id="captureForm" method="POST" action="{{ route('attendance.student-scan') }}" style="display: none;">
+                        @csrf
                         <div id="hiddenInputs"></div>
                     </form>
                 </div>
@@ -158,63 +157,104 @@
         </div>
 
     </div>
-<?php $__env->stopSection(); ?>
+@endsection
 
-<?php $__env->startPush('scripts'); ?>
-    <!-- QR Code decoder untuk real-time detection -->
-    <!-- HTML5 QR Code Scanner Library -->
+@push('scripts')
+    <!-- HTML5 QR Code Scanner Library - Fresh Install -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    
-    <!-- CSS to hide camera selection dialog -->
-    <style>
-        /* Hide camera selection dropdown */
-        #html5-qrcode-reader select {
-            display: none !important;
-        }
-        
-        /* Hide camera selection text elements */
-        #html5-qrcode-reader div[style*="text-align"],
-        #html5-qrcode-reader div[style*="margin"],
-        #html5-qrcode-reader div[style*="padding"] {
-            display: none !important;
-        }
-        
-        /* Hide specific text content */
-        #html5-qrcode-reader * {
-            font-size: 0 !important;
-            color: transparent !important;
-        }
-        
-        /* Show only the camera feed */
-        #html5-qrcode-reader video {
-            display: block !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        /* Hide camera selection buttons */
-        #html5-qrcode-reader button[data-camera-id] {
-            display: none !important;
-        }
-        
-        /* Hide all text elements in scanner */
-        #html5-qrcode-reader div:not(:has(video)) {
-            display: none !important;
-        }
-        
-        /* Show only video element */
-        #html5-qrcode-reader video {
-            display: block !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-    </style>
     <script>
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
-        let scannerObserver = null;
+
+        // Simple HTML5 QR Code Scanner Implementation
+        document.getElementById('startCamera').addEventListener('click', function() {
+            try {
+                console.log('🎥 Starting HTML5 QR Code Scanner...');
+                
+                const camera = document.getElementById('camera');
+                const guide = document.getElementById('qr-guide');
+                
+                if (!camera) {
+                    throw new Error('Camera element not found');
+                }
+                
+                // Clear previous content
+                camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
+                if (guide) {
+                    guide.style.display = 'block';
+                }
+                
+                // Initialize scanner with simple config
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "html5-qrcode-reader",
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        rememberLastUsedCamera: true,
+                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+                    },
+                    false
+                );
+                
+                // Start scanning
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                
+                cameraActive = true;
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('stopCamera').style.display = 'inline-block';
+                
+                showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
+                console.log('✅ HTML5 QR Code Scanner started successfully');
+                
+            } catch (err) {
+                console.error('❌ Scanner error:', err);
+                showNotification('Gagal mengakses kamera: ' + err.message, 'error');
+            }
+        });
+
+        // Stop scanner
+        document.getElementById('stopCamera').addEventListener('click', function() {
+            try {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+                
+                cameraActive = false;
+                document.getElementById('startCamera').style.display = 'inline-block';
+                document.getElementById('stopCamera').style.display = 'none';
+                
+                const camera = document.getElementById('camera');
+                const guide = document.getElementById('qr-guide');
+                if (guide) guide.style.display = 'none';
+                if (camera) {
+                    camera.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                        </div>
+                    `;
+                }
+                
+                showNotification('Scanner dihentikan', 'info');
+                
+            } catch (err) {
+                console.error('❌ Stop scanner error:', err);
+                showNotification('Gagal menghentikan scanner', 'error');
+            }
+        });
+
+        // QR Code scan success callback
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code detected:', decodedText);
+            addCapturedPhoto(decodedText, true);
+        }
+
+        // QR Code scan failure callback
+        function onScanFailure(error) {
+            // Silent failure - don't show errors for every scan attempt
+        }
 
         // Start HTML5 QR Code Scanner
         document.getElementById('startCamera').addEventListener('click', async function() {
@@ -917,5 +957,4 @@
             }
         });
     </script>
-<?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\FHL\.cursor\presensia-v2\starter-kit\resources\views/attendance/student-scan.blade.php ENDPATH**/ ?>
+@endpush
