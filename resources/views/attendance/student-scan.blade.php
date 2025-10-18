@@ -199,12 +199,12 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            transition: transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             min-height: 100vh;
         }
         
         .camera-section.swiped-up {
-            transform: translateY(-40%);
+            transform: translateY(-60%);
         }
         
         .camera-header {
@@ -213,22 +213,38 @@
             left: 0;
             right: 0;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(10px);
         }
         
         .camera-header h1 {
             color: white;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .camera-controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+        }
+        
+        .camera-controls button {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .camera-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
         }
         
         .camera-preview {
@@ -241,18 +257,19 @@
         
         .students-section {
             background: white;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 20px;
-            max-height: 50vh;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px;
+            max-height: 60vh;
             overflow-y: auto;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             transform: translateY(100%);
-            transition: transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
         }
         
         .students-section.show {
@@ -263,62 +280,79 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
         }
         
         .students-header-left {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
+        }
+        
+        .students-header-left h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
         }
         
         .students-header-right {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 10px;
+            gap: 12px;
         }
         
         .sync-button {
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
         
         .sync-button:hover {
-            background: #059669;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
         }
         
         .record-count {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
         
         .swipe-indicator {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            opacity: 0.7;
         }
         
         .swipe-indicator i {
             animation: bounce 2s infinite;
+            color: #64748b;
+        }
+        
+        .swipe-indicator span {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
         }
         
         @keyframes bounce {
@@ -326,10 +360,10 @@
                 transform: translateY(0);
             }
             40% {
-                transform: translateY(-10px);
+                transform: translateY(-8px);
             }
             60% {
-                transform: translateY(-5px);
+                transform: translateY(-4px);
             }
         }
         
