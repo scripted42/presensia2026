@@ -224,7 +224,7 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content with fallback permission request
+                // Clear previous content - let library handle permission request
                 camera.innerHTML = `
                     <div id="html5-qrcode-reader">
                         <div class="camera-permission-message">
@@ -253,18 +253,17 @@
                         showTorchButtonIfSupported: true,
                         useBarCodeDetectorIfSupported: true
                     },
-                    false
+                    true // Set verbose to true for better debugging
                 );
                 
                 // Start scanning with back camera
                 try {
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                        facingMode: "environment" // Force back camera
-                    });
+                    // Use the correct method according to documentation
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                     
                     console.log('✅ Scanner render started');
                     
-                    // Check for camera permission and UI
+                    // Wait for scanner to initialize and then force back camera
                     setTimeout(() => {
                         console.log('🔍 Checking camera status...');
                         
@@ -405,12 +404,10 @@
                                     showTorchButtonIfSupported: true,
                                     useBarCodeDetectorIfSupported: true
                                 },
-                                false
+                                true
                             );
                             
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                                facingMode: "environment"
-                            });
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                             
                         }, 1000);
                         
