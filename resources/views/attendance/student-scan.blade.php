@@ -3,51 +3,71 @@
 @section('title', 'Scan Siswa - Presensia')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">Scan QR Code Siswa</h1>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Camera Capture -->
-                    <div class="bg-white shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Capture QR Code</h2>
-                            
-                            <!-- Camera Preview -->
-                            <div id="camera-container" class="mb-4 relative">
-                                <div id="camera" class="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                                    <div class="text-center">
-                                        <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                                        <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                    </div>
-                                    
-                                    <!-- Overlay Panduan QR -->
-                                    <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
-                                        <!-- Sudut kiri atas -->
-                                        <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
-                                        <!-- Sudut kanan atas -->
-                                        <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
-                                        <!-- Sudut kiri bawah -->
-                                        <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
-                                        <!-- Sudut kanan bawah -->
-                                        <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
-                                        
-                                        <!-- Area tengah untuk panduan -->
-                                        <div class="absolute inset-0 flex items-center justify-center">
-                                            <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
-                                                <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
+<!-- Mobile Full Screen Layout -->
+<div class="mobile-scanner-container">
+    <!-- Camera Section - Full Screen on Mobile -->
+    <div class="camera-section">
+        <div class="camera-header">
+            <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
+            <div class="camera-controls">
+                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
+                </button>
+                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                    <i class="fas fa-stop mr-2"></i>Stop Scan
+                </button>
             </div>
         </div>
 
-                                        <!-- Simple instruction -->
-                                        <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                                            <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
+        <!-- Camera Preview -->
+        <div id="camera-container" class="camera-preview">
+            <div id="camera" class="w-full h-full bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                <div class="text-center">
+                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
         </div>
-                            </div>
+                
+                <!-- Overlay Panduan QR -->
+                <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
+                    <!-- Sudut kiri atas -->
+                    <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
+                    <!-- Sudut kanan atas -->
+                    <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
+                    <!-- Sudut kiri bawah -->
+                    <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
+                    <!-- Sudut kanan bawah -->
+                    <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
+                    
+                    <!-- Area tengah untuk panduan -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
+                            <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
                         </div>
                     </div>
+
+                    <!-- Simple instruction -->
+                    <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                        <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students List Section - Swipeable -->
+    <div class="students-section">
+        <div class="students-header">
+            <h2 class="text-lg font-medium text-gray-900">Daftar Siswa yang Sudah Diabsensi</h2>
+            <div class="swipe-indicator">
+                <i class="fas fa-chevron-up text-gray-400"></i>
+                <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
+            </div>
+        </div>
+        
+        <div class="students-content">
+            <!-- Manual Input -->
+            <div class="mb-4">
+                <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
 
                             <!-- Camera Controls -->
                     <div class="flex space-x-3 mb-4">
@@ -147,8 +167,123 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- Simple CSS for camera UI -->
+    <!-- Mobile Full Screen Layout CSS -->
     <style>
+        /* Mobile Full Screen Layout */
+        .mobile-scanner-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .camera-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .camera-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .camera-header h1 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .camera-preview {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .students-section {
+            background: white;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .students-section.show {
+            transform: translateY(0);
+        }
+        
+        .students-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .swipe-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .swipe-indicator i {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Desktop responsive */
+        @media (min-width: 769px) {
+            .mobile-scanner-container {
+                flex-direction: row;
+                height: auto;
+            }
+            
+            .camera-section {
+                flex: 1;
+                min-height: 500px;
+            }
+            
+            .students-section {
+                flex: 1;
+                max-height: none;
+                transform: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+        
         /* Camera container styling */
         #html5-qrcode-reader {
             width: 100% !important;
@@ -345,6 +480,66 @@
             console.log('QR Code detected:', decodedText);
             addCapturedPhoto(decodedText, true);
         }
+        
+        // Swipe gesture handling
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        
+        const studentsSection = document.querySelector('.students-section');
+        
+        // Touch events for swipe
+        studentsSection.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        });
+        
+        studentsSection.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 0) {
+                // Swipe up - show students section
+                studentsSection.classList.add('show');
+            } else if (deltaY < -50) {
+                // Swipe down - hide students section
+                studentsSection.classList.remove('show');
+            }
+        });
+        
+        studentsSection.addEventListener('touchend', function(e) {
+            isDragging = false;
+        });
+        
+        // Mouse events for desktop
+        studentsSection.addEventListener('mousedown', function(e) {
+            startY = e.clientY;
+            isDragging = true;
+        });
+        
+        studentsSection.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 0) {
+                studentsSection.classList.add('show');
+            } else if (deltaY < -50) {
+                studentsSection.classList.remove('show');
+            }
+        });
+        
+        studentsSection.addEventListener('mouseup', function(e) {
+            isDragging = false;
+        });
+        
+        // Auto show students section when students are added
+        function showStudentsSection() {
+            studentsSection.classList.add('show');
+        }
 
         // QR Code scan failure callback
         function onScanFailure(error) {
@@ -370,6 +565,9 @@
             capturedStudents.push(record);
             updateCapturedList();
             showNotification('Siswa berhasil ditambahkan: ' + data, 'success');
+            
+            // Auto show students section when students are added
+            showStudentsSection();
         }
 
         // Update captured list display
