@@ -165,46 +165,85 @@
         
         
         /* Hide camera selection popup after permission granted */
-        #html5-qrcode-reader div[style*="position: absolute"]:not(:has(video)),
-        #html5-qrcode-reader div[style*="background-color: rgba"]:not(:has(video)),
-        #html5-qrcode-reader div[style*="z-index"]:not(:has(video)) {
-            display: none !important;
+        /* Maximize camera area for mobile */
+        #html5-qrcode-reader {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
         }
         
-        /* Hide camera selection dropdown */
+        #html5-qrcode-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        
+        /* Custom UI for permission request */
+        #html5-qrcode-reader div[style*="background-color: rgba"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            text-align: center !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+        }
+        
+        #html5-qrcode-reader div[style*="background-color: rgba"] h3 {
+            color: white !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            margin-bottom: 10px !important;
+        }
+        
+        #html5-qrcode-reader div[style*="background-color: rgba"] p {
+            color: rgba(255,255,255,0.9) !important;
+            font-size: 14px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        /* Custom UI for camera selection */
         #html5-qrcode-reader select {
-            display: none !important;
+            background: white !important;
+            border: 2px solid #667eea !important;
+            border-radius: 8px !important;
+            padding: 10px 15px !important;
+            font-size: 14px !important;
+            color: #333 !important;
+            margin-bottom: 15px !important;
+            width: 100% !important;
+            max-width: 300px !important;
         }
         
-        /* Hide camera selection buttons */
         #html5-qrcode-reader button[data-camera-id] {
-            display: none !important;
+            background: #667eea !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 12px 24px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            max-width: 300px !important;
         }
         
-        /* Hide camera selection UI but keep permission request */
-        #html5-qrcode-reader div:not(:has(video)):not(.camera-permission-message) {
-            display: none !important;
+        #html5-qrcode-reader button[data-camera-id]:hover {
+            background: #5a6fd8 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
         }
         
-        /* Simple permission message */
-        .camera-permission-message {
-            background: #f8f9fa;
-            color: #495057;
-            padding: 20px;
-            border-radius: 4px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-        }
-        
-        .camera-permission-message h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        
-        .camera-permission-message p {
-            margin: 0;
-            font-size: 14px;
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            #html5-qrcode-reader {
+                height: 70vh !important;
+            }
+            
+            #html5-qrcode-reader video {
+                height: 70vh !important;
+            }
         }
     </style>
     <script>
@@ -212,10 +251,10 @@
         let html5QrcodeScanner = null;
         let cameraActive = false;
 
-        // Start camera with back camera forced
-        document.getElementById('startCamera').addEventListener('click', async function() {
+        // Start camera with original template
+        document.getElementById('startCamera').addEventListener('click', function() {
             try {
-                console.log('🎥 Starting scanner with back camera...');
+                console.log('🎥 Starting scanner...');
                 
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
@@ -224,108 +263,36 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content and show manual permission request
-                camera.innerHTML = `
-                    <div id="html5-qrcode-reader">
-                        <div class="camera-permission-message">
-                            <h3>Mengaktifkan Kamera Belakang</h3>
-                            <p>Mohon izinkan akses kamera untuk memulai scanning</p>
-                            <div style="margin-top: 15px;">
-                                <button id="manualPermissionBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i class="fas fa-camera mr-2"></i>Izinkan Akses Kamera
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                // Clear previous content
+                camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
+                
                 if (guide) {
                     guide.style.display = 'block';
                 }
                 
-                // Add event listener for manual permission button
-                const manualPermissionBtn = document.getElementById('manualPermissionBtn');
-                if (manualPermissionBtn) {
-                    console.log('✅ Manual permission button found and event listener added');
-                    manualPermissionBtn.addEventListener('click', function() {
-                        console.log('🎥 Manual permission button clicked');
-                        requestCameraPermission();
-                    });
-                } else {
-                    console.error('❌ Manual permission button not found');
-                }
-                
-                // Initialize scanner with back camera forced
+                // Initialize scanner with original template
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
                         fps: 10,
-                        qrbox: { width: 400, height: 400 },
-                        rememberLastUsedCamera: false,
+                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                            // Maximize camera area for mobile
+                            const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
+                            return {
+                                width: Math.floor(minDimension * 0.8),
+                                height: Math.floor(minDimension * 0.8)
+                            };
+                        },
+                        rememberLastUsedCamera: true,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
                         useBarCodeDetectorIfSupported: true
                     },
-                    true // Set verbose to true for better debugging
+                    false
                 );
                 
-                // Start scanning with back camera
-                try {
-                    console.log('🎥 Starting scanner render...');
-                    
-                    // Use the correct method according to documentation
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                    
-                    console.log('✅ Scanner render started');
-                    
-                    // Wait for scanner to initialize and then force back camera
-                    setTimeout(() => {
-                        console.log('🔍 Checking camera status...');
-                        
-                        const video = document.querySelector('#html5-qrcode-reader video');
-                        const scannerContent = document.querySelector('#html5-qrcode-reader');
-                        
-                        console.log('Video element:', video);
-                        console.log('Scanner content:', scannerContent);
-                        console.log('Scanner innerHTML:', scannerContent ? scannerContent.innerHTML : 'Not found');
-                        
-                        if (video) {
-                            console.log('✅ Camera feed detected');
-                            showNotification('Kamera aktif. Arahkan QR Code ke area panduan.', 'success');
-                        } else {
-                            console.log('⚠️ No camera feed detected, checking for permission request...');
-                            
-                            // Check if permission request is visible
-                            const permissionElements = document.querySelectorAll('#html5-qrcode-reader div');
-                            console.log('Permission elements found:', permissionElements.length);
-                            
-                            if (permissionElements.length === 0) {
-                                console.log('❌ No permission request found, showing fallback...');
-                                showNotification('Mohon izinkan akses kamera untuk memulai scanning', 'warning');
-                            }
-                        }
-                        
-                        // Hide camera selection UI if it appears
-                        const popups = document.querySelectorAll('#html5-qrcode-reader div[style*="position: absolute"]:not(:has(video))');
-                        popups.forEach(popup => {
-                            popup.style.display = 'none';
-                        });
-                        
-                        const selects = document.querySelectorAll('#html5-qrcode-reader select');
-                        selects.forEach(select => {
-                            select.style.display = 'none';
-                        });
-                        
-                        const buttons = document.querySelectorAll('#html5-qrcode-reader button[data-camera-id]');
-                        buttons.forEach(button => {
-                            button.style.display = 'none';
-                        });
-                        
-                    }, 3000);
-                    
-                } catch (renderError) {
-                    console.error('❌ Scanner render error:', renderError);
-                    showNotification('Gagal mengaktifkan scanner: ' + renderError.message, 'error');
-                }
+                // Render scanner
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
@@ -384,66 +351,6 @@
             // Silent failure - don't show errors for every scan attempt
         }
 
-        // Request camera permission manually
-        function requestCameraPermission() {
-            try {
-                console.log('🎥 Requesting camera permission manually...');
-                
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    navigator.mediaDevices.getUserMedia({ 
-                        video: { 
-                            facingMode: "environment" 
-                        } 
-                    }).then(stream => {
-                        console.log('✅ Camera permission granted');
-                        showNotification('Kamera diizinkan. Scanner akan dimulai...', 'success');
-                        
-                        // Stop the test stream
-                        stream.getTracks().forEach(track => track.stop());
-                        
-                        // Clear previous scanner
-                        if (html5QrcodeScanner) {
-                            html5QrcodeScanner.clear();
-                        }
-                        
-                        // Clear the container
-                        const camera = document.getElementById('camera');
-                        if (camera) {
-                            camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
-                        }
-                        
-                        // Restart scanner
-                        setTimeout(() => {
-                            html5QrcodeScanner = new Html5QrcodeScanner(
-                                "html5-qrcode-reader",
-                                {
-                                    fps: 10,
-                                    qrbox: { width: 400, height: 400 },
-                                    rememberLastUsedCamera: false,
-                                    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-                                    showTorchButtonIfSupported: true,
-                                    useBarCodeDetectorIfSupported: true
-                                },
-                                true
-                            );
-                            
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            
-                        }, 1000);
-                        
-                    }).catch(err => {
-                        console.error('❌ Camera permission denied:', err);
-                        showNotification('Akses kamera ditolak. Mohon izinkan akses kamera untuk menggunakan scanner.', 'error');
-                    });
-                } else {
-                    showNotification('Browser tidak mendukung akses kamera', 'error');
-                }
-                
-            } catch (err) {
-                console.error('❌ Permission request error:', err);
-                showNotification('Gagal meminta izin kamera: ' + err.message, 'error');
-            }
-        }
 
         // Add captured photo/QR to list
         function addCapturedPhoto(data, isQRText = false) {
