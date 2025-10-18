@@ -224,14 +224,14 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content - let library handle permission request
+                // Clear previous content and show manual permission request
                 camera.innerHTML = `
                     <div id="html5-qrcode-reader">
                         <div class="camera-permission-message">
                             <h3>Mengaktifkan Kamera Belakang</h3>
-                            <p>Mohon izinkan akses kamera</p>
+                            <p>Mohon izinkan akses kamera untuk memulai scanning</p>
                             <div style="margin-top: 15px;">
-                                <button onclick="requestCameraPermission()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <button id="manualPermissionBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                     <i class="fas fa-camera mr-2"></i>Izinkan Akses Kamera
                                 </button>
                             </div>
@@ -240,6 +240,15 @@
                 `;
                 if (guide) {
                     guide.style.display = 'block';
+                }
+                
+                // Add event listener for manual permission button
+                const manualPermissionBtn = document.getElementById('manualPermissionBtn');
+                if (manualPermissionBtn) {
+                    manualPermissionBtn.addEventListener('click', function() {
+                        console.log('🎥 Manual permission button clicked');
+                        requestCameraPermission();
+                    });
                 }
                 
                 // Initialize scanner with back camera forced
@@ -258,6 +267,8 @@
                 
                 // Start scanning with back camera
                 try {
+                    console.log('🎥 Starting scanner render...');
+                    
                     // Use the correct method according to documentation
                     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                     
@@ -387,13 +398,19 @@
                         // Stop the test stream
                         stream.getTracks().forEach(track => track.stop());
                         
+                        // Clear previous scanner
+                        if (html5QrcodeScanner) {
+                            html5QrcodeScanner.clear();
+                        }
+                        
+                        // Clear the container
+                        const camera = document.getElementById('camera');
+                        if (camera) {
+                            camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
+                        }
+                        
                         // Restart scanner
                         setTimeout(() => {
-                            if (html5QrcodeScanner) {
-                                html5QrcodeScanner.clear();
-                            }
-                            
-                            // Re-render scanner
                             html5QrcodeScanner = new Html5QrcodeScanner(
                                 "html5-qrcode-reader",
                                 {
