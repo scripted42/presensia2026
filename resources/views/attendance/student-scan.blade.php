@@ -219,16 +219,40 @@
         document.getElementById('startCamera').addEventListener('click', async function() {
             try {
                 console.log('🎥 Starting HTML5 QR Code Scanner...');
+                
+                // Wait for DOM to be ready
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
                 
-                if (!camera || !guide) {
-                    throw new Error('Camera or guide element not found');
+                console.log('Camera element:', camera);
+                console.log('Guide element:', guide);
+                
+                if (!camera) {
+                    throw new Error('Camera element not found - check if element with id="camera" exists');
+                }
+                if (!guide) {
+                    throw new Error('Guide element not found - check if element with id="qr-guide" exists');
+                }
+                
+                // Clean up any existing scanner
+                if (html5QrcodeScanner) {
+                    try {
+                        html5QrcodeScanner.clear();
+                        html5QrcodeScanner = null;
+                        console.log('✅ Previous scanner cleared');
+                    } catch (e) {
+                        console.log('Previous scanner cleanup failed:', e);
+                    }
                 }
                 
                 // Clear previous content and add scanner container
                 camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
                 guide.style.display = 'block';
+                
+                // Wait for DOM update
+                await new Promise(resolve => setTimeout(resolve, 200));
 
                 // Pre-request camera permission with back camera only
                 try {
@@ -322,6 +346,12 @@
                 
                 // Initialize HTML5 QR Code Scanner with camera 0
                 try {
+                    // Check if scanner container exists
+                    const scannerContainer = document.getElementById('html5-qrcode-reader');
+                    if (!scannerContainer) {
+                        throw new Error('Scanner container not found');
+                    }
+                    
                     html5QrcodeScanner = new Html5QrcodeScanner(
                         "html5-qrcode-reader",
                         {
@@ -405,30 +435,46 @@
                 console.log('🛑 Stopping HTML5 QR Code Scanner...');
                 
                 if (html5QrcodeScanner) {
-                    html5QrcodeScanner.clear();
+                    try {
+                        html5QrcodeScanner.clear();
+                        console.log('✅ Scanner cleared successfully');
+                    } catch (e) {
+                        console.log('Scanner clear failed:', e);
+                    }
                     html5QrcodeScanner = null;
                 }
                 
                 // Stop observer
                 if (scannerObserver) {
-                    scannerObserver.disconnect();
+                    try {
+                        scannerObserver.disconnect();
+                        console.log('✅ Observer disconnected');
+                    } catch (e) {
+                        console.log('Observer disconnect failed:', e);
+                    }
                     scannerObserver = null;
                 }
                 
                 cameraActive = false;
-                document.getElementById('startCamera').style.display = 'inline-block';
-                document.getElementById('stopCamera').style.display = 'none';
                 
-                // Reset camera display
+                // Reset UI elements safely
+                const startBtn = document.getElementById('startCamera');
+                const stopBtn = document.getElementById('stopCamera');
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
-                guide.style.display = 'none';
-                camera.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                    </div>
-                `;
+                
+                if (startBtn) startBtn.style.display = 'inline-block';
+                if (stopBtn) stopBtn.style.display = 'none';
+                if (guide) guide.style.display = 'none';
+                
+                if (camera) {
+                    camera.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                        </div>
+                    `;
+                }
                     
                 showNotification('Scanner dihentikan', 'info');
                 console.log('✅ Scanner stopped successfully');
