@@ -222,24 +222,32 @@
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
                 
+                if (!camera || !guide) {
+                    throw new Error('Camera or guide element not found');
+                }
+                
                 // Clear previous content and add scanner container
                 camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
                 guide.style.display = 'block';
 
                 // Pre-request camera permission with back camera only
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { 
-                            facingMode: { exact: "environment" },
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        } 
-                    });
-                    // Stop the test stream immediately
-                    stream.getTracks().forEach(track => track.stop());
-                    console.log('✅ Back camera permission pre-granted');
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        const stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                facingMode: { exact: "environment" },
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            } 
+                        });
+                        // Stop the test stream immediately
+                        stream.getTracks().forEach(track => track.stop());
+                        console.log('✅ Back camera permission pre-granted');
+                    } else {
+                        console.log('getUserMedia not supported');
+                    }
                 } catch (e) {
-                    console.log('Back camera permission will be requested by scanner');
+                    console.log('Back camera permission will be requested by scanner:', e.message);
                 }
 
                 // Get available cameras and select camera 2 (back camera)
@@ -270,13 +278,17 @@
                 // Test camera access with fallback
                 let finalCameraId = cameraId;
                 try {
-                    const testStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { deviceId: { exact: cameraId } } 
-                    });
-                    testStream.getTracks().forEach(track => track.stop());
-                    console.log('✅ Camera access confirmed:', cameraId);
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        const testStream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { deviceId: { exact: cameraId } } 
+                        });
+                        testStream.getTracks().forEach(track => track.stop());
+                        console.log('✅ Camera access confirmed:', cameraId);
+                    } else {
+                        console.log('getUserMedia not supported, skipping camera test');
+                    }
                 } catch (e) {
-                    console.log('Camera access failed, trying fallback cameras');
+                    console.log('Camera access failed, trying fallback cameras:', e.message);
                     
                     // Try camera 1 if camera 2 failed
                     if (cameras.length >= 2) {
@@ -289,7 +301,7 @@
                             finalCameraId = fallbackId;
                             console.log('✅ Fallback to camera 1:', fallbackId);
                         } catch (e2) {
-                            console.log('Camera 1 also failed, trying camera 0');
+                            console.log('Camera 1 also failed, trying camera 0:', e2.message);
                             finalCameraId = cameras[0].id;
                         }
                     }
@@ -303,51 +315,75 @@
                             envStream.getTracks().forEach(track => track.stop());
                             console.log('✅ Using environment camera');
                         } catch (e3) {
-                            console.log('All camera access failed');
+                            console.log('All camera access failed:', e3.message);
                         }
                     }
                 }
                 
                 // Initialize HTML5 QR Code Scanner with camera 0
-                html5QrcodeScanner = new Html5QrcodeScanner(
-                    "html5-qrcode-reader",
-                    {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 },
-                        rememberLastUsedCamera: false,
-                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-                        showTorchButtonIfSupported: true,
-                        useBarCodeDetectorIfSupported: true
-                    },
-                    false
-                );
+                try {
+                    html5QrcodeScanner = new Html5QrcodeScanner(
+                        "html5-qrcode-reader",
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 },
+                            rememberLastUsedCamera: false,
+                            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+                            showTorchButtonIfSupported: true,
+                            useBarCodeDetectorIfSupported: true
+                        },
+                        false
+                    );
+                    console.log('✅ HTML5 QR Code Scanner initialized');
+                } catch (e) {
+                    console.error('❌ Failed to initialize scanner:', e);
+                    throw new Error('Failed to initialize scanner: ' + e.message);
+                }
 
                 // Start scanning with specific camera
                 try {
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                        cameraIdOrConfig: finalCameraId
-                    });
-                    console.log('✅ Scanner started with camera:', finalCameraId);
+                    if (html5QrcodeScanner) {
+                        html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
+                            cameraIdOrConfig: finalCameraId
+                        });
+                        console.log('✅ Scanner started with camera:', finalCameraId);
+                    } else {
+                        throw new Error('Scanner not initialized');
+                    }
                 } catch (e) {
-                    console.log('Specific camera failed, trying without specific camera');
-                    // Fallback: start without specific camera
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                    console.log('Specific camera failed, trying without specific camera:', e.message);
+                    try {
+                        // Fallback: start without specific camera
+                        if (html5QrcodeScanner) {
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                            console.log('✅ Scanner started without specific camera');
+                        } else {
+                            throw new Error('Scanner not initialized for fallback');
+                        }
+                    } catch (e2) {
+                        console.error('❌ All scanner attempts failed:', e2);
+                        throw new Error('Failed to start scanner: ' + e2.message);
+                    }
                 }
                 
                 // Hide camera selection dialog completely
                 setTimeout(() => {
-                    const cameraSelect = document.querySelector('#html5-qrcode-reader select');
-                    if (cameraSelect) {
-                        cameraSelect.style.display = 'none';
-                    }
-                    
-                    // Hide all text elements
-                    const textElements = document.querySelectorAll('#html5-qrcode-reader *');
-                    textElements.forEach(el => {
-                        if (el.tagName !== 'VIDEO' && el.tagName !== 'CANVAS') {
-                            el.style.display = 'none';
+                    try {
+                        const cameraSelect = document.querySelector('#html5-qrcode-reader select');
+                        if (cameraSelect && cameraSelect.style) {
+                            cameraSelect.style.display = 'none';
                         }
-                    });
+                        
+                        // Hide all text elements safely
+                        const textElements = document.querySelectorAll('#html5-qrcode-reader *');
+                        textElements.forEach(el => {
+                            if (el && el.style && el.tagName !== 'VIDEO' && el.tagName !== 'CANVAS') {
+                                el.style.display = 'none';
+                            }
+                        });
+                    } catch (e) {
+                        console.log('Error hiding camera dialog:', e);
+                    }
                 }, 100);
                 
                 cameraActive = true;
