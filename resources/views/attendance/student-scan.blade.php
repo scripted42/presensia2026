@@ -164,103 +164,106 @@
 
 @push('scripts')
     <!-- QR Code decoder untuk real-time detection -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <!-- HTML5 QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         let capturedStudents = [];
-        let cameraStream = null;
+        let html5QrcodeScanner = null;
         let cameraActive = false;
-        let video = null;
 
-        // Start camera
-        document.getElementById('startCamera').addEventListener('click', async function() {
-            // Cek HTTPS untuk akses kamera
-            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                alert('Akses kamera memerlukan HTTPS. Silakan akses melalui https:// atau gunakan localhost.');
-                return;
-            }
-            
+        // Start HTML5 QR Code Scanner
+        document.getElementById('startCamera').addEventListener('click', function() {
             try {
+                console.log('🎥 Starting HTML5 QR Code Scanner...');
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
                 
-                // Clear previous content
-                camera.innerHTML = '';
+                // Clear previous content and add scanner container
+                camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
                 guide.style.display = 'block';
-                
-                // Buat elemen video
-                video = document.createElement('video');
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.objectFit = 'cover';
-                video.setAttribute('playsinline', 'true');
-                video.setAttribute('autoplay', 'true');
-                video.setAttribute('muted', 'true');
-                camera.appendChild(video);
 
-                // Enhanced camera constraints for better QR scanning
-                const constraints = {
-                    video: {
-                        facingMode: { ideal: 'environment' },
-                        width: { ideal: 2560, min: 1920 },
-                        height: { ideal: 1440, min: 1080 },
-                        frameRate: { ideal: 30, min: 24 },
-                        focusMode: 'continuous',
-                        exposureMode: 'continuous',
-                        whiteBalanceMode: 'continuous'
+                // Initialize HTML5 QR Code Scanner
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "html5-qrcode-reader",
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        rememberLastUsedCamera: true,
+                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+                        showTorchButtonIfSupported: true
                     },
-                    audio: false
-                };
-                
-                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = cameraStream;
-                await video.play();
+                    false
+                );
+
+                // Start scanning with callbacks
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
                 document.getElementById('capturePhoto').style.display = 'inline-block';
                 
-                showNotification('Kamera aktif. Arahkan QR Code ke area panduan dan klik Capture.', 'success');
+                showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
+                console.log('✅ HTML5 QR Code Scanner started successfully');
                 
             } catch (err) {
-                console.error('Error starting camera:', err);
-                alert('Tidak dapat mengakses kamera: ' + err.message);
-                showNotification('Kamera gagal. Gunakan input manual di bawah.', 'warning');
+                console.error('❌ Scanner error:', err);
+                showNotification('Gagal mengakses kamera: ' + err.message, 'error');
             }
         });
 
-        // Stop camera
+        // Stop HTML5 QR Code Scanner
         document.getElementById('stopCamera').addEventListener('click', function() {
-            if (cameraStream) {
-                try {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                } catch (e) {}
-                cameraStream = null;
-            }
-            
-            cameraActive = false;
-            document.getElementById('startCamera').style.display = 'inline-block';
-            document.getElementById('stopCamera').style.display = 'none';
-            document.getElementById('capturePhoto').style.display = 'none';
-            
-            // Reset camera display
-            const camera = document.getElementById('camera');
-            const guide = document.getElementById('qr-guide');
-            guide.style.display = 'none';
-            camera.innerHTML = `
+            try {
+                console.log('🛑 Stopping HTML5 QR Code Scanner...');
+                
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+                
+                cameraActive = false;
+                document.getElementById('startCamera').style.display = 'inline-block';
+                document.getElementById('stopCamera').style.display = 'none';
+                document.getElementById('capturePhoto').style.display = 'none';
+                
+                // Reset camera display
+                const camera = document.getElementById('camera');
+                const guide = document.getElementById('qr-guide');
+                guide.style.display = 'none';
+                camera.innerHTML = `
                     <div class="text-center">
-                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                    <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                        <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
                     </div>
                 `;
-                
-            showNotification('Kamera dihentikan', 'info');
+                    
+                showNotification('Scanner dihentikan', 'info');
+                console.log('✅ Scanner stopped successfully');
+            } catch (err) {
+                console.error('❌ Stop scanner error:', err);
+            }
         });
 
-        // SIMPLE PHOTO CAPTURE - No complex QR detection
+        // HTML5 QR Code Scanner callbacks
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('✅ QR Code detected:', decodedText);
+            addCapturedPhoto(decodedText, true); // true indicates it's a decoded QR text
+            showNotification('QR Code berhasil dideteksi: ' + decodedText, 'success');
+        }
+
+        function onScanFailure(error) {
+            // Handle scan failure silently - this is called frequently during scanning
+            // Only log significant errors
+            if (error && !error.includes('NotFoundException')) {
+                console.log('QR Code scan attempt:', error);
+            }
+        }
+
+        // SIMPLE PHOTO CAPTURE - Fallback method
         document.getElementById('capturePhoto').addEventListener('click', function() {
-            if (!cameraActive || !video) {
-                showNotification('Kamera belum aktif', 'warning');
+            if (!cameraActive) {
+                showNotification('Scanner belum aktif', 'warning');
                 return;
             }
             
@@ -433,21 +436,36 @@
         }
 
         // Add captured photo - tanpa decode QR
-        function addCapturedPhoto(imageData) {
+        function addCapturedPhoto(data, isQRText = false) {
             const currentTime = new Date().toLocaleTimeString('id-ID', { 
                 hour12: false, 
                 timeZone: 'Asia/Jakarta' 
             });
             
-            // Add to captured list - hanya simpan foto
-            const photoRecord = {
-                imageData: imageData,
-                captureTime: currentTime,
-                timestamp: Date.now(),
-                id: 'photo_' + Date.now() // Unique ID untuk foto
-            };
+            if (isQRText) {
+                // QR text detected by scanner
+                const qrRecord = {
+                    qrText: data,
+                    captureTime: currentTime,
+                    timestamp: Date.now(),
+                    id: 'qr_' + Date.now(),
+                    isQRText: true
+                };
+                capturedStudents.push(qrRecord);
+                showNotification('QR Code berhasil dideteksi: ' + data, 'success');
+            } else {
+                // Photo captured (fallback method)
+                const photoRecord = {
+                    imageData: data,
+                    captureTime: currentTime,
+                    timestamp: Date.now(),
+                    id: 'photo_' + Date.now(),
+                    isQRText: false
+                };
+                capturedStudents.push(photoRecord);
+                showNotification('Foto berhasil diambil! QR akan diproses saat synchronize.', 'success');
+            }
             
-            capturedStudents.push(photoRecord);
             updateCapturedList();
         }
 
@@ -541,6 +559,36 @@
                 input.type = 'hidden';
                     input.name = 'qr_codes[]';
                     input.value = record.qrCode;
+                    hiddenInputs.appendChild(input);
+                } else if (record.isQRText) {
+                    // QR Text detected by scanner
+                    html += `
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                                <div class="col-span-3">
+                                    <div class="w-12 h-12 bg-blue-100 rounded border flex items-center justify-center">
+                                        <i class="fas fa-qrcode text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="col-span-5 text-gray-700">
+                                    <span class="text-blue-600">QR Terdeteksi</span>
+                                    <br><small class="text-gray-500">${record.qrText}</small>
+                                </div>
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+                                <div class="col-span-1">
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'qr_codes[]';
+                    input.value = record.qrText;
                     hiddenInputs.appendChild(input);
                 } else {
                     // Foto QR Code
