@@ -182,19 +182,23 @@
                 camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
                 guide.style.display = 'block';
 
-                // Pre-request camera permission for smoother experience
+                // Pre-request camera permission with back camera only
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: { ideal: "environment" } } 
+                        video: { 
+                            facingMode: { exact: "environment" },
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        } 
                     });
                     // Stop the test stream immediately
                     stream.getTracks().forEach(track => track.stop());
-                    console.log('✅ Camera permission pre-granted');
+                    console.log('✅ Back camera permission pre-granted');
                 } catch (e) {
-                    console.log('Camera permission will be requested by scanner');
+                    console.log('Back camera permission will be requested by scanner');
                 }
 
-                // Initialize HTML5 QR Code Scanner with auto camera selection
+                // Initialize HTML5 QR Code Scanner with direct back camera
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
@@ -203,16 +207,16 @@
                         rememberLastUsedCamera: true,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
-                        // Auto-select back camera and skip permission dialog
+                        // Force back camera without selection dialog
                         videoConstraints: {
-                            facingMode: { ideal: "environment" },
+                            facingMode: { exact: "environment" },
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         },
-                        // Skip camera selection dialog
-                        showTorchButtonIfSupported: true,
-                        // Auto-start without user interaction
-                        useBarCodeDetectorIfSupported: true
+                        // Skip all dialogs and auto-start
+                        useBarCodeDetectorIfSupported: true,
+                        // Disable camera selection dialog
+                        showTorchButtonIfSupported: true
                     },
                     false
                 );
@@ -220,51 +224,67 @@
                 // Start scanning with callbacks and auto-request camera permission
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
-                // Auto-request camera permission and start camera
+                // Auto-skip camera selection dialog and force back camera
                 setTimeout(() => {
                     try {
-                        // Auto-click camera permission if needed
-                        const cameraPermissionBtn = document.querySelector('#html5-qrcode-reader button');
-                        if (cameraPermissionBtn && (cameraPermissionBtn.textContent.includes('Allow') || cameraPermissionBtn.textContent.includes('Start'))) {
-                            cameraPermissionBtn.click();
-                            console.log('✅ Auto-clicked camera permission');
-                        }
+                        // Auto-click any camera selection buttons to skip dialog
+                        const cameraBtns = document.querySelectorAll('#html5-qrcode-reader button, #html5-qrcode-reader select');
+                        cameraBtns.forEach(btn => {
+                            if (btn.textContent.includes('Start') || btn.textContent.includes('Scanning') || btn.textContent.includes('Camera')) {
+                                btn.click();
+                                console.log('✅ Auto-clicked camera button:', btn.textContent);
+                            }
+                        });
                         
-                        // Auto-select back camera if camera selection dialog appears
-                        const cameraSelectBtn = document.querySelector('#html5-qrcode-reader select, #html5-qrcode-reader button[data-camera-id]');
-                        if (cameraSelectBtn) {
-                            // Look for back camera (environment facing)
-                            const backCameraOption = Array.from(cameraSelectBtn.options || []).find(option => 
+                        // Force select back camera if dropdown appears
+                        const cameraSelect = document.querySelector('#html5-qrcode-reader select');
+                        if (cameraSelect) {
+                            // Find and select back camera option
+                            const options = Array.from(cameraSelect.options);
+                            const backCamera = options.find(option => 
                                 option.text.toLowerCase().includes('back') || 
                                 option.text.toLowerCase().includes('environment') || 
-                                option.value.includes('environment') ||
-                                option.text.toLowerCase().includes('rear')
+                                option.text.toLowerCase().includes('rear') ||
+                                option.value.includes('environment')
                             );
-                            if (backCameraOption) {
-                                cameraSelectBtn.value = backCameraOption.value;
-                                cameraSelectBtn.dispatchEvent(new Event('change'));
-                                console.log('✅ Auto-selected back camera:', backCameraOption.text);
+                            if (backCamera) {
+                                cameraSelect.value = backCamera.value;
+                                cameraSelect.dispatchEvent(new Event('change'));
+                                console.log('✅ Auto-selected back camera:', backCamera.text);
                             }
                         }
+                        
+                        // Auto-click "Start Scanning" if it appears
+                        const startBtn = document.querySelector('#html5-qrcode-reader button[data-camera-id], #html5-qrcode-reader button:contains("Start")');
+                        if (startBtn) {
+                            startBtn.click();
+                            console.log('✅ Auto-clicked start scanning');
+                        }
                     } catch (e) {
-                        console.log('Auto camera selection handled by library');
+                        console.log('Auto camera selection completed');
                     }
-                }, 200);
+                }, 100);
 
-                // Additional auto-click attempts for camera permission
+                // More aggressive auto-click for camera selection
                 setTimeout(() => {
                     try {
-                        const permissionBtns = document.querySelectorAll('#html5-qrcode-reader button');
-                        permissionBtns.forEach(btn => {
-                            if (btn.textContent.includes('Allow') || btn.textContent.includes('Start') || btn.textContent.includes('Camera')) {
-                                btn.click();
-                                console.log('✅ Auto-clicked additional permission button');
+                        // Click any visible buttons in scanner area
+                        const allBtns = document.querySelectorAll('#html5-qrcode-reader *');
+                        allBtns.forEach(element => {
+                            if (element.tagName === 'BUTTON' || element.onclick) {
+                                if (element.textContent.includes('Start') || 
+                                    element.textContent.includes('Scanning') || 
+                                    element.textContent.includes('Camera') ||
+                                    element.textContent.includes('Allow')) {
+                                    element.click();
+                                    console.log('✅ Auto-clicked element:', element.textContent);
+                                }
                             }
                         });
                     } catch (e) {
-                        console.log('Additional auto-click completed');
+                        console.log('Aggressive auto-click completed');
                     }
-                }, 500);
+                }, 300);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
