@@ -164,10 +164,10 @@
         }
         
         
-        /* Hide camera selection popup completely */
-        #html5-qrcode-reader div[style*="position: absolute"],
-        #html5-qrcode-reader div[style*="background-color: rgba"],
-        #html5-qrcode-reader div[style*="z-index"] {
+        /* Hide camera selection popup after permission granted */
+        #html5-qrcode-reader div[style*="position: absolute"]:not(:has(video)),
+        #html5-qrcode-reader div[style*="background-color: rgba"]:not(:has(video)),
+        #html5-qrcode-reader div[style*="z-index"]:not(:has(video)) {
             display: none !important;
         }
         
@@ -181,8 +181,8 @@
             display: none !important;
         }
         
-        /* Hide all camera selection UI elements */
-        #html5-qrcode-reader div:not(:has(video)) {
+        /* Hide camera selection UI but keep permission request */
+        #html5-qrcode-reader div:not(:has(video)):not(.camera-permission-message) {
             display: none !important;
         }
         
@@ -256,23 +256,30 @@
                     facingMode: "environment" // Force back camera
                 });
                 
-                // Hide camera selection popup after a short delay
+                // Hide camera selection UI after permission granted
                 setTimeout(() => {
-                    const popups = document.querySelectorAll('#html5-qrcode-reader div[style*="position: absolute"]');
-                    popups.forEach(popup => {
-                        popup.style.display = 'none';
-                    });
-                    
-                    const selects = document.querySelectorAll('#html5-qrcode-reader select');
-                    selects.forEach(select => {
-                        select.style.display = 'none';
-                    });
-                    
-                    const buttons = document.querySelectorAll('#html5-qrcode-reader button[data-camera-id]');
-                    buttons.forEach(button => {
-                        button.style.display = 'none';
-                    });
-                }, 100);
+                    // Wait for camera to initialize
+                    const video = document.querySelector('#html5-qrcode-reader video');
+                    if (video) {
+                        // Camera is active, hide selection UI
+                        const popups = document.querySelectorAll('#html5-qrcode-reader div[style*="position: absolute"]:not(:has(video))');
+                        popups.forEach(popup => {
+                            popup.style.display = 'none';
+                        });
+                        
+                        const selects = document.querySelectorAll('#html5-qrcode-reader select');
+                        selects.forEach(select => {
+                            select.style.display = 'none';
+                        });
+                        
+                        const buttons = document.querySelectorAll('#html5-qrcode-reader button[data-camera-id]');
+                        buttons.forEach(button => {
+                            button.style.display = 'none';
+                        });
+                        
+                        console.log('✅ Camera selection UI hidden after permission granted');
+                    }
+                }, 2000);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
