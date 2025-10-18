@@ -100,7 +100,7 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
             Route::get('/qr-code', [AttendanceController::class, 'getQrCode'])->name('qr-code')->middleware('role:admin');
             Route::get('/display-qr', [AttendanceController::class, 'showDisplayQr'])->name('display-qr')->middleware('role:admin');
             Route::get('/student-scan', [AttendanceController::class, 'showStudentScan'])->name('student-scan')->middleware('role:teacher|admin');
-            Route::post('/student-scan', [AttendanceController::class, 'scanStudent'])->middleware('role:teacher|admin');
+            Route::post('/student-scan', [AttendanceController::class, 'scanStudent'])->name('scan-student')->middleware('role:teacher|admin');
         });
 
         // Laporan boleh diakses semua role termasuk student
