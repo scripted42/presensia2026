@@ -163,15 +163,6 @@
             border-radius: 4px !important;
         }
         
-        /* Hide stop scanning button inside camera area */
-        #html5-qrcode-reader button {
-            display: none !important;
-        }
-        
-        /* Hide any text elements inside camera area */
-        #html5-qrcode-reader div:not(:has(video)) {
-            display: none !important;
-        }
         
         /* Simple permission message */
         .camera-permission-message {
