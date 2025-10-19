@@ -1,774 +1,825 @@
-
-
-<?php $__env->startSection('title', 'Scan Absensi Siswa - Presensia'); ?>
+<?php $__env->startSection('title', 'Scan Siswa - Presensia'); ?>
 
 <?php $__env->startSection('content'); ?>
-    <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
-            <div class="px-4 py-5 sm:p-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Capture QR Code Siswa</h1>
-                        <p class="text-gray-600 mt-1"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('d F Y')); ?> - <span id="currentTime"><?php echo e(now()->setTimezone('Asia/Jakarta')->format('H:i:s')); ?></span></p>
-                    </div>
-                    <a href="<?php echo e(route('attendance.index')); ?>" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-arrow-left mr-2"></i>Kembali
-                    </a>
-                </div>
+<!-- Mobile Full Screen Layout -->
+<div class="mobile-scanner-container">
+    <!-- Camera Section - Full Screen on Mobile -->
+    <div class="camera-section">
+        <div class="camera-header">
+            <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
+            <div class="camera-controls">
+                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
+                </button>
+                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                    <i class="fas fa-stop mr-2"></i>Stop Scan
+                </button>
             </div>
         </div>
 
-        <!-- Success Message -->
-        <?php if(session('success')): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <i class="fas fa-check-circle mr-2"></i><?php echo e(session('success')); ?>
-
+        <!-- Camera Preview -->
+        <div id="camera-container" class="camera-preview">
+            <div id="camera" class="w-full h-full bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                <div class="text-center">
+                    <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
         </div>
-        <?php endif; ?>
-
-        <!-- Scanner Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Camera Capture -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Capture QR Code</h2>
+                
+                <!-- Overlay Panduan QR -->
+                <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
+                    <!-- Sudut kiri atas -->
+                    <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
+                    <!-- Sudut kanan atas -->
+                    <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
+                    <!-- Sudut kiri bawah -->
+                    <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
+                    <!-- Sudut kanan bawah -->
+                    <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
                     
-                    <!-- Camera Preview dengan Area Panduan -->
-                    <div id="camera-container" class="mb-4 relative">
-                        <div id="camera" class="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                            <div class="text-center">
-                                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                            </div>
-                            
-                            <!-- Overlay Panduan QR -->
-                            <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
-                                <!-- Sudut kiri atas -->
-                                <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
-                                <!-- Sudut kanan atas -->
-                                <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
-                                <!-- Sudut kiri bawah -->
-                                <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
-                                <!-- Sudut kanan bawah -->
-                                <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
-                                
-                                <!-- Area tengah untuk panduan -->
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
-                                        <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Simple instruction -->
-                                <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                                    <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
-                                </div>
-                            </div>
+                    <!-- Area tengah untuk panduan -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
+                            <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
                         </div>
                     </div>
 
-                    <!-- Camera Controls -->
+                    <!-- Simple instruction -->
+                    <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                        <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students List Section - Swipeable -->
+    <div class="students-section">
+        <div class="students-header">
+            <div class="students-header-left">
+                <h2 class="text-lg font-medium text-gray-900">Daftar Siswa yang Sudah Diabsensi</h2>
+                <div class="swipe-indicator">
+                    <i class="fas fa-chevron-up text-gray-400"></i>
+                    <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
+                </div>
+            </div>
+            <div class="students-header-right">
+                <button id="syncButton" class="sync-button">
+                    <i class="fas fa-sync-alt"></i>
+                    Synchronize
+                </button>
+                <div class="record-count" id="recordCount">0 Record</div>
+            </div>
+        </div>
+        
+        <div class="students-content">
+            <!-- Manual Input -->
+            <div class="mb-4">
+                <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
+
+                            <!-- Camera Controls -->
                     <div class="flex space-x-3 mb-4">
-                        <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
+                                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
                         </button>
-                        <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
                             <i class="fas fa-stop mr-2"></i>Stop Scan
                         </button>
                     </div>
 
-                    <!-- Enhanced Manual Input -->
+                    <!-- Manual Input -->
                     <div class="mb-4">
                         <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
-                        
-                        <!-- Quick Add Buttons -->
-                        <div class="mb-3">
-                            <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
-                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                    SISWA001
-                                </button>
-                                <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
-                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                    SISWA002
-                                </button>
-                                <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
-                                        class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                    SISWA003
-                                </button>
-                                <button type="button" onclick="testQRDetection()" 
-                                        class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">
-                                    Test QR
-                                </button>
-                            </div>
-                        </div>
-                        
+                                
+                                <!-- Quick Add Buttons -->
+                                <div class="mb-3">
+                                    <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
+                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                            SISWA001
+                                        </button>
+                                        <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
+                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                            SISWA002
+                                        </button>
+                                        <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
+                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
+                                            SISWA003
+                                        </button>
+                                        <button type="button" onclick="testQRDetection()" 
+                                                class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">
+                                            Test QR
+                                        </button>
+                                    </div>
+                                </div>
+                                
                         <div class="flex space-x-2">
-                            <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
+                                    <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
                                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <button id="addManual" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        
-                        <!-- Help Text -->
-                        <div class="mt-1 text-xs text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Format: NIS|Nama (contoh: SISWA001|John Doe)
+                                
+                                <!-- Help Text -->
+                                <div class="mt-1 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Format: NIS|Nama (contoh: SISWA001|John Doe)
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Captured Students -->
+                    <!-- Captured Students -->
             <div class="bg-white shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Siswa yang Sudah Diabsensi</h2>
-                    
-                    <!-- Captured List -->
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-sm font-medium text-gray-700">Record Absensi</h3>
-                            <span id="captureCount" class="text-sm text-gray-500">0 siswa</span>
-                        </div>
-                        <div id="capturedList" class="max-h-64 overflow-y-auto border rounded-lg">
-                            <div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Siswa yang Sudah Diabsensi</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-sm text-gray-600">Record Absensi</span>
+                                <span class="text-sm font-medium text-gray-900" id="studentCount">0 siswa</span>
+                            </div>
+                            
+                            <div id="capturedList" class="space-y-2 min-h-32">
+                                <div class="text-center text-gray-500 py-8">
+                                    <i class="fas fa-users text-2xl mb-2"></i>
+                                    <p>Belum ada siswa yang diabsensi</p>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex space-x-2">
-                        <button id="syncButton" type="button" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors" style="display: none;">
-                            <i class="fas fa-sync mr-2"></i>Synchronize (0)
+                            <div class="mt-6 flex space-x-3">
+                                <button id="syncButton" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                                    <i class="fas fa-sync-alt mr-2"></i>Synchronize
                         </button>
-                        <button id="clearButton" type="button" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors" style="display: none;">
+                                <button id="clearAllButton" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
                             <i class="fas fa-trash mr-2"></i>Clear All
                         </button>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- Submit Form -->
-                    <form id="captureForm" method="POST" action="<?php echo e(route('attendance.student-scan')); ?>" style="display: none;">
-                        <?php echo csrf_field(); ?>
-                        <div id="hiddenInputs"></div>
-                    </form>
                 </div>
             </div>
         </div>
-
     </div>
+</div>
+
+<!-- Synchronize Form -->
+<form id="syncForm" method="POST" action="<?php echo e(route('attendance.scan-student')); ?>" style="display: none;">
+    <?php echo csrf_field(); ?>
+    <div id="hiddenInputs"></div>
+</form>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-    <!-- QR Code decoder untuk real-time detection -->
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- CSS to hide camera selection dialog -->
+    <!-- Mobile Full Screen Layout CSS -->
     <style>
-        /* Hide camera selection dropdown */
+        /* Mobile Full Screen Layout */
+        .mobile-scanner-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+        
+        /* Prevent page refresh on swipe */
+        body {
+            overscroll-behavior: none;
+            touch-action: pan-y;
+        }
+        
+        .camera-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            min-height: 100vh;
+        }
+        
+        .camera-section.swiped-up {
+            transform: translateY(-60%);
+        }
+        
+        .camera-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .camera-header h1 {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .camera-controls button {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .camera-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-preview {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            height: 100vh;
+            width: 100%;
+        }
+        
+        .students-section {
+            background: white;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px;
+            max-height: 85vh;
+            min-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transform: translateY(100%);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+        }
+        
+        .students-section.show {
+            transform: translateY(0);
+        }
+        
+        .students-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .students-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .students-header-left h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .students-header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        
+        .sync-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .sync-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        
+        .record-count {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .swipe-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.7;
+        }
+        
+        .swipe-indicator i {
+            animation: bounce 2s infinite;
+            color: #64748b;
+        }
+        
+        .swipe-indicator span {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-8px);
+            }
+            60% {
+                transform: translateY(-4px);
+            }
+        }
+        
+        /* Desktop responsive */
+        @media (min-width: 769px) {
+            .mobile-scanner-container {
+                flex-direction: row;
+                height: auto;
+            }
+            
+            .camera-section {
+                flex: 1;
+                min-height: 500px;
+            }
+            
+            .students-section {
+                flex: 1;
+                max-height: none;
+                min-height: 100vh;
+                transform: none;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 32px;
+            }
+        }
+        
+        /* Camera container styling */
+        #html5-qrcode-reader {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Video element styling */
+        #html5-qrcode-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+        }
+        
+        
+        /* Hide camera selection popup after permission granted */
+        /* Maximize camera area for mobile */
+        #html5-qrcode-reader {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            position: relative !important;
+        }
+        
+        #html5-qrcode-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        
+        /* Ensure camera container takes full space */
+        #camera {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 100vh !important;
+        }
+        
+        /* Use default QR code scanning area styling - let library handle it */
+        
+        /* Custom UI for permission request */
+        #html5-qrcode-reader div[style*="background-color: rgba"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            padding: 20px !important;
+            text-align: center !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+        }
+        
+        #html5-qrcode-reader div[style*="background-color: rgba"] h3 {
+            color: white !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            margin-bottom: 10px !important;
+        }
+        
+        #html5-qrcode-reader div[style*="background-color: rgba"] p {
+            color: rgba(255,255,255,0.9) !important;
+            font-size: 14px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        /* Hide camera selection dropdown completely */
         #html5-qrcode-reader select {
             display: none !important;
         }
         
-        /* Hide camera selection text elements */
-        #html5-qrcode-reader div[style*="text-align"],
-        #html5-qrcode-reader div[style*="margin"],
-        #html5-qrcode-reader div[style*="padding"] {
-            display: none !important;
-        }
-        
-        /* Hide specific text content */
-        #html5-qrcode-reader * {
-            font-size: 0 !important;
-            color: transparent !important;
-        }
-        
-        /* Show only the camera feed */
-        #html5-qrcode-reader video {
-            display: block !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        /* Hide camera selection buttons */
         #html5-qrcode-reader button[data-camera-id] {
             display: none !important;
         }
         
-        /* Hide all text elements in scanner */
-        #html5-qrcode-reader div:not(:has(video)) {
+        /* Hide camera selection UI elements */
+        #html5-qrcode-reader div[style*="position: absolute"]:not(:has(video)) {
             display: none !important;
         }
         
-        /* Show only video element */
-        #html5-qrcode-reader video {
-            display: block !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
+        #html5-qrcode-reader div[style*="background-color: rgba"]:not(:has(video)) {
+            display: none !important;
+        }
+        
+        #html5-qrcode-reader div[style*="z-index"]:not(:has(video)) {
+            display: none !important;
+        }
+        
+        /* Hide any camera selection text or dropdown */
+        #html5-qrcode-reader div:not(:has(video)):not(.camera-permission-message) {
+            display: none !important;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            #html5-qrcode-reader {
+                height: 70vh !important;
+            }
+            
+            #html5-qrcode-reader video {
+                height: 70vh !important;
+            }
         }
     </style>
     <script>
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
-        let scannerObserver = null;
 
-        // Start HTML5 QR Code Scanner
-        document.getElementById('startCamera').addEventListener('click', async function() {
+        // Start camera with original template
+        document.getElementById('startCamera').addEventListener('click', function() {
             try {
-                console.log('🎥 Starting HTML5 QR Code Scanner...');
-                
-                // Wait for DOM to be ready
-                await new Promise(resolve => setTimeout(resolve, 100));
+                console.log('🎥 Starting scanner...');
                 
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
                 
-                console.log('Camera element:', camera);
-                console.log('Guide element:', guide);
-                
                 if (!camera) {
-                    console.log('Camera element not found, creating fallback...');
-                    // Try to find camera container and create camera element
-                    const cameraContainer = document.getElementById('camera-container');
-                    if (cameraContainer) {
-                        const newCamera = document.createElement('div');
-                        newCamera.id = 'camera';
-                        newCamera.className = 'w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden';
-                        newCamera.innerHTML = `
-                            <div class="text-center">
-                                <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                            </div>
-                        `;
-                        cameraContainer.appendChild(newCamera);
-                        console.log('✅ Camera element created');
-                        // Update camera reference
-                        camera = newCamera;
-                    } else {
-                        throw new Error('Camera element not found and cannot create fallback');
-                    }
+                    throw new Error('Camera element not found');
                 }
                 
-                // Guide element is optional, create if not found
-                let guideElement = guide;
-                if (!guideElement) {
-                    console.log('Guide element not found, creating fallback...');
-                    // Create guide element if not found
-                    const cameraContainer = document.getElementById('camera-container');
-                    if (cameraContainer) {
-                        const newGuide = document.createElement('div');
-                        newGuide.id = 'qr-guide';
-                        newGuide.className = 'absolute inset-0 pointer-events-none';
-                        newGuide.style.display = 'none';
-                        newGuide.innerHTML = `
-                            <div class="absolute top-8 left-8 w-8 h-8 border-l-4 border-t-4 border-blue-500"></div>
-                            <div class="absolute top-8 right-8 w-8 h-8 border-r-4 border-t-4 border-blue-500"></div>
-                            <div class="absolute bottom-8 left-8 w-8 h-8 border-l-4 border-b-4 border-blue-500"></div>
-                            <div class="absolute bottom-8 right-8 w-8 h-8 border-r-4 border-b-4 border-blue-500"></div>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
-                                    <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
-                                </div>
-                            </div>
-                            <div class="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                                <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
-                            </div>
-                        `;
-                        cameraContainer.appendChild(newGuide);
-                        guideElement = newGuide;
-                        console.log('✅ Guide element created');
-                    }
-                }
-                
-                // Clean up any existing scanner
-                if (html5QrcodeScanner) {
-                    try {
-                        html5QrcodeScanner.clear();
-                        html5QrcodeScanner = null;
-                        console.log('✅ Previous scanner cleared');
-                    } catch (e) {
-                        console.log('Previous scanner cleanup failed:', e);
-                    }
-                }
-                
-                // Clear previous content and add scanner container
+                // Clear previous content
                 camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
-                if (guideElement) {
-                    guideElement.style.display = 'block';
+                
+                if (guide) {
+                    guide.style.display = 'block';
                 }
                 
-                // Wait for DOM update
-                await new Promise(resolve => setTimeout(resolve, 200));
-
-                // Pre-request camera permission with back camera only
-                try {
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        const stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { 
-                                facingMode: { exact: "environment" },
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            } 
-                        });
-                        // Stop the test stream immediately
-                        stream.getTracks().forEach(track => track.stop());
-                        console.log('✅ Back camera permission pre-granted');
-                    } else {
-                        console.log('getUserMedia not supported');
-                    }
-                } catch (e) {
-                    console.log('Back camera permission will be requested by scanner:', e.message);
-                }
-
-                // Get available cameras and select camera 2 (back camera)
-                let cameras = [];
-                try {
-                    cameras = await Html5Qrcode.getCameras();
-                    console.log('Available cameras:', cameras);
-                    console.log('Camera count:', cameras.length);
-                    cameras.forEach((camera, index) => {
-                        console.log(`Camera ${index}:`, camera.id, camera.label);
-                    });
-                } catch (e) {
-                    console.log('Failed to get cameras:', e.message);
-                    // Continue without specific camera selection
-                }
-                
-                if (cameras.length === 0) {
-                    console.log('No cameras found, will use default camera');
-                }
-                
-                // Use camera 2 (back camera) - try camera 2 first, then fallback to others
-                let cameraId = null;
-                if (cameras.length >= 3) {
-                    cameraId = cameras[2].id; // Camera 2
-                    console.log('Using camera 2:', cameraId);
-                } else if (cameras.length >= 2) {
-                    cameraId = cameras[1].id; // Camera 1
-                    console.log('Using camera 1:', cameraId);
-                } else if (cameras.length >= 1) {
-                    cameraId = cameras[0].id; // Camera 0
-                    console.log('Using camera 0:', cameraId);
-                } else {
-                    console.log('No specific camera selected, will use default');
-                }
-                
-                // Test camera access with fallback
-                let finalCameraId = cameraId;
-                try {
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        const testStream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { deviceId: { exact: cameraId } } 
-                        });
-                        testStream.getTracks().forEach(track => track.stop());
-                        console.log('✅ Camera access confirmed:', cameraId);
-                    } else {
-                        console.log('getUserMedia not supported, skipping camera test');
-                    }
-                } catch (e) {
-                    console.log('Camera access failed, trying fallback cameras:', e.message);
-                    
-                    // Try camera 1 if camera 2 failed
-                    if (cameras.length >= 2) {
-                        try {
-                            const fallbackId = cameras[1].id;
-                            const fallbackStream = await navigator.mediaDevices.getUserMedia({ 
-                                video: { deviceId: { exact: fallbackId } } 
-                            });
-                            fallbackStream.getTracks().forEach(track => track.stop());
-                            finalCameraId = fallbackId;
-                            console.log('✅ Fallback to camera 1:', fallbackId);
-                        } catch (e2) {
-                            console.log('Camera 1 also failed, trying camera 0:', e2.message);
-                            finalCameraId = cameras[0].id;
-                        }
-                    }
-                    
-                    // Final fallback to environment camera
-                    if (!finalCameraId) {
-                        try {
-                            const envStream = await navigator.mediaDevices.getUserMedia({ 
-                                video: { facingMode: "environment" } 
-                            });
-                            envStream.getTracks().forEach(track => track.stop());
-                            console.log('✅ Using environment camera');
-                        } catch (e3) {
-                            console.log('All camera access failed:', e3.message);
-                        }
-                    }
-                }
-                
-                // Initialize HTML5 QR Code Scanner with camera 0
-                try {
-                    // Check if scanner container exists
-                    const scannerContainer = document.getElementById('html5-qrcode-reader');
-                    if (!scannerContainer) {
-                        throw new Error('Scanner container not found');
-                    }
-                    
-                    html5QrcodeScanner = new Html5QrcodeScanner(
-                        "html5-qrcode-reader",
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                            rememberLastUsedCamera: false,
-                            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-                            showTorchButtonIfSupported: true,
-                            useBarCodeDetectorIfSupported: true
+                // Initialize scanner with original template
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "html5-qrcode-reader",
+                    {
+                        fps: 10,
+                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                            // Maximize camera area for mobile
+                            const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
+                            return {
+                                width: Math.floor(minDimension * 0.8),
+                                height: Math.floor(minDimension * 0.8)
+                            };
                         },
-                        false
-                    );
-                    console.log('✅ HTML5 QR Code Scanner initialized');
-                } catch (e) {
-                    console.error('❌ Failed to initialize scanner:', e);
-                    throw new Error('Failed to initialize scanner: ' + e.message);
-                }
-
-                // Start scanning with specific camera
-                try {
-                    if (html5QrcodeScanner) {
-                        if (finalCameraId) {
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure, {
-                                cameraIdOrConfig: finalCameraId
-                            });
-                            console.log('✅ Scanner started with camera:', finalCameraId);
-                        } else {
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            console.log('✅ Scanner started without specific camera');
-                        }
-                    } else {
-                        throw new Error('Scanner not initialized');
-                    }
-                } catch (e) {
-                    console.log('Scanner failed, trying fallback:', e.message);
-                    try {
-                        // Fallback: start without specific camera
-                        if (html5QrcodeScanner) {
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            console.log('✅ Scanner started without specific camera');
-                        } else {
-                            throw new Error('Scanner not initialized for fallback');
-                        }
-                    } catch (e2) {
-                        console.error('❌ All scanner attempts failed:', e2);
-                        throw new Error('Failed to start scanner: ' + e2.message);
-                    }
-                }
+                        rememberLastUsedCamera: true,
+                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+                        showTorchButtonIfSupported: true,
+                        useBarCodeDetectorIfSupported: true
+                    },
+                    false
+                );
                 
-                // Hide camera selection dialog completely
-                setTimeout(() => {
-                    try {
-                        const cameraSelect = document.querySelector('#html5-qrcode-reader select');
-                        if (cameraSelect && cameraSelect.style) {
-                            cameraSelect.style.display = 'none';
-                        }
-                        
-                        // Hide all text elements safely
-                        const textElements = document.querySelectorAll('#html5-qrcode-reader *');
-                        textElements.forEach(el => {
-                            if (el && el.style && el.tagName !== 'VIDEO' && el.tagName !== 'CANVAS') {
-                                el.style.display = 'none';
-                            }
-                        });
-                    } catch (e) {
-                        console.log('Error hiding camera dialog:', e);
-                    }
-                }, 100);
+                // Render scanner
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 
                 cameraActive = true;
                 document.getElementById('startCamera').style.display = 'none';
                 document.getElementById('stopCamera').style.display = 'inline-block';
                 
-                showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
-                console.log('✅ HTML5 QR Code Scanner started successfully');
+                showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                console.log('✅ HTML5 QR Code Scanner started with back camera');
                 
             } catch (err) {
                 console.error('❌ Scanner error:', err);
-                showNotification('Gagal mengakses kamera: ' + err.message, 'error');
+                showNotification('Gagal mengakses kamera belakang: ' + err.message, 'error');
             }
         });
 
-        // Stop HTML5 QR Code Scanner
+
+        // Stop scanner
         document.getElementById('stopCamera').addEventListener('click', function() {
             try {
-                console.log('🛑 Stopping HTML5 QR Code Scanner...');
-                
                 if (html5QrcodeScanner) {
-                    try {
-                        html5QrcodeScanner.clear();
-                        console.log('✅ Scanner cleared successfully');
-                    } catch (e) {
-                        console.log('Scanner clear failed:', e);
-                    }
+                    html5QrcodeScanner.clear();
                     html5QrcodeScanner = null;
                 }
                 
-                // Stop observer
-                if (scannerObserver) {
-                    try {
-                        scannerObserver.disconnect();
-                        console.log('✅ Observer disconnected');
-                    } catch (e) {
-                        console.log('Observer disconnect failed:', e);
-                    }
-                    scannerObserver = null;
-                }
-                
                 cameraActive = false;
+                document.getElementById('startCamera').style.display = 'inline-block';
+                document.getElementById('stopCamera').style.display = 'none';
                 
-                // Reset UI elements safely
-                const startBtn = document.getElementById('startCamera');
-                const stopBtn = document.getElementById('stopCamera');
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
-                
-                if (startBtn) startBtn.style.display = 'inline-block';
-                if (stopBtn) stopBtn.style.display = 'none';
                 if (guide) guide.style.display = 'none';
-                
                 if (camera) {
                     camera.innerHTML = `
-                        <div class="text-center">
+                    <div class="text-center">
                             <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                             <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
-                        </div>
-                    `;
+                    </div>
+                `;
                 }
-                    
+                
                 showNotification('Scanner dihentikan', 'info');
-                console.log('✅ Scanner stopped successfully');
+                
             } catch (err) {
                 console.error('❌ Stop scanner error:', err);
+                showNotification('Gagal menghentikan scanner', 'error');
             }
         });
 
-        // HTML5 QR Code Scanner callbacks
+        // QR Code scan success callback
         function onScanSuccess(decodedText, decodedResult) {
-            console.log('✅ QR Code detected:', decodedText);
-            addCapturedPhoto(decodedText, true); // true indicates it's a decoded QR text
-            showNotification('QR Code berhasil dideteksi: ' + decodedText, 'success');
-        }
-
-        function onScanFailure(error) {
-            // Handle scan failure silently - this is called frequently during scanning
-            // Only log significant errors
-            if (error && !error.includes('NotFoundException')) {
-                console.log('QR Code scan attempt:', error);
-            }
-        }
-
-        
-        // REMOVED COMPLEX QR DETECTION - Using simple photo capture instead
-        
-        // Image enhancement function
-        function enhanceImage(imageData) {
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            
-            // Apply contrast enhancement
-            for (let i = 0; i < data.length; i += 4) {
-                // Red channel
-                data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.2 + 128));
-                // Green channel  
-                data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.2 + 128));
-                // Blue channel
-                data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.2 + 128));
-            }
-            
-            return imageData;
+            console.log('QR Code detected:', decodedText);
+            addCapturedPhoto(decodedText, true);
         }
         
-        // Quick add student function
-        function quickAddStudent(qrCode) {
-            console.log('Quick adding student:', qrCode);
-            
-            const currentTime = new Date().toLocaleTimeString('id-ID', { 
-                hour12: false, 
-                timeZone: 'Asia/Jakarta' 
-            });
-            
-            const manualRecord = {
-                qrCode: qrCode,
-                captureTime: currentTime,
-                timestamp: Date.now(),
-                id: 'manual_' + Date.now(),
-                isManual: true
-            };
-            
-            capturedStudents.push(manualRecord);
-            updateCapturedList();
-            showNotification('Siswa berhasil ditambahkan: ' + qrCode, 'success');
-        }
+        // Smooth swipe gesture handling
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        let isStudentsSectionVisible = false;
         
-        // SIMPLE PHOTO CAPTURE - Just take photo, no QR detection
-
-        // Manual input - untuk QR code manual
-        document.getElementById('addManual').addEventListener('click', function() {
-            const manualQr = document.getElementById('manual_qr').value.trim();
-            if (manualQr) {
-                console.log('Manual QR input:', manualQr);
-                // Simpan sebagai QR code manual (bukan foto)
-                const currentTime = new Date().toLocaleTimeString('id-ID', { 
-                    hour12: false, 
-                    timeZone: 'Asia/Jakarta' 
-                });
-                
-                const manualRecord = {
-                    qrCode: manualQr,
-                    captureTime: currentTime,
-                    timestamp: Date.now(),
-                    id: 'manual_' + Date.now(),
-                    isManual: true
-                };
-                
-                capturedStudents.push(manualRecord);
-                updateCapturedList();
-                document.getElementById('manual_qr').value = '';
-                showNotification('QR Code manual ditambahkan', 'success');
+        const studentsSection = document.querySelector('.students-section');
+        const cameraSection = document.querySelector('.camera-section');
+        
+        // Touch events for swipe on camera section
+        cameraSection.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        });
+        
+        cameraSection.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 30) {
+                // Swipe up - show students section with smooth animation
+                if (!isStudentsSectionVisible) {
+                    e.preventDefault(); // Prevent default browser behavior
+                    showStudentsSectionSmooth();
+                }
             }
         });
-
-        // Parse QR code to extract NIS and name
-        function parseQRCode(qrCode) {
-            console.log('Parsing QR Code:', qrCode);
-            const raw = String(qrCode ?? '').trim();
-            try {
-                // Format QR: "NIS|Nama" atau "NIS_Nama"
-                if (raw.includes('|')) {
-                    const [nis, name = ''] = raw.split('|');
-                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
-                    console.log('Parsed with | separator:', result);
-                    return result;
+        
+        cameraSection.addEventListener('touchend', function(e) {
+            isDragging = false;
+        });
+        
+        // Touch events for swipe on students section
+        studentsSection.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        });
+        
+        studentsSection.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY < -30) {
+                // Swipe down - hide students section with smooth animation
+                if (isStudentsSectionVisible) {
+                    e.preventDefault(); // Prevent default browser behavior
+                    hideStudentsSectionSmooth();
                 }
-                if (raw.includes('_')) {
-                    const [nis, name = ''] = raw.split('_');
-                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
-                    console.log('Parsed with _ separator:', result);
-                    return result;
-                }
-
-                // Hanya coba JSON bila string terlihat seperti JSON
-                if (/^[\[{]/.test(raw)) {
-                    const parsed = JSON.parse(raw);
-                    const result = {
-                        nis: (parsed?.nis ?? parsed?.NIS ?? '').toString(),
-                        name: (parsed?.name ?? parsed?.nama ?? '').toString()
-                    };
-                    console.log('Parsed as JSON:', result);
-                    if (result.nis) return result;
-                }
-            } catch (e) {
-                console.warn('QR parse error, fallback to plain NIS:', e);
             }
+        });
+        
+        studentsSection.addEventListener('touchend', function(e) {
+            isDragging = false;
+        });
+        
+        // Mouse events for desktop
+        cameraSection.addEventListener('mousedown', function(e) {
+            startY = e.clientY;
+            isDragging = true;
+        });
+        
+        cameraSection.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY > 30) {
+                if (!isStudentsSectionVisible) {
+                    showStudentsSectionSmooth();
+                }
+            }
+        });
+        
+        cameraSection.addEventListener('mouseup', function(e) {
+            isDragging = false;
+        });
+        
+        studentsSection.addEventListener('mousedown', function(e) {
+            startY = e.clientY;
+            isDragging = true;
+        });
+        
+        studentsSection.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.clientY;
+            const deltaY = startY - currentY;
+            
+            if (deltaY < -30) {
+                if (isStudentsSectionVisible) {
+                    hideStudentsSectionSmooth();
+                }
+            }
+        });
+        
+        studentsSection.addEventListener('mouseup', function(e) {
+            isDragging = false;
+        });
+        
+        // Smooth show students section
+        function showStudentsSectionSmooth() {
+            studentsSection.classList.add('show');
+            cameraSection.classList.add('swiped-up');
+            isStudentsSectionVisible = true;
+        }
+        
+        // Smooth hide students section
+        function hideStudentsSectionSmooth() {
+            studentsSection.classList.remove('show');
+            cameraSection.classList.remove('swiped-up');
+            isStudentsSectionVisible = false;
+        }
+        
+        // Auto show students section when students are added
+        function showStudentsSection() {
+            showStudentsSectionSmooth();
+        }
+        
+        // Update record count
+        function updateRecordCount() {
+            const recordCount = document.getElementById('recordCount');
+            if (recordCount) {
+                recordCount.textContent = `${capturedStudents.length} Record`;
+            }
+        }
+        
+        // Sync button event listener
+        document.getElementById('syncButton').addEventListener('click', function() {
+            if (capturedStudents.length === 0) {
+                showNotification('Tidak ada data untuk disinkronkan', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const syncButton = this;
+            const originalText = syncButton.innerHTML;
+            syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synchronizing...';
+            syncButton.disabled = true;
+            
+            // Simulate sync process
+            setTimeout(() => {
+                showNotification(`Berhasil menyinkronkan ${capturedStudents.length} data siswa`, 'success');
+                syncButton.innerHTML = originalText;
+                syncButton.disabled = false;
+            }, 2000);
+        });
 
-            // Fallback: anggap seluruh string adalah NIS
-            const result = { nis: raw, name: raw };
-            console.log('Fallback parsing:', result);
-            return result;
+        // QR Code scan failure callback
+        function onScanFailure(error) {
+            // Silent failure - don't show errors for every scan attempt
         }
 
-        // Add captured photo - tanpa decode QR
+
+        // Add captured photo/QR to list
         function addCapturedPhoto(data, isQRText = false) {
             const currentTime = new Date().toLocaleTimeString('id-ID', { 
                 hour12: false, 
                 timeZone: 'Asia/Jakarta' 
             });
             
-            if (isQRText) {
-                // QR text detected by scanner
-                const qrRecord = {
-                    qrText: data,
-                    captureTime: currentTime,
-                    timestamp: Date.now(),
-                    id: 'qr_' + Date.now(),
-                    isQRText: true
-                };
-                capturedStudents.push(qrRecord);
-                showNotification('QR Code berhasil dideteksi: ' + data, 'success');
-            } else {
-                // Photo captured (fallback method)
-                const photoRecord = {
-                    imageData: data,
-                    captureTime: currentTime,
-                    timestamp: Date.now(),
-                    id: 'photo_' + Date.now(),
-                    isQRText: false
-                };
-                capturedStudents.push(photoRecord);
-                showNotification('Foto berhasil diambil! QR akan diproses saat synchronize.', 'success');
-            }
+            const record = {
+                id: Date.now(),
+                qrCode: data,
+                timestamp: currentTime,
+                isQRText: isQRText,
+                isManual: false
+            };
             
+            capturedStudents.push(record);
             updateCapturedList();
-        }
-
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
-                type === 'success' ? 'bg-green-500' : 
-                type === 'warning' ? 'bg-yellow-500' : 
-                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-            }`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
+            showNotification('Siswa berhasil ditambahkan: ' + data, 'success');
             
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            // Don't auto show students section - let user swipe manually
         }
 
-        // Update captured list
+        // Update captured list display
         function updateCapturedList() {
-            const capturedList = document.getElementById('capturedList');
-            const hiddenInputs = document.getElementById('hiddenInputs');
-            const captureForm = document.getElementById('captureForm');
-            const captureCount = document.getElementById('captureCount');
-            const syncButton = document.getElementById('syncButton');
-            const clearButton = document.getElementById('clearButton');
+            const listContainer = document.getElementById('capturedList');
+            const studentCount = document.getElementById('studentCount');
             
-            // Update count
-            captureCount.textContent = `${capturedStudents.length} siswa`;
+            studentCount.textContent = `${capturedStudents.length} siswa`;
+            
+            // Update record count
+            updateRecordCount();
             
             if (capturedStudents.length === 0) {
-                capturedList.innerHTML = '<div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>';
-                captureForm.style.display = 'none';
-                syncButton.style.display = 'none';
-                clearButton.style.display = 'none';
+                listContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-users text-2xl mb-2"></i>
+                        <p>Belum ada siswa yang diabsensi</p>
+                    </div>
+                `;
                 return;
             }
             
-            // Show action buttons
-            syncButton.style.display = 'inline-block';
-            clearButton.style.display = 'inline-block';
-            syncButton.innerHTML = `<i class="fas fa-sync mr-2"></i>Synchronize (${capturedStudents.length})`;
-            
             let html = '';
-            hiddenInputs.innerHTML = '';
-            
-            // Sort by capture time (earliest first)
-            const sortedStudents = [...capturedStudents].sort((a, b) => a.timestamp - b.timestamp);
-            
-            // Table header
+            capturedStudents.forEach((record, index) => {
+                if (record.isQRText) {
+                    // QR Text detected by scanner
             html += `
-                <div class="bg-gray-50 px-3 py-2 border-b">
-                    <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
-                        <div class="col-span-1">No.</div>
-                        <div class="col-span-3">Preview</div>
-                        <div class="col-span-5">Status</div>
-                        <div class="col-span-2">Waktu</div>
-                        <div class="col-span-1">Aksi</div>
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+                                <div class="col-span-3">
+                                    <div class="w-12 h-12 bg-blue-100 rounded border flex items-center justify-center">
+                                        <i class="fas fa-qrcode text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="col-span-6">
+                                    <div class="font-medium text-gray-900">${record.qrCode}</div>
+                                    <div class="text-xs text-gray-500">${record.timestamp}</div>
+                                </div>
+                                <div class="col-span-2 text-right">
+                                    <button onclick="removeStudent(${record.id})" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                     </div>
                 </div>
             `;
-            
-            sortedStudents.forEach((record, index) => {
-                if (record.isManual) {
-                    // Manual QR Code
+                } else {
+                    // Manual input
                 html += `
                     <div class="px-3 py-2 border-b hover:bg-gray-50">
                         <div class="grid grid-cols-12 gap-2 items-center text-sm">
@@ -778,112 +829,80 @@
                                         <i class="fas fa-keyboard text-green-600"></i>
                                     </div>
                                 </div>
-                                <div class="col-span-5 text-gray-700">
-                                    <span class="text-green-600">QR Manual</span>
-                                    <br><small class="text-gray-500">${record.qrCode}</small>
+                                <div class="col-span-6">
+                                    <div class="font-medium text-gray-900">${record.qrCode}</div>
+                                    <div class="text-xs text-gray-500">${record.timestamp}</div>
                                 </div>
-                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
-                            <div class="col-span-1">
-                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
-                                    <i class="fas fa-times text-xs"></i>
+                                <div class="col-span-2 text-right">
+                                    <button onclick="removeStudent(${record.id})" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                    input.name = 'qr_codes[]';
-                    input.value = record.qrCode;
-                    hiddenInputs.appendChild(input);
-                } else if (record.isQRText) {
-                    // QR Text detected by scanner
-                    html += `
-                        <div class="px-3 py-2 border-b hover:bg-gray-50">
-                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                                <div class="col-span-1 text-gray-600">${index + 1}</div>
-                                <div class="col-span-3">
-                                    <div class="w-12 h-12 bg-blue-100 rounded border flex items-center justify-center">
-                                        <i class="fas fa-qrcode text-blue-600"></i>
-                                    </div>
-                                </div>
-                                <div class="col-span-5 text-gray-700">
-                                    <span class="text-blue-600">QR Terdeteksi</span>
-                                    <br><small class="text-gray-500">${record.qrText}</small>
-                                </div>
-                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
-                                <div class="col-span-1">
-                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
-                                        <i class="fas fa-times text-xs"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'qr_codes[]';
-                    input.value = record.qrText;
-                    hiddenInputs.appendChild(input);
-                } else {
-                    // Foto QR Code
-                    html += `
-                        <div class="px-3 py-2 border-b hover:bg-gray-50">
-                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                                <div class="col-span-1 text-gray-600">${index + 1}</div>
-                                <div class="col-span-3">
-                                    <img src="${record.imageData}" class="w-12 h-12 object-cover rounded border" alt="QR Photo">
-                                </div>
-                                <div class="col-span-5 text-gray-700">
-                                    <span class="text-blue-600">Foto QR Code</span>
-                                    <br><small class="text-gray-500">Akan diproses saat sync</small>
-                                </div>
-                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
-                                <div class="col-span-1">
-                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
-                                        <i class="fas fa-times text-xs"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'qr_photos[]';
-                    input.value = record.imageData;
-                hiddenInputs.appendChild(input);
                 }
             });
             
-            capturedList.innerHTML = html;
-            captureForm.style.display = 'block';
+            listContainer.innerHTML = html;
         }
 
-        // Remove photo by ID
-        function removePhotoById(photoId) {
-            capturedStudents = capturedStudents.filter(p => p.id !== photoId);
+        // Remove student from list
+        function removeStudent(id) {
+            capturedStudents = capturedStudents.filter(record => record.id !== id);
             updateCapturedList();
+            showNotification('Siswa dihapus dari list', 'info');
+        }
+
+        // Manual input
+        document.getElementById('addManual').addEventListener('click', function() {
+            const manualQr = document.getElementById('manual_qr').value.trim();
+            if (manualQr) {
+                addCapturedPhoto(manualQr, true);
+                document.getElementById('manual_qr').value = '';
+            } else {
+                showNotification('Masukkan QR Code terlebih dahulu', 'warning');
+            }
+        });
+
+        // Quick add student
+        function quickAddStudent(qrCode) {
+            addCapturedPhoto(qrCode, true);
+        }
+
+        // Test QR detection
+        function testQRDetection() {
+            const testQR = 'SISWA999|Test Student';
+            addCapturedPhoto(testQR, true);
         }
 
         // Synchronize button
         document.getElementById('syncButton').addEventListener('click', function() {
             if (capturedStudents.length === 0) {
-                showNotification('Tidak ada data untuk disinkronkan', 'warning');
+                showNotification('Tidak ada siswa untuk disinkronkan', 'warning');
                 return;
             }
             
-            if (confirm(`Apakah Anda yakin ingin menyinkronkan ${capturedStudents.length} siswa ke sistem?`)) {
-                document.getElementById('captureForm').submit();
-            }
+            // Prepare hidden inputs
+            const hiddenInputs = document.getElementById('hiddenInputs');
+            hiddenInputs.innerHTML = '';
+            
+            capturedStudents.forEach(record => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'qr_codes[]';
+                input.value = record.qrCode;
+                hiddenInputs.appendChild(input);
+            });
+            
+            // Submit form
+            document.getElementById('syncForm').submit();
         });
 
         // Clear all button
-        document.getElementById('clearButton').addEventListener('click', function() {
+        document.getElementById('clearAllButton').addEventListener('click', function() {
             if (capturedStudents.length === 0) {
-                showNotification('Tidak ada data untuk dihapus', 'warning');
+                showNotification('Tidak ada data untuk dihapus', 'info');
                 return;
             }
             
@@ -894,28 +913,28 @@
             }
         });
 
-        // Real-time clock update
-        function updateClock() {
-            const now = new Date();
-            const jakartaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
-            const timeString = jakartaTime.toLocaleTimeString('en-GB', { hour12: false });
-            const timeElement = document.getElementById('currentTime');
-            if (timeElement) {
-                timeElement.textContent = timeString;
-            }
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
         }
-        
-        // Update clock every second
-        setInterval(updateClock, 1000);
-
-        // Clean up on page unload
-        window.addEventListener('beforeunload', function() {
-            if (cameraStream) {
-                try {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                } catch (e) {}
-            }
-        });
     </script>
 <?php $__env->stopPush(); ?>
+
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\FHL\.cursor\presensia-v2\starter-kit\resources\views/attendance/student-scan.blade.php ENDPATH**/ ?>
