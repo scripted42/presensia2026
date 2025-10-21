@@ -19,8 +19,8 @@
                 <button id="stopCamera" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center" style="display: none;">
                     <i class="fas fa-stop mr-2"></i>Stop
                 </button>
-                </div>
             </div>
+        </div>
 
         <!-- Camera Preview -->
         <div id="camera-container" class="camera-preview">
@@ -53,10 +53,10 @@
                         <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
+                            </div>
+                        </div>
+                    </div>
+
     <!-- Students List Section - Swipeable -->
     <div class="students-section">
         <div class="students-header">
@@ -72,7 +72,7 @@
                 <button id="syncButton" class="sync-button">
                     <i class="fas fa-sync-alt"></i>
                     Sync
-                </button>
+                        </button>
                         </div>
                     </div>
 

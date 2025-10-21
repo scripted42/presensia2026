@@ -9,7 +9,7 @@
             <div class="camera-header-left">
                 <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
                 <p class="text-sm text-white/80">Arahkan kamera ke QR Code siswa</p>
-            </div>
+                    </div>
             <div class="camera-controls">
                 <button id="startCamera" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
                     <i class="fas fa-qrcode mr-2"></i>Mulai Scan
@@ -17,8 +17,8 @@
                 <button id="stopCamera" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center" style="display: none;">
                     <i class="fas fa-stop mr-2"></i>Stop
                 </button>
+                </div>
             </div>
-        </div>
 
         <!-- Camera Preview -->
         <div id="camera-container" class="camera-preview">
@@ -27,7 +27,7 @@
                     <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                     <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
         </div>
-                
+
                 <!-- Overlay Panduan QR -->
                 <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
                     <!-- Sudut kiri atas -->
@@ -43,7 +43,7 @@
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
                             <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
-                        </div>
+        </div>
                     </div>
 
                     <!-- Simple instruction -->
@@ -63,17 +63,17 @@
                 <div class="swipe-indicator">
                     <i class="fas fa-chevron-up text-gray-400"></i>
                     <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
-                </div>
-            </div>
+                            </div>
+                        </div>
             <div class="students-header-right">
                 <div class="record-count" id="recordCount">0 Record</div>
                 <button id="syncButton" class="sync-button">
                     <i class="fas fa-sync-alt"></i>
                     Sync
                 </button>
-            </div>
-        </div>
-        
+                        </div>
+                    </div>
+
         <div class="students-content">
             <!-- Manual Input Section -->
             <div class="manual-input-section">
@@ -82,38 +82,16 @@
                     <p class="text-xs text-gray-500">Masukkan QR Code secara manual</p>
                 </div>
                 
-                <!-- Quick Add Buttons -->
-                <div class="quick-add-section">
-                    <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
-                    <div class="quick-add-buttons">
-                        <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
-                                class="quick-add-btn">
-                            SISWA001
-                        </button>
-                        <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
-                                class="quick-add-btn">
-                            SISWA002
-                        </button>
-                        <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
-                                class="quick-add-btn">
-                            SISWA003
-                        </button>
-                        <button type="button" onclick="testQRDetection()" 
-                                class="quick-add-btn test-btn">
-                            Test QR
-                        </button>
-                    </div>
-                </div>
-                
+
                 <!-- Manual Input Form -->
                 <div class="manual-input-form">
                     <div class="input-group">
                         <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
                                class="manual-input">
                         <button id="addManual" class="add-btn">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     
                     <!-- Help Text -->
                     <div class="help-text">
@@ -130,7 +108,7 @@
                     <div class="student-count">
                         <span class="text-sm text-gray-600">Total:</span>
                         <span class="text-sm font-semibold text-gray-900" id="studentCount">0 siswa</span>
-                    </div>
+                        </div>
                 </div>
                 
                 <div id="capturedList" class="captured-list">
@@ -138,22 +116,22 @@
                         <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
                         <p class="text-gray-500">Belum ada siswa yang diabsensi</p>
                         <p class="text-xs text-gray-400 mt-1">Gunakan kamera atau input manual</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Action Buttons -->
+                    <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button id="syncButton" class="action-btn sync-btn">
                         <i class="fas fa-sync-alt mr-2"></i>Synchronize
-                    </button>
+                        </button>
                     <button id="clearAllButton" class="action-btn clear-btn">
-                        <i class="fas fa-trash mr-2"></i>Clear All
-                    </button>
+                            <i class="fas fa-trash mr-2"></i>Clear All
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-        </div>
     </div>
 </div>
 
@@ -265,8 +243,7 @@
             border-top-left-radius: 24px;
             border-top-right-radius: 24px;
             padding: 24px;
-            max-height: 85vh;
-            min-height: 70vh;
+            height: 100vh;
             overflow-y: auto;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
             position: absolute;
@@ -280,6 +257,14 @@
         
         .students-section.show {
             transform: translateY(0);
+        }
+        
+        .students-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         .students-header {
@@ -388,11 +373,13 @@
             .students-section {
                 flex: 1;
                 max-height: none;
-                min-height: 100vh;
+                height: 100vh;
                 transform: none;
                 border-radius: 0;
                 box-shadow: none;
                 padding: 32px;
+                overflow-y: auto;
+                position: relative;
             }
         }
         
@@ -541,41 +528,6 @@
             margin-bottom: 16px;
         }
         
-        .quick-add-section {
-            margin-bottom: 16px;
-        }
-        
-        .quick-add-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .quick-add-btn {
-            background: #dbeafe;
-            color: #1e40af;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .quick-add-btn:hover {
-            background: #bfdbfe;
-            transform: translateY(-1px);
-        }
-        
-        .quick-add-btn.test-btn {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .quick-add-btn.test-btn:hover {
-            background: #bbf7d0;
-        }
         
         .manual-input-form {
             margin-top: 16px;
@@ -634,6 +586,10 @@
             border-radius: 12px;
             padding: 20px;
             border: 1px solid #e2e8f0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
         
         .captured-header {
@@ -652,9 +608,9 @@
         }
         
         .captured-list {
-            min-height: 200px;
-            max-height: 400px;
+            flex: 1;
             overflow-y: auto;
+            min-height: 200px;
         }
         
         .empty-state {
@@ -1272,7 +1228,16 @@
             
             capturedStudents.push(record);
             updateCapturedList();
-            showNotification('Siswa berhasil ditambahkan: ' + data, 'success');
+            
+            // Format notification message
+            let notificationMessage = 'Siswa berhasil ditambahkan: ' + data;
+            if (data.includes('|')) {
+                const parts = data.split('|');
+                if (parts.length === 2) {
+                    notificationMessage = `Siswa berhasil ditambahkan: ${parts[0]} - ${parts[1]}`;
+                }
+            }
+            showNotification(notificationMessage, 'success');
             
             // Don't auto show students section - let user swipe manually
         }
@@ -1293,8 +1258,8 @@
                         <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
                         <p class="text-gray-500">Belum ada siswa yang diabsensi</p>
                         <p class="text-xs text-gray-400 mt-1">Gunakan kamera atau input manual</p>
-                    </div>
-                `;
+                </div>
+            `;
                 return;
             }
             
@@ -1304,13 +1269,22 @@
                 const avatarClass = isQR ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600';
                 const iconClass = isQR ? 'fas fa-qrcode' : 'fas fa-keyboard';
                 
+                // Format QR code data: "101112|Sahara" -> "101112 - Sahara"
+                let displayName = record.qrCode;
+                if (record.qrCode.includes('|')) {
+                    const parts = record.qrCode.split('|');
+                    if (parts.length === 2) {
+                        displayName = `${parts[0]} - ${parts[1]}`;
+                    }
+                }
+                
                 html += `
                     <div class="student-item">
                         <div class="student-avatar ${avatarClass}">
                             <i class="${iconClass}"></i>
-                        </div>
+                            </div>
                         <div class="student-info">
-                            <div class="student-name">${record.qrCode}</div>
+                            <div class="student-name">${displayName}</div>
                             <div class="student-time">${record.timestamp}</div>
                         </div>
                         <div class="student-actions">
@@ -1343,16 +1317,6 @@
             }
         });
 
-        // Quick add student
-        function quickAddStudent(qrCode) {
-            addCapturedPhoto(qrCode, true);
-        }
-
-        // Test QR detection
-        function testQRDetection() {
-            const testQR = 'SISWA999|Test Student';
-            addCapturedPhoto(testQR, true);
-        }
 
         // Synchronize button
         document.getElementById('syncButton').addEventListener('click', function() {
