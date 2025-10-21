@@ -95,13 +95,18 @@ class QrManagementController extends Controller
         $svg .= '<text x="20" y="110" font-family="Arial" font-size="14" font-weight="bold">Nama:</text>';
         $svg .= '<text x="80" y="110" font-family="Arial" font-size="14">' . htmlspecialchars($user->name) . '</text>';
         
-        // QR code placeholder (will be replaced with actual QR)
+        // Generate actual QR code with same data as download method
         $qrSize = (int) round($widthPx * 0.55);
         $x = (int) round($widthPx * 0.06);
         $y = $heightPx - $qrSize - (int) round($heightPx * 0.06);
         
-        $svg .= '<rect x="' . $x . '" y="' . $y . '" width="' . $qrSize . '" height="' . $qrSize . '" fill="white" stroke="black" stroke-width="1"/>';
-        $svg .= '<text x="' . ($x + $qrSize / 2) . '" y="' . ($y + $qrSize / 2) . '" text-anchor="middle" font-family="Arial" font-size="12">QR Code</text>';
+        // Use same payload as download method: NIS|Nama
+        $payload = ($user->nis ?? '').'|'.$user->name;
+        $qrPng = $this->renderPng($payload, $qrSize);
+        
+        // Convert PNG to base64 for embedding in SVG
+        $qrBase64 = base64_encode($qrPng);
+        $svg .= '<image x="' . $x . '" y="' . $y . '" width="' . $qrSize . '" height="' . $qrSize . '" href="data:image/png;base64,' . $qrBase64 . '"/>';
         
         $svg .= '</svg>';
         
