@@ -810,27 +810,73 @@
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
                         useBarCodeDetectorIfSupported: true,
-                        verbose: false
+                        verbose: false,
+                        // Force back camera for mobile
+                        videoConstraints: {
+                            facingMode: "environment"
+                        }
                     },
                     false
                 );
                 
-                // Render scanner with error handling
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure)
-                    .then(() => {
-                        console.log('✅ Scanner rendered successfully');
-                        cameraActive = true;
-                        document.getElementById('startCamera').style.display = 'none';
-                        document.getElementById('stopCamera').style.display = 'inline-block';
-                        showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
-                    })
-                    .catch((renderError) => {
-                        console.error('❌ Scanner render failed:', renderError);
-                        showNotification('Gagal memulai scanner: ' + renderError.message, 'error');
+                // Render scanner with proper callback handling
+                try {
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                    
+                    // Use setTimeout to check if scanner is working
+                    setTimeout(() => {
+                        const videoElement = document.querySelector('#html5-qrcode-reader video');
+                        if (videoElement && videoElement.videoWidth > 0) {
+                            console.log('✅ Scanner rendered successfully');
+                            cameraActive = true;
+                            document.getElementById('startCamera').style.display = 'none';
+                            document.getElementById('stopCamera').style.display = 'inline-block';
+                            showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                        } else {
+                            throw new Error('Camera tidak dapat diakses atau tidak ada video stream');
+                        }
+                    }, 2000);
+                    
+                } catch (renderError) {
+                    console.error('❌ Scanner render failed:', renderError);
+                    console.log('🔄 Trying fallback with Html5Qrcode...');
+                    
+                    // Fallback: Try with Html5Qrcode directly
+                    try {
+                        const html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
+                        const config = {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 },
+                            aspectRatio: 1.0
+                        };
+                        
+                        html5Qrcode.start(
+                            { facingMode: "environment" },
+                            config,
+                            onScanSuccess,
+                            onScanFailure
+                        ).then(() => {
+                            console.log('✅ Fallback scanner started successfully');
+                            cameraActive = true;
+                            document.getElementById('startCamera').style.display = 'none';
+                            document.getElementById('stopCamera').style.display = 'inline-block';
+                            showNotification('Scanner aktif dengan kamera belakang (fallback mode).', 'success');
+                        }).catch((fallbackError) => {
+                            console.error('❌ Fallback scanner also failed:', fallbackError);
+                            showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
+                            // Reset UI
+                            document.getElementById('startCamera').style.display = 'inline-block';
+                            document.getElementById('stopCamera').style.display = 'none';
+                        });
+                        
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback scanner failed:', fallbackError);
+                        showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
                         // Reset UI
                         document.getElementById('startCamera').style.display = 'inline-block';
                         document.getElementById('stopCamera').style.display = 'none';
-                    });
+                    }
+                }
                 
             } catch (err) {
                 console.error('❌ Scanner error:', err);
