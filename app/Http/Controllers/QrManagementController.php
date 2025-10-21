@@ -39,18 +39,28 @@ class QrManagementController extends Controller
             ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
-    // Unduh massal ZIP berisi PNG QR - Versi Baru
+    // Unduh massal ZIP berisi PNG QR - Direct Download
     public function downloadZip(Request $request)
     {
-        $students = User::where('school_id', auth()->user()->school_id)
-            ->where('user_type', 'student')->orderBy('name')->get();
-        
-        // Check if ZipArchive is available
-        if (class_exists('ZipArchive')) {
+        try {
+            $students = User::where('school_id', auth()->user()->school_id)
+                ->where('user_type', 'student')->orderBy('name')->get();
+            
+            if ($students->isEmpty()) {
+                return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-download.');
+            }
+            
+            // Check if ZipArchive is available
+            if (!class_exists('ZipArchive')) {
+                return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia. Silakan aktifkan PHP ZipArchive extension di server.');
+            }
+            
+            // Direct ZIP download
             return $this->downloadZipWithZipArchive($students);
-        } else {
-            // Fallback: return individual download links
-            return $this->downloadZipFallback($students);
+            
+        } catch (\Exception $e) {
+            \Log::error('Download ZIP error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat file ZIP. Silakan coba lagi.');
         }
     }
     
@@ -73,21 +83,6 @@ class QrManagementController extends Controller
         return response()->download($tmp, 'qr_students.zip')->deleteFileAfterSend(true);
     }
     
-    // Fallback: return page with individual download links
-    private function downloadZipFallback($students)
-    {
-        $downloadLinks = [];
-        
-        foreach ($students as $s) {
-            $downloadLinks[] = [
-                'name' => $s->name,
-                'nis' => $s->nis ?? 'NIS',
-                'download_url' => route('qr.download', $s)
-            ];
-        }
-        
-        return view('qr.download-fallback', compact('downloadLinks'));
-    }
 
     
     
