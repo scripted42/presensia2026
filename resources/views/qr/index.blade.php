@@ -7,14 +7,10 @@
         <div class="px-4 py-5 sm:p-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">QR Code Management</h1>
-                <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama). Unduhan massal tersedia.</p>
+                <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama).</p>
             </div>
             <div class="flex space-x-2">
-                <a href="{{ route('qr.zip') }}" 
-                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fas fa-download mr-2"></i>
-                    Download Massal (.zip)
-                </a>
+                <!-- Download Massal menu dihapus -->
             </div>
         </div>
     </div>
