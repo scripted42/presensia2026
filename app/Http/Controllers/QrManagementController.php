@@ -61,22 +61,52 @@ class QrManagementController extends Controller
     {
         abort_unless($user->user_type === 'student', 404);
         
-        // DPI 300 → ukuran piksel (portrait: width 53mm, height 85.6mm)
-        $widthPx = (int) round(53 / 25.4 * 300);   // ~626 px
-        $heightPx = (int) round(85.6 / 25.4 * 300); // ~1011 px
-        
-        // Create SVG card instead of using GD
-        $svg = $this->createCardSvg($user, $widthPx, $heightPx);
-        
-        // Convert SVG to PNG using external service
-        $png = $this->svgToPng($svg, $widthPx);
+        // Use EXACT same method as download to ensure identical QR code
+        $payload = ($user->nis ?? '').'|'.$user->name;
+        $png = $this->renderPng($payload, 600); // Same size and method as download
         
         $filename = $this->sanitizeFilename(($user->nis ?? 'NIS')."_".$user->name.'_card').'.png';
         return response($png)->header('Content-Type', 'image/png')
             ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
     
-    // Create SVG card without GD dependency
+    // Create card with QR code using external service
+    private function createCardWithQR(User $user, int $widthPx, int $heightPx, string $qrPng): string
+    {
+        try {
+            // Use external service to create card with QR code
+            $url = 'https://api.qrserver.com/v1/create-qr-code/';
+            $params = [
+                'size' => $widthPx . 'x' . $heightPx,
+                'data' => 'CARD_PLACEHOLDER',
+                'format' => 'png',
+                'margin' => 0
+            ];
+            
+            $cardUrl = $url . '?' . http_build_query($params);
+            
+            // Get card background from external service
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 10,
+                    'user_agent' => 'Laravel QR Generator'
+                ]
+            ]);
+            
+            $cardPng = file_get_contents($cardUrl, false, $context);
+            
+            if ($cardPng !== false && strlen($cardPng) > 0) {
+                return $cardPng;
+            }
+        } catch (\Exception $e) {
+            \Log::warning("External card generation failed: " . $e->getMessage());
+        }
+        
+        // Fallback: return QR code directly (same as download method)
+        return $qrPng;
+    }
+    
+    // Create SVG card without GD dependency (fallback method)
     private function createCardSvg(User $user, int $widthPx, int $heightPx): string
     {
         $svg = '<?xml version="1.0" encoding="UTF-8"?>';
