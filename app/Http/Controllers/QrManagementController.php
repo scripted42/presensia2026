@@ -57,8 +57,8 @@ class QrManagementController extends Controller
             
             // Check if ZipArchive is available
             if (!class_exists('ZipArchive')) {
-                \Log::error('ZipArchive not available');
-                return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia. Silakan aktifkan PHP ZipArchive extension di server.');
+                \Log::info('ZipArchive not available, using alternative method');
+                return $this->downloadMassalAlternative($students);
             }
             
             \Log::info('ZipArchive available, starting download');
@@ -74,6 +74,71 @@ class QrManagementController extends Controller
     }
     
     
+    
+    // Alternative download massal tanpa ZipArchive
+    private function downloadMassalAlternative($students)
+    {
+        \Log::info('Using alternative download method');
+        
+        // Create HTML page with download links
+        $html = '<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Massal QR Codes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .download-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .download-item { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; text-align: center; }
+        .download-btn { background: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px; }
+        .download-btn:hover { background: #0056b3; }
+        .info { background: #e7f3ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Download Massal QR Codes</h1>
+            <p>Klik tombol di bawah untuk download QR code individual</p>
+        </div>
+        
+        <div class="info">
+            <strong>Info:</strong> ZipArchive tidak tersedia di server ini. Silakan download QR code secara individual atau aktifkan PHP ZipArchive extension.
+        </div>
+        
+        <div class="download-grid">';
+        
+        foreach ($students as $student) {
+            $downloadUrl = route('qr.download', $student);
+            $filename = $this->sanitizeFilename(($student->nis ?? 'NIS')."_".$student->name);
+            
+            $html .= '
+            <div class="download-item">
+                <h4>' . htmlspecialchars($student->name) . '</h4>
+                <p>NIS: ' . htmlspecialchars($student->nis ?? 'N/A') . '</p>
+                <a href="' . $downloadUrl . '" class="download-btn" download="' . $filename . '.png">
+                    Download QR
+                </a>
+            </div>';
+        }
+        
+        $html .= '
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="' . route('qr.index') . '" style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+                ← Kembali ke QR Management
+            </a>
+        </div>
+    </div>
+</body>
+</html>';
+        
+        return response($html)->header('Content-Type', 'text/html');
+    }
     
     // Download ZIP using ZipArchive (if available) - Fixed
     private function downloadZipWithZipArchive($students)
