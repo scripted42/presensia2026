@@ -43,44 +43,96 @@ class QrManagementController extends Controller
     public function downloadZip(Request $request)
     {
         try {
+            \Log::info('Download ZIP started');
+            
             $students = User::where('school_id', auth()->user()->school_id)
                 ->where('user_type', 'student')->orderBy('name')->get();
             
+            \Log::info('Found students: ' . $students->count());
+            
             if ($students->isEmpty()) {
+                \Log::warning('No students found for download');
                 return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-download.');
             }
             
             // Check if ZipArchive is available
             if (!class_exists('ZipArchive')) {
+                \Log::error('ZipArchive not available');
                 return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia. Silakan aktifkan PHP ZipArchive extension di server.');
             }
+            
+            \Log::info('ZipArchive available, starting download');
             
             // Direct ZIP download
             return $this->downloadZipWithZipArchive($students);
             
         } catch (\Exception $e) {
             \Log::error('Download ZIP error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat file ZIP. Silakan coba lagi.');
         }
     }
     
     
     
-    // Download ZIP using ZipArchive (if available) - Legacy
+    // Download ZIP using ZipArchive (if available) - Fixed
     private function downloadZipWithZipArchive($students)
     {
-        $zip = new ZipArchive();
-        $tmp = tempnam(sys_get_temp_dir(), 'qrzip');
-        $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        \Log::info('Starting ZIP creation');
         
-        foreach ($students as $s) {
-            $payload = ($s->nis ?? '').'|'.$s->name;
-            $png = $this->renderPng($payload, 600);
-            $zip->addFromString($this->sanitizeFilename(($s->nis ?? 'NIS')."_".$s->name).'.png', $png);
+        $zip = new ZipArchive();
+        $tmp = tempnam(sys_get_temp_dir(), 'qr_massal_');
+        
+        \Log::info('Temp file created: ' . $tmp);
+        
+        // Check if ZIP can be opened
+        if ($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+            \Log::error('Cannot open ZIP file');
+            throw new \Exception('Tidak dapat membuat file ZIP');
         }
         
+        \Log::info('ZIP file opened successfully');
+        
+        $successCount = 0;
+        $errorCount = 0;
+        
+        foreach ($students as $s) {
+            try {
+                \Log::info("Processing student: {$s->name}");
+                
+                $payload = ($s->nis ?? '').'|'.$s->name;
+                \Log::info("Payload: {$payload}");
+                
+                $png = $this->renderPng($payload, 600);
+                
+                if ($png && strlen($png) > 0) {
+                    $filename = $this->sanitizeFilename(($s->nis ?? 'NIS')."_".$s->name).'.png';
+                    $zip->addFromString($filename, $png);
+                    $successCount++;
+                    \Log::info("Successfully added QR for {$s->name}");
+                } else {
+                    $errorCount++;
+                    \Log::warning("Failed to generate QR for {$s->name}: Empty PNG");
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                \Log::warning("Failed to generate QR for {$s->name}: " . $e->getMessage());
+            }
+        }
+        
+        \Log::info("ZIP creation completed. Success: {$successCount}, Errors: {$errorCount}");
+        
         $zip->close();
-        return response()->download($tmp, 'qr_students.zip')->deleteFileAfterSend(true);
+        
+        if ($successCount === 0) {
+            unlink($tmp);
+            throw new \Exception('Tidak ada QR code yang berhasil di-generate');
+        }
+        
+        $filename = 'qr_students_' . date('Y-m-d_H-i-s') . '.zip';
+        \Log::info("Returning ZIP file: {$filename}");
+        
+        return response()->download($tmp, $filename)->deleteFileAfterSend(true);
     }
     
 
