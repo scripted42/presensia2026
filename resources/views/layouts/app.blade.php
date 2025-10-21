@@ -351,8 +351,8 @@
             </div>
         </div>
 
-        <!-- Mobile sidebar -->
-        <div class="md:hidden" id="mobile-sidebar" style="display: none;" role="dialog" aria-modal="true" aria-label="Menu">
+        <!-- Mobile sidebar - Hidden since we use direct home link -->
+        <div class="md:hidden hidden" id="mobile-sidebar" style="display: none;" role="dialog" aria-modal="true" aria-label="Menu">
             <div class="fixed inset-0 flex z-40">
                 <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()" aria-hidden="true"></div>
                 <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
@@ -382,9 +382,9 @@
         <div class="flex flex-col w-0 flex-1 overflow-hidden">
             <!-- Top navigation -->
             <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow" role="banner">
-                <button onclick="toggleMobileSidebar()" aria-label="Buka sidebar" aria-controls="mobile-sidebar" aria-expanded="false" class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <a href="{{ route('dashboard') }}" aria-label="Dashboard" class="flex items-center justify-center px-4 border-r border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden min-h-[64px]">
+                    <i class="fas fa-home text-lg"></i>
+                </a>
                 <button type="button" id="desktop-collapse-btn" onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" aria-pressed="false" class="ml-2 px-3 text-gray-500 hover:text-gray-700 hidden md:inline-flex items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                     <i class="fas fa-columns"></i>
                 </button>
