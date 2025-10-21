@@ -798,6 +798,7 @@
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
+        let html5Qrcode = null;
 
         // Function to start camera with permission
         function startCameraWithPermission() {
@@ -810,90 +811,46 @@
                     permissionOverlay.style.display = 'none';
                 }
                 
-                // Initialize scanner with mobile-optimized config
-                html5QrcodeScanner = new Html5QrcodeScanner(
-                    "html5-qrcode-reader",
-                    {
-                        fps: 10,
-                        qrbox: function(viewfinderWidth, viewfinderHeight) {
-                            // Maximize camera area for mobile
-                            const minDimension = Math.min(viewfinderWidth, viewfinderHeight);
-                            return {
-                                width: Math.floor(minDimension * 0.8),
-                                height: Math.floor(minDimension * 0.8)
-                            };
-                        },
-                        rememberLastUsedCamera: false,
-                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-                        showTorchButtonIfSupported: true,
-                        useBarCodeDetectorIfSupported: true,
-                        verbose: false,
-                        // Force back camera for mobile
-                        videoConstraints: {
-                            facingMode: "environment"
-                        }
-                    },
-                    false
-                );
+                // Use Html5Qrcode directly (simpler approach)
+                html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
                 
-                // Render scanner with proper callback handling
-                try {
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                console.log('🎥 Requesting camera access...');
+                
+                html5Qrcode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                ).then(() => {
+                    console.log('✅ Camera started successfully');
+                    cameraActive = true;
+                    document.getElementById('startCamera').style.display = 'none';
+                    document.getElementById('stopCamera').style.display = 'inline-block';
+                    showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                }).catch((error) => {
+                    console.error('❌ Camera start failed:', error);
+                    showNotification('Gagal mengakses kamera: ' + error.message, 'error');
                     
-                    // Use setTimeout to check if scanner is working
-                    setTimeout(() => {
-                        const videoElement = document.querySelector('#html5-qrcode-reader video');
-                        if (videoElement && videoElement.videoWidth > 0) {
-                            console.log('✅ Scanner rendered successfully');
-                            cameraActive = true;
-                            document.getElementById('startCamera').style.display = 'none';
-                            document.getElementById('stopCamera').style.display = 'inline-block';
-                            showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
-                        } else {
-                            throw new Error('Camera tidak dapat diakses atau tidak ada video stream');
-                        }
-                    }, 2000);
-                    
-                } catch (renderError) {
-                    console.error('❌ Scanner render failed:', renderError);
-                    console.log('🔄 Trying fallback with Html5Qrcode...');
-                    
-                    // Fallback: Try with Html5Qrcode directly
-                    try {
-                        const html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
-                        const config = {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                            aspectRatio: 1.0
-                        };
-                        
-                        html5Qrcode.start(
-                            { facingMode: "environment" },
-                            config,
-                            onScanSuccess,
-                            onScanFailure
-                        ).then(() => {
-                            console.log('✅ Fallback scanner started successfully');
-                            cameraActive = true;
-                            document.getElementById('startCamera').style.display = 'none';
-                            document.getElementById('stopCamera').style.display = 'inline-block';
-                            showNotification('Scanner aktif dengan kamera belakang (fallback mode).', 'success');
-                        }).catch((fallbackError) => {
-                            console.error('❌ Fallback scanner also failed:', fallbackError);
-                            showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
-                            // Reset UI
-                            document.getElementById('startCamera').style.display = 'inline-block';
-                            document.getElementById('stopCamera').style.display = 'none';
-                        });
-                        
-                    } catch (fallbackError) {
-                        console.error('❌ Fallback scanner failed:', fallbackError);
-                        showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
-                        // Reset UI
-                        document.getElementById('startCamera').style.display = 'inline-block';
-                        document.getElementById('stopCamera').style.display = 'none';
+                    // Show fallback message
+                    const camera = document.getElementById('camera');
+                    if (camera) {
+                        camera.innerHTML = `
+                            <div class="text-center p-8">
+                                <i class="fas fa-camera-slash text-4xl text-red-400 mb-4"></i>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Kamera Tidak Dapat Diakses</h3>
+                                <p class="text-gray-600 mb-4">Error: ${error.message}</p>
+                                <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        `;
                     }
-                }
+                });
                 
             } catch (err) {
                 console.error('❌ Camera permission error:', err);
@@ -1095,6 +1052,18 @@
         // Stop scanner
         document.getElementById('stopCamera').addEventListener('click', function() {
             try {
+                // Stop Html5Qrcode if active
+                if (html5Qrcode) {
+                    html5Qrcode.stop().then(() => {
+                        console.log('✅ Camera stopped successfully');
+                        html5Qrcode = null;
+                    }).catch((err) => {
+                        console.log('⚠️ Camera stop error:', err);
+                        html5Qrcode = null;
+                    });
+                }
+                
+                // Clear scanner if exists
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.clear();
                     html5QrcodeScanner = null;
