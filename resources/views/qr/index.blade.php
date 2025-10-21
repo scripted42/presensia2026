@@ -114,11 +114,17 @@
     </div>
 @endsection
 
-@section('scripts')
+
+@push('scripts')
 <!-- JSZip library untuk membuat ZIP di browser -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
+<!-- Zxing-js Library for QR Generation -->
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
+let currentQRData = '';
+
+// Download Massal Function
 async function downloadAllQR() {
     try {
         // Check if JSZip is loaded
@@ -221,14 +227,6 @@ async function downloadAllQR() {
 function sanitizeFilename(filename) {
     return filename.replace(/[^A-Za-z0-9_\-]/g, '_');
 }
-</script>
-@endsection
-
-@push('scripts')
-<!-- Zxing-js Library for QR Generation -->
-<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-<script>
-let currentQRData = '';
 let currentDownloadUrl = '';
 
 function showQRPreview(nis, name, downloadUrl) {
