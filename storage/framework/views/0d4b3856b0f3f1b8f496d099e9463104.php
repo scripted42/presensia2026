@@ -333,6 +333,11 @@
                                 <i class="sb-icon fas fa-calendar-alt"></i>
                                 Kelola Jadwal Khusus
                             </a>
+                            
+                            <a href="<?php echo e(route('performance.index')); ?>" class="group flex items-center text-sm font-medium rounded-md <?php echo e(request()->routeIs('performance.*') ? 'text-blue-900' : ''); ?>">
+                                <i class="sb-icon fas fa-tachometer-alt"></i>
+                                Performance Dashboard
+                            </a>
                             </div>
                         </div>
                     <?php endif; ?>

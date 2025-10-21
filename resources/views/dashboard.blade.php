@@ -304,6 +304,117 @@
                     </div>
                 </div>
 
+                <!-- Late Attendance KPI -->
+                @if(isset($metrics['late_attendance']))
+                <div class="mt-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">📊 KPI Absensi Terlambat</h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Gauge Chart -->
+                        <div class="bg-white rounded-lg border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h5 class="text-lg font-semibold text-gray-900">Persentase Terlambat</h5>
+                                <i class="fas fa-clock text-orange-600 text-xl"></i>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-4xl font-bold text-orange-600 mb-2">
+                                    {{ $metrics['late_attendance']['late_percentage'] }}%
+                                </div>
+                                <div class="text-sm text-gray-600 mb-4">
+                                    {{ $metrics['late_attendance']['total_late'] }} dari {{ $metrics['late_attendance']['total_attendance'] }} absensi
+                                </div>
+                                <div id="gauge-late" style="height: 200px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Late List -->
+                        <div class="bg-white rounded-lg border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h5 class="text-lg font-semibold text-gray-900">Terlambat Terbaru</h5>
+                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                    {{ count($metrics['late_attendance']['recent_late']) }} orang
+                                </span>
+                            </div>
+                            <div class="space-y-3 max-h-64 overflow-y-auto">
+                                @forelse($metrics['late_attendance']['recent_late'] as $late)
+                                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-orange-600 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900">{{ $late['user_name'] }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                @foreach($late['user_roles'] as $role)
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-1">{{ ucfirst($role) }}</span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm font-medium text-gray-900">{{ $late['date'] }}</div>
+                                        <div class="text-xs text-orange-600">{{ $late['check_in'] }}</div>
+                                    </div>
+                                </div>
+                                @empty
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i>
+                                    <p>Tidak ada absensi terlambat</p>
+                                </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Late by User Analysis -->
+                    @if(count($metrics['late_attendance']['late_by_user']) > 0)
+                    <div class="mt-6">
+                        <h5 class="text-lg font-semibold text-gray-900 mb-4">📋 Analisis per User</h5>
+                        <div class="bg-white rounded-lg border overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Terlambat</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terakhir Terlambat</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach($metrics['late_attendance']['late_by_user'] as $userLate)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                                                        <i class="fas fa-user text-orange-600 text-sm"></i>
+                                                    </div>
+                                                    <div class="font-medium text-gray-900">{{ $userLate['user']['name'] }}</div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @foreach($userLate['user']['roles'] as $role)
+                                                    <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-1">{{ ucfirst($role) }}</span>
+                                                @endforeach
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">
+                                                    {{ $userLate['late_count'] }} kali
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ $userLate['latest_late'] }}
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
                     <!-- Leak Table Card -->
                     <div class="lg:col-span-1 rounded border bg-white">
@@ -580,7 +691,8 @@
         usage: {{ $metrics['usage']['percentage'] ?? 0 }},
         kpi: {{ $metrics['kpi']['score'] ?? 0 }},
         emp: {{ $metrics['completeness']['employees']['percentage'] ?? 0 }},
-        stu: {{ $metrics['completeness']['students']['percentage'] ?? 0 }}
+        stu: {{ $metrics['completeness']['students']['percentage'] ?? 0 }},
+        late: {{ $metrics['late_attendance']['gauge_value'] ?? 0 }}
     };
     const thresholds = {
         good: {{ $metrics['thresholds']['good'] ?? 90 }},
@@ -613,6 +725,36 @@
     renderGauge('#gauge-kpi', gauges.kpi);
     renderGauge('#gauge-emp', gauges.emp);
     renderGauge('#gauge-stu', gauges.stu);
+    
+    // Render late attendance gauge with inverted colors (higher is worse)
+    if (document.querySelector('#gauge-late')) {
+        const lateOptions = {
+            series: [gauges.late],
+            chart: {
+                type: 'radialBar',
+                height: 200,
+                sparkline: { enabled: true }
+            },
+            plotOptions: {
+                radialBar: {
+                    startAngle: -90,
+                    endAngle: 90,
+                    dataLabels: {
+                        name: { show: false },
+                        value: { 
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            color: gauges.late > 50 ? '#dc2626' : gauges.late > 25 ? '#f59e0b' : '#16a34a',
+                            formatter: function(val) { return val + '%' }
+                        }
+                    }
+                }
+            },
+            colors: [gauges.late > 50 ? '#dc2626' : gauges.late > 25 ? '#f59e0b' : '#16a34a'],
+            labels: ['Terlambat']
+        };
+        new ApexCharts(document.querySelector('#gauge-late'), lateOptions).render();
+    }
     // add loaded class to custom banner image
     window.requestAnimationFrame(()=>{
         const bannerImg=document.querySelector('.banner-custom-image');

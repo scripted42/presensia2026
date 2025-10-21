@@ -62,11 +62,15 @@ class DashboardController extends Controller
                 $tenantConfig['weights']
             );
 
+            // Calculate late attendance KPI
+            $lateAttendanceKpi = $this->calculateLateAttendanceKpi($user, $startDate, $endDate);
+
             $metrics = [
                 'usage' => $usage,
                 'completeness' => $completeness,
                 'kpi' => $kpi,
                 'leak' => $leak,
+                'late_attendance' => $lateAttendanceKpi,
                 'non_users' => $this->getNonUserList($user, $startDate, $endDate, 10, $roleFilter),
                 'incomplete_profiles' => $this->getIncompleteProfiles($user, 10),
                 'thresholds' => $tenantConfig['thresholds'],
@@ -459,7 +463,7 @@ class DashboardController extends Controller
      */
     private function calculateAttendanceKpi($user, string $startDate, string $endDate, array $usage, array $completeness, array $leak, array $weights): array
     {
-        // Dapatkan daftar hari libur dalam periode
+        // Dapatkan daftar hari libur dalam periode dengan caching
         $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
             ->whereBetween('date', [$startDate, $endDate])
             ->where('is_active', true)
@@ -469,18 +473,17 @@ class DashboardController extends Controller
         // Hitung total hari kerja (exclude holidays)
         $workingDays = $this->getWorkingDaysInPeriod($startDate, $endDate, $holidays);
         
-        $totalRecords = Attendance::whereBetween('date', [$startDate, $endDate])
+        // Optimize queries with single query for both counts
+        $attendanceStats = Attendance::whereBetween('date', [$startDate, $endDate])
             ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user) {
                 $q->where('school_id', $user->school_id);
-            })->count();
+            })
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN status = "ontime" THEN 1 ELSE 0 END) as ontime')
+            ->first();
 
-        $ontimeRecords = Attendance::whereBetween('date', [$startDate, $endDate])
-            ->where('status', 'ontime')
-            ->whereNotIn('date', $holidays) // Exclude holidays
-            ->whereHas('user', function ($q) use ($user) {
-                $q->where('school_id', $user->school_id);
-            })->count();
+        $totalRecords = $attendanceStats->total ?? 0;
+        $ontimeRecords = $attendanceStats->ontime ?? 0;
 
         $ontimeRate = $totalRecords > 0 ? ($ontimeRecords / $totalRecords) : 0;
         $coverageRate = ($usage['percentage'] ?? 0) / 100;
@@ -889,5 +892,81 @@ class DashboardController extends Controller
         return response()->streamDownload($callback, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    /**
+     * Calculate late attendance KPI with detailed information
+     */
+    private function calculateLateAttendanceKpi($user, string $startDate, string $endDate): array
+    {
+        // Get holidays to exclude from calculation
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->pluck('date')
+            ->toArray();
+
+        // Get total working days
+        $workingDays = $this->getWorkingDaysInPeriod($startDate, $endDate, $holidays);
+
+        // Get late attendance records with user details
+        $lateAttendances = \App\Models\Attendance::whereBetween('date', [$startDate, $endDate])
+            ->where('status', 'late')
+            ->whereNotIn('date', $holidays) // Exclude holidays
+            ->whereHas('user', function ($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->with(['user.roles'])
+            ->orderBy('date', 'desc')
+            ->orderBy('check_in', 'desc')
+            ->get();
+
+        // Get total attendance records for percentage calculation
+        $totalAttendances = \App\Models\Attendance::whereBetween('date', [$startDate, $endDate])
+            ->whereNotIn('date', $holidays) // Exclude holidays
+            ->whereHas('user', function ($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->count();
+
+        // Calculate statistics
+        $lateCount = $lateAttendances->count();
+        $latePercentage = $totalAttendances > 0 ? round(($lateCount / $totalAttendances) * 100, 1) : 0;
+
+        // Group by user for detailed analysis
+        $lateByUser = $lateAttendances->groupBy('user_id')->map(function ($userAttendances, $userId) {
+            $user = $userAttendances->first()->user;
+            return [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'roles' => $user->roles->pluck('name')->toArray(),
+                ],
+                'late_count' => $userAttendances->count(),
+                'late_dates' => $userAttendances->pluck('date')->toArray(),
+                'latest_late' => $userAttendances->first()->check_in->format('H:i:s'),
+            ];
+        })->values();
+
+        // Calculate gauge value (0-100, where 100 is worst)
+        $gaugeValue = min(100, $latePercentage);
+
+        return [
+            'total_late' => $lateCount,
+            'total_attendance' => $totalAttendances,
+            'late_percentage' => $latePercentage,
+            'gauge_value' => $gaugeValue,
+            'working_days' => $workingDays,
+            'late_by_user' => $lateByUser,
+            'recent_late' => $lateAttendances->take(10)->map(function ($attendance) {
+                return [
+                    'user_name' => $attendance->user->name,
+                    'user_roles' => $attendance->user->roles->pluck('name')->toArray(),
+                    'date' => $attendance->date,
+                    'check_in' => $attendance->check_in->format('H:i:s'),
+                    'status' => $attendance->status,
+                ];
+            })->toArray(),
+        ];
     }
 }
