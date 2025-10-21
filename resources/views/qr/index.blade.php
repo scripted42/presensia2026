@@ -10,7 +10,11 @@
                 <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama).</p>
             </div>
             <div class="flex space-x-2">
-                <!-- Download Massal menu dihapus -->
+                <button onclick="downloadAllQR()" 
+                        class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-download mr-2"></i>
+                    Download Massal (.zip)
+                </button>
             </div>
         </div>
     </div>
@@ -108,6 +112,102 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<!-- JSZip library untuk membuat ZIP di browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+async function downloadAllQR() {
+    try {
+        // Show loading
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Membuat ZIP...';
+        button.disabled = true;
+        
+        // Get all student data from the table
+        const students = [];
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const nameCell = row.querySelector('td:nth-child(2)');
+            const nisCell = row.querySelector('td:nth-child(3)');
+            const downloadLink = row.querySelector('a[href*="/qr/download/"]');
+            
+            if (nameCell && nisCell && downloadLink) {
+                students.push({
+                    name: nameCell.textContent.trim(),
+                    nis: nisCell.textContent.trim(),
+                    downloadUrl: downloadLink.href
+                });
+            }
+        });
+        
+        if (students.length === 0) {
+            alert('Tidak ada data siswa untuk di-download.');
+            return;
+        }
+        
+        // Create ZIP
+        const zip = new JSZip();
+        let successCount = 0;
+        let errorCount = 0;
+        
+        // Download each QR code and add to ZIP
+        for (const student of students) {
+            try {
+                const response = await fetch(student.downloadUrl);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const filename = sanitizeFilename(`${student.nis}_${student.name}.png`);
+                    zip.file(filename, blob);
+                    successCount++;
+                } else {
+                    errorCount++;
+                }
+            } catch (error) {
+                console.error(`Error downloading QR for ${student.name}:`, error);
+                errorCount++;
+            }
+        }
+        
+        if (successCount === 0) {
+            alert('Tidak ada QR code yang berhasil di-download.');
+            return;
+        }
+        
+        // Generate and download ZIP
+        const zipBlob = await zip.generateAsync({type: 'blob'});
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `qr_students_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Show result
+        if (errorCount > 0) {
+            alert(`Download selesai! Berhasil: ${successCount}, Gagal: ${errorCount}`);
+        } else {
+            alert(`Download selesai! ${successCount} QR code berhasil di-download.`);
+        }
+        
+    } catch (error) {
+        console.error('Error creating ZIP:', error);
+        alert('Terjadi kesalahan saat membuat file ZIP. Silakan coba lagi.');
+    } finally {
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+function sanitizeFilename(filename) {
+    return filename.replace(/[^A-Za-z0-9_\-]/g, '_');
+}
+</script>
 @endsection
 
 @push('scripts')
