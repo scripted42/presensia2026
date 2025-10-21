@@ -39,12 +39,12 @@ class QrManagementController extends Controller
             ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
-    // Download massal menggunakan ZipStream
+    // Download massal menggunakan custom ZIP implementation
     public function downloadZip(Request $request)
     {
         try {
-            $students = User::where('school_id', auth()->user()->school_id)
-                ->where('user_type', 'student')->orderBy('name')->get();
+        $students = User::where('school_id', auth()->user()->school_id)
+            ->where('user_type', 'student')->orderBy('name')->get();
             
             if ($students->isEmpty()) {
                 return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-download.');
@@ -67,13 +67,12 @@ class QrManagementController extends Controller
     
     private function createZipStream($students)
     {
-        // Simple ZIP implementation without external dependencies
+        // Create a simple ZIP file using basic format
         $zipData = '';
+        $centralDirectory = '';
+        $fileCount = 0;
+        $offset = 0;
         
-        // ZIP file header
-        $zipData .= $this->createZipHeader();
-        
-        $fileIndex = 0;
         foreach ($students as $student) {
             try {
                 $payload = ($student->nis ?? '').'|'.$student->name;
@@ -81,59 +80,95 @@ class QrManagementController extends Controller
                 
                 if ($png && strlen($png) > 0) {
                     $filename = $this->sanitizeFilename(($student->nis ?? 'NIS')."_".$student->name).'.png';
-                    $zipData .= $this->createZipEntry($filename, $png, $fileIndex);
-                    $fileIndex++;
+                    
+                    // Create local file header
+                    $localHeader = $this->createLocalFileHeader($filename, $png);
+                    $zipData .= $localHeader;
+                    
+                    // Add file data
+                    $zipData .= $png;
+                    
+                    // Create central directory entry
+                    $centralDirectory .= $this->createCentralDirectoryEntry($filename, $png, $offset);
+                    
+                    $offset += strlen($localHeader) + strlen($png);
+                    $fileCount++;
                 }
             } catch (\Exception $e) {
                 \Log::warning("Failed to generate QR for {$student->name}: " . $e->getMessage());
             }
         }
         
-        // ZIP central directory
-        $zipData .= $this->createZipCentralDirectory($fileIndex);
+        // Add central directory
+        $zipData .= $centralDirectory;
         
-        // ZIP end of central directory
-        $zipData .= $this->createZipEndOfCentralDirectory();
+        // Add end of central directory record
+        $zipData .= $this->createEndOfCentralDirectory($fileCount, strlen($centralDirectory), $offset);
         
         echo $zipData;
     }
     
-    private function createZipHeader()
-    {
-        return "\x50\x4B\x03\x04"; // ZIP signature
-    }
-    
-    private function createZipEntry($filename, $data, $index)
+    private function createLocalFileHeader($filename, $data)
     {
         $crc = crc32($data);
         $size = strlen($data);
-        $compressedSize = $size; // No compression for simplicity
         
-        $entry = pack('V', 0x04034b50); // Local file header signature
+        $header = pack('V', 0x04034b50); // Local file header signature
+        $header .= pack('v', 20); // Version needed to extract
+        $header .= pack('v', 0); // General purpose bit flag
+        $header .= pack('v', 0); // Compression method (stored)
+        $header .= pack('v', 0); // Last mod file time
+        $header .= pack('v', 0); // Last mod file date
+        $header .= pack('V', $crc); // CRC-32
+        $header .= pack('V', $size); // Compressed size
+        $header .= pack('V', $size); // Uncompressed size
+        $header .= pack('v', strlen($filename)); // Filename length
+        $header .= pack('v', 0); // Extra field length
+        $header .= $filename; // Filename
+        
+        return $header;
+    }
+    
+    private function createCentralDirectoryEntry($filename, $data, $offset)
+    {
+        $crc = crc32($data);
+        $size = strlen($data);
+        
+        $entry = pack('V', 0x02014b50); // Central file header signature
+        $entry .= pack('v', 20); // Version made by
         $entry .= pack('v', 20); // Version needed to extract
         $entry .= pack('v', 0); // General purpose bit flag
-        $entry .= pack('v', 0); // Compression method (0 = stored)
+        $entry .= pack('v', 0); // Compression method
         $entry .= pack('v', 0); // Last mod file time
         $entry .= pack('v', 0); // Last mod file date
         $entry .= pack('V', $crc); // CRC-32
-        $entry .= pack('V', $compressedSize); // Compressed size
+        $entry .= pack('V', $size); // Compressed size
         $entry .= pack('V', $size); // Uncompressed size
         $entry .= pack('v', strlen($filename)); // Filename length
         $entry .= pack('v', 0); // Extra field length
+        $entry .= pack('v', 0); // File comment length
+        $entry .= pack('v', 0); // Disk number start
+        $entry .= pack('v', 0); // Internal file attributes
+        $entry .= pack('V', 0); // External file attributes
+        $entry .= pack('V', $offset); // Relative offset of local header
         $entry .= $filename; // Filename
-        $entry .= $data; // File data
         
         return $entry;
     }
     
-    private function createZipCentralDirectory($fileCount)
+    private function createEndOfCentralDirectory($fileCount, $centralDirSize, $centralDirOffset)
     {
-        return ''; // Simplified - just return empty for now
-    }
-    
-    private function createZipEndOfCentralDirectory()
-    {
-        return "\x50\x4B\x05\x06"; // End of central directory signature
+        $record = pack('V', 0x06054b50); // End of central dir signature
+        $record .= pack('v', 0); // Number of this disk
+        $record .= pack('v', 0); // Number of the disk with the start of the central directory
+        $record .= pack('v', $fileCount); // Total number of entries in the central directory on this disk
+        $record .= pack('v', $fileCount); // Total number of entries in the central directory
+        $record .= pack('V', $centralDirSize); // Size of the central directory
+        $record .= pack('V', $centralDirOffset); // Offset of start of central directory
+        $record .= pack('v', 0); // ZIP file comment length
+        $record .= ''; // ZIP file comment
+        
+        return $record;
     }
     
 
