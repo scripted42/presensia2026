@@ -10,7 +10,11 @@
                 <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama).</p>
             </div>
             <div class="flex space-x-2">
-                <!-- Download Massal menu dihapus -->
+                <a href="{{ route('qr.zip') }}" 
+                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-download mr-2"></i>
+                    Download Massal (.zip)
+                </a>
             </div>
         </div>
     </div>
