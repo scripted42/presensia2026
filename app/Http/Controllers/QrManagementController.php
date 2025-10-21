@@ -43,17 +43,25 @@ class QrManagementController extends Controller
     public function downloadZip(Request $request)
     {
         try {
+            \Log::info('Download ZIP method called');
+            
             $students = User::where('school_id', auth()->user()->school_id)
                 ->where('user_type', 'student')->orderBy('name')->get();
             
+            \Log::info('Found students: ' . $students->count());
+            
             if ($students->isEmpty()) {
+                \Log::warning('No students found');
                 return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-download.');
             }
             
             // Check if ZipArchive is available
             if (!class_exists('ZipArchive')) {
-                return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia. Silakan aktifkan PHP ZipArchive extension di server.');
+                \Log::error('ZipArchive not available');
+                return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia di server ini. Silakan hubungi administrator untuk mengaktifkan PHP ZipArchive extension.');
             }
+            
+            \Log::info('ZipArchive available, creating ZIP');
             
             // Create ZIP file
             $zip = new ZipArchive();
@@ -96,6 +104,7 @@ class QrManagementController extends Controller
             
         } catch (\Exception $e) {
             \Log::error('Download ZIP error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat file ZIP. Silakan coba lagi.');
         }
     }
