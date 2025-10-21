@@ -69,10 +69,10 @@
 
                     <!-- Camera Controls -->
                     <div class="flex space-x-3 mb-4">
-                        <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <button id="startCamera" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
                         </button>
-                        <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                        <button id="stopCamera" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
                             <i class="fas fa-stop mr-2"></i>Stop Scan
                         </button>
                     </div>
@@ -957,4 +957,962 @@
             }
         });
     </script>
+@endpush
+
+                        }
+
+                    } else {
+
+                        throw new Error('Scanner not initialized');
+
+                    }
+
+                } catch (e) {
+
+                    console.log('Scanner failed, trying fallback:', e.message);
+
+                    try {
+
+                        // Fallback: start without specific camera
+
+                        if (html5QrcodeScanner) {
+
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+                            console.log('✅ Scanner started without specific camera');
+
+                        } else {
+
+                            throw new Error('Scanner not initialized for fallback');
+
+                        }
+
+                    } catch (e2) {
+
+                        console.error('❌ All scanner attempts failed:', e2);
+
+                        throw new Error('Failed to start scanner: ' + e2.message);
+
+                    }
+
+                }
+
+                
+
+                // Hide camera selection dialog completely
+
+                setTimeout(() => {
+
+                    try {
+
+                        const cameraSelect = document.querySelector('#html5-qrcode-reader select');
+
+                        if (cameraSelect && cameraSelect.style) {
+
+                            cameraSelect.style.display = 'none';
+
+                        }
+
+                        
+
+                        // Hide all text elements safely
+
+                        const textElements = document.querySelectorAll('#html5-qrcode-reader *');
+
+                        textElements.forEach(el => {
+
+                            if (el && el.style && el.tagName !== 'VIDEO' && el.tagName !== 'CANVAS') {
+
+                                el.style.display = 'none';
+
+                            }
+
+                        });
+
+                    } catch (e) {
+
+                        console.log('Error hiding camera dialog:', e);
+
+                    }
+
+                }, 100);
+
+                
+
+                cameraActive = true;
+
+                document.getElementById('startCamera').style.display = 'none';
+
+                document.getElementById('stopCamera').style.display = 'inline-block';
+
+                
+
+                showNotification('Scanner aktif. Arahkan QR Code ke area panduan.', 'success');
+
+                console.log('✅ HTML5 QR Code Scanner started successfully');
+
+                
+
+            } catch (err) {
+
+                console.error('❌ Scanner error:', err);
+
+                showNotification('Gagal mengakses kamera: ' + err.message, 'error');
+
+            }
+
+        });
+
+
+
+        // Stop HTML5 QR Code Scanner
+
+        document.getElementById('stopCamera').addEventListener('click', function() {
+
+            try {
+
+                console.log('🛑 Stopping HTML5 QR Code Scanner...');
+
+                
+
+                if (html5QrcodeScanner) {
+
+                    try {
+
+                        html5QrcodeScanner.clear();
+
+                        console.log('✅ Scanner cleared successfully');
+
+                    } catch (e) {
+
+                        console.log('Scanner clear failed:', e);
+
+                    }
+
+                    html5QrcodeScanner = null;
+
+                }
+
+                
+
+                // Stop observer
+
+                if (scannerObserver) {
+
+                    try {
+
+                        scannerObserver.disconnect();
+
+                        console.log('✅ Observer disconnected');
+
+                    } catch (e) {
+
+                        console.log('Observer disconnect failed:', e);
+
+                    }
+
+                    scannerObserver = null;
+
+                }
+
+                
+
+                cameraActive = false;
+
+                
+
+                // Reset UI elements safely
+
+                const startBtn = document.getElementById('startCamera');
+
+                const stopBtn = document.getElementById('stopCamera');
+
+                const camera = document.getElementById('camera');
+
+                const guide = document.getElementById('qr-guide');
+
+                
+
+                if (startBtn) startBtn.style.display = 'inline-block';
+
+                if (stopBtn) stopBtn.style.display = 'none';
+
+                if (guide) guide.style.display = 'none';
+
+                
+
+                if (camera) {
+
+                    camera.innerHTML = `
+
+                        <div class="text-center">
+
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+
+                            <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+
+                        </div>
+
+                    `;
+
+                }
+
+                    
+
+                showNotification('Scanner dihentikan', 'info');
+
+                console.log('✅ Scanner stopped successfully');
+
+            } catch (err) {
+
+                console.error('❌ Stop scanner error:', err);
+
+            }
+
+        });
+
+
+
+        // HTML5 QR Code Scanner callbacks
+
+        function onScanSuccess(decodedText, decodedResult) {
+
+            console.log('✅ QR Code detected:', decodedText);
+
+            addCapturedPhoto(decodedText, true); // true indicates it's a decoded QR text
+
+            showNotification('QR Code berhasil dideteksi: ' + decodedText, 'success');
+
+        }
+
+
+
+        function onScanFailure(error) {
+
+            // Handle scan failure silently - this is called frequently during scanning
+
+            // Only log significant errors
+
+            if (error && !error.includes('NotFoundException')) {
+
+                console.log('QR Code scan attempt:', error);
+
+            }
+
+        }
+
+
+
+        
+
+        // REMOVED COMPLEX QR DETECTION - Using simple photo capture instead
+
+        
+
+        // Image enhancement function
+
+        function enhanceImage(imageData) {
+
+            const data = imageData.data;
+
+            const width = imageData.width;
+
+            const height = imageData.height;
+
+            
+
+            // Apply contrast enhancement
+
+            for (let i = 0; i < data.length; i += 4) {
+
+                // Red channel
+
+                data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.2 + 128));
+
+                // Green channel  
+
+                data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.2 + 128));
+
+                // Blue channel
+
+                data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.2 + 128));
+
+            }
+
+            
+
+            return imageData;
+
+        }
+
+        
+
+        // Quick add student function
+
+        function quickAddStudent(qrCode) {
+
+            console.log('Quick adding student:', qrCode);
+
+            
+
+            const currentTime = new Date().toLocaleTimeString('id-ID', { 
+
+                hour12: false, 
+
+                timeZone: 'Asia/Jakarta' 
+
+            });
+
+            
+
+            const manualRecord = {
+
+                qrCode: qrCode,
+
+                captureTime: currentTime,
+
+                timestamp: Date.now(),
+
+                id: 'manual_' + Date.now(),
+
+                isManual: true
+
+            };
+
+            
+
+            capturedStudents.push(manualRecord);
+
+            updateCapturedList();
+
+            showNotification('Siswa berhasil ditambahkan: ' + qrCode, 'success');
+
+        }
+
+        
+
+        // SIMPLE PHOTO CAPTURE - Just take photo, no QR detection
+
+
+
+        // Manual input - untuk QR code manual
+
+        document.getElementById('addManual').addEventListener('click', function() {
+
+            const manualQr = document.getElementById('manual_qr').value.trim();
+
+            if (manualQr) {
+
+                console.log('Manual QR input:', manualQr);
+
+                // Simpan sebagai QR code manual (bukan foto)
+
+                const currentTime = new Date().toLocaleTimeString('id-ID', { 
+
+                    hour12: false, 
+
+                    timeZone: 'Asia/Jakarta' 
+
+                });
+
+                
+
+                const manualRecord = {
+
+                    qrCode: manualQr,
+
+                    captureTime: currentTime,
+
+                    timestamp: Date.now(),
+
+                    id: 'manual_' + Date.now(),
+
+                    isManual: true
+
+                };
+
+                
+
+                capturedStudents.push(manualRecord);
+
+                updateCapturedList();
+
+                document.getElementById('manual_qr').value = '';
+
+                showNotification('QR Code manual ditambahkan', 'success');
+
+            }
+
+        });
+
+
+
+        // Parse QR code to extract NIS and name
+
+        function parseQRCode(qrCode) {
+
+            console.log('Parsing QR Code:', qrCode);
+
+            const raw = String(qrCode ?? '').trim();
+
+            try {
+
+                // Format QR: "NIS|Nama" atau "NIS_Nama"
+
+                if (raw.includes('|')) {
+
+                    const [nis, name = ''] = raw.split('|');
+
+                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
+
+                    console.log('Parsed with | separator:', result);
+
+                    return result;
+
+                }
+
+                if (raw.includes('_')) {
+
+                    const [nis, name = ''] = raw.split('_');
+
+                    const result = { nis: (nis || '').trim(), name: (name || '').trim() };
+
+                    console.log('Parsed with _ separator:', result);
+
+                    return result;
+
+                }
+
+
+
+                // Hanya coba JSON bila string terlihat seperti JSON
+
+                if (/^[\[{]/.test(raw)) {
+
+                    const parsed = JSON.parse(raw);
+
+                    const result = {
+
+                        nis: (parsed?.nis ?? parsed?.NIS ?? '').toString(),
+
+                        name: (parsed?.name ?? parsed?.nama ?? '').toString()
+
+                    };
+
+                    console.log('Parsed as JSON:', result);
+
+                    if (result.nis) return result;
+
+                }
+
+            } catch (e) {
+
+                console.warn('QR parse error, fallback to plain NIS:', e);
+
+            }
+
+
+
+            // Fallback: anggap seluruh string adalah NIS
+
+            const result = { nis: raw, name: raw };
+
+            console.log('Fallback parsing:', result);
+
+            return result;
+
+        }
+
+
+
+        // Add captured photo - tanpa decode QR
+
+        function addCapturedPhoto(data, isQRText = false) {
+
+            const currentTime = new Date().toLocaleTimeString('id-ID', { 
+
+                hour12: false, 
+
+                timeZone: 'Asia/Jakarta' 
+
+            });
+
+            
+
+            if (isQRText) {
+
+                // QR text detected by scanner
+
+                const qrRecord = {
+
+                    qrText: data,
+
+                    captureTime: currentTime,
+
+                    timestamp: Date.now(),
+
+                    id: 'qr_' + Date.now(),
+
+                    isQRText: true
+
+                };
+
+                capturedStudents.push(qrRecord);
+
+                showNotification('QR Code berhasil dideteksi: ' + data, 'success');
+
+            } else {
+
+                // Photo captured (fallback method)
+
+                const photoRecord = {
+
+                    imageData: data,
+
+                    captureTime: currentTime,
+
+                    timestamp: Date.now(),
+
+                    id: 'photo_' + Date.now(),
+
+                    isQRText: false
+
+                };
+
+                capturedStudents.push(photoRecord);
+
+                showNotification('Foto berhasil diambil! QR akan diproses saat synchronize.', 'success');
+
+            }
+
+            
+
+            updateCapturedList();
+
+        }
+
+
+
+        // Show notification
+
+        function showNotification(message, type = 'info') {
+
+            const notification = document.createElement('div');
+
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
+
+                type === 'success' ? 'bg-green-500' : 
+
+                type === 'warning' ? 'bg-yellow-500' : 
+
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+
+            }`;
+
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            
+
+            setTimeout(() => {
+
+                notification.remove();
+
+            }, 3000);
+
+        }
+
+
+
+        // Update captured list
+
+        function updateCapturedList() {
+
+            const capturedList = document.getElementById('capturedList');
+
+            const hiddenInputs = document.getElementById('hiddenInputs');
+
+            const captureForm = document.getElementById('captureForm');
+
+            const captureCount = document.getElementById('captureCount');
+
+            const syncButton = document.getElementById('syncButton');
+
+            const clearButton = document.getElementById('clearButton');
+
+            
+
+            // Update count
+
+            captureCount.textContent = `${capturedStudents.length} siswa`;
+
+            
+
+            if (capturedStudents.length === 0) {
+
+                capturedList.innerHTML = '<div class="text-gray-500 text-center py-4">Belum ada siswa yang diabsensi</div>';
+
+                captureForm.style.display = 'none';
+
+                syncButton.style.display = 'none';
+
+                clearButton.style.display = 'none';
+
+                return;
+
+            }
+
+            
+
+            // Show action buttons
+
+            syncButton.style.display = 'inline-block';
+
+            clearButton.style.display = 'inline-block';
+
+            syncButton.innerHTML = `<i class="fas fa-sync mr-2"></i>Synchronize (${capturedStudents.length})`;
+
+            
+
+            let html = '';
+
+            hiddenInputs.innerHTML = '';
+
+            
+
+            // Sort by capture time (earliest first)
+
+            const sortedStudents = [...capturedStudents].sort((a, b) => a.timestamp - b.timestamp);
+
+            
+
+            // Table header
+
+            html += `
+
+                <div class="bg-gray-50 px-3 py-2 border-b">
+
+                    <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
+
+                        <div class="col-span-1">No.</div>
+
+                        <div class="col-span-3">Preview</div>
+
+                        <div class="col-span-5">Status</div>
+
+                        <div class="col-span-2">Waktu</div>
+
+                        <div class="col-span-1">Aksi</div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            
+
+            sortedStudents.forEach((record, index) => {
+
+                if (record.isManual) {
+
+                    // Manual QR Code
+
+                html += `
+
+                    <div class="px-3 py-2 border-b hover:bg-gray-50">
+
+                        <div class="grid grid-cols-12 gap-2 items-center text-sm">
+
+                            <div class="col-span-1 text-gray-600">${index + 1}</div>
+
+                                <div class="col-span-3">
+
+                                    <div class="w-12 h-12 bg-green-100 rounded border flex items-center justify-center">
+
+                                        <i class="fas fa-keyboard text-green-600"></i>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-span-5 text-gray-700">
+
+                                    <span class="text-green-600">QR Manual</span>
+
+                                    <br><small class="text-gray-500">${record.qrCode}</small>
+
+                                </div>
+
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+
+                            <div class="col-span-1">
+
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+
+                                    <i class="fas fa-times text-xs"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                
+
+                const input = document.createElement('input');
+
+                input.type = 'hidden';
+
+                    input.name = 'qr_codes[]';
+
+                    input.value = record.qrCode;
+
+                    hiddenInputs.appendChild(input);
+
+                } else if (record.isQRText) {
+
+                    // QR Text detected by scanner
+
+                    html += `
+
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+
+                                <div class="col-span-3">
+
+                                    <div class="w-12 h-12 bg-blue-100 rounded border flex items-center justify-center">
+
+                                        <i class="fas fa-qrcode text-blue-600"></i>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-span-5 text-gray-700">
+
+                                    <span class="text-blue-600">QR Terdeteksi</span>
+
+                                    <br><small class="text-gray-500">${record.qrText}</small>
+
+                                </div>
+
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+
+                                <div class="col-span-1">
+
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+
+                                        <i class="fas fa-times text-xs"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                    
+
+                    const input = document.createElement('input');
+
+                    input.type = 'hidden';
+
+                    input.name = 'qr_codes[]';
+
+                    input.value = record.qrText;
+
+                    hiddenInputs.appendChild(input);
+
+                } else {
+
+                    // Foto QR Code
+
+                    html += `
+
+                        <div class="px-3 py-2 border-b hover:bg-gray-50">
+
+                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
+
+                                <div class="col-span-1 text-gray-600">${index + 1}</div>
+
+                                <div class="col-span-3">
+
+                                    <img src="${record.imageData}" class="w-12 h-12 object-cover rounded border" alt="QR Photo">
+
+                                </div>
+
+                                <div class="col-span-5 text-gray-700">
+
+                                    <span class="text-blue-600">Foto QR Code</span>
+
+                                    <br><small class="text-gray-500">Akan diproses saat sync</small>
+
+                                </div>
+
+                                <div class="col-span-2 text-gray-600">${record.captureTime}</div>
+
+                                <div class="col-span-1">
+
+                                    <button type="button" onclick="removePhotoById('${record.id}')" class="text-red-600 hover:text-red-800 p-1">
+
+                                        <i class="fas fa-times text-xs"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                    
+
+                    const input = document.createElement('input');
+
+                    input.type = 'hidden';
+
+                    input.name = 'qr_photos[]';
+
+                    input.value = record.imageData;
+
+                hiddenInputs.appendChild(input);
+
+                }
+
+            });
+
+            
+
+            capturedList.innerHTML = html;
+
+            captureForm.style.display = 'block';
+
+        }
+
+
+
+        // Remove photo by ID
+
+        function removePhotoById(photoId) {
+
+            capturedStudents = capturedStudents.filter(p => p.id !== photoId);
+
+            updateCapturedList();
+
+        }
+
+
+
+        // Synchronize button
+
+        document.getElementById('syncButton').addEventListener('click', function() {
+
+            if (capturedStudents.length === 0) {
+
+                showNotification('Tidak ada data untuk disinkronkan', 'warning');
+
+                return;
+
+            }
+
+            
+
+            if (confirm(`Apakah Anda yakin ingin menyinkronkan ${capturedStudents.length} siswa ke sistem?`)) {
+
+                document.getElementById('captureForm').submit();
+
+            }
+
+        });
+
+
+
+        // Clear all button
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+
+            if (capturedStudents.length === 0) {
+
+                showNotification('Tidak ada data untuk dihapus', 'warning');
+
+                return;
+
+            }
+
+            
+
+            if (confirm(`Apakah Anda yakin ingin menghapus semua ${capturedStudents.length} record?`)) {
+
+                capturedStudents = [];
+
+                updateCapturedList();
+
+                showNotification('Semua record telah dihapus', 'info');
+
+            }
+
+        });
+
+
+
+        // Real-time clock update
+
+        function updateClock() {
+
+            const now = new Date();
+
+            const jakartaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
+
+            const timeString = jakartaTime.toLocaleTimeString('en-GB', { hour12: false });
+
+            const timeElement = document.getElementById('currentTime');
+
+            if (timeElement) {
+
+                timeElement.textContent = timeString;
+
+            }
+
+        }
+
+        
+
+        // Update clock every second
+
+        setInterval(updateClock, 1000);
+
+
+
+        // Clean up on page unload
+
+        window.addEventListener('beforeunload', function() {
+
+            if (cameraStream) {
+
+                try {
+
+                    cameraStream.getTracks().forEach(track => track.stop());
+
+                } catch (e) {}
+
+            }
+
+        });
+
+    </script>
+
 @endpush

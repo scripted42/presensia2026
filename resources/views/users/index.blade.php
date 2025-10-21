@@ -66,7 +66,7 @@
                     <div class="flex items-center space-x-2 md:ml-auto">
                         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama, email, NIK/NIS"
                                class="border-gray-300 rounded-md text-sm w-64" />
-                        <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm">Cari</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors">Cari</button>
                     </div>
                 </form>
                 <div class="overflow-x-auto">

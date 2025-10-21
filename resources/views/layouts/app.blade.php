@@ -261,12 +261,31 @@
                         <div class="space-y-1">
                             <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Siswa</div>
                             
+                            <a href="{{ route('schedule.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i class="sb-icon fas fa-calendar-check"></i>
+                                Jadwal Absensi
+                            </a>
+                            
                             <a href="{{ route('attendance.reports') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i class="sb-icon fas fa-chart-bar"></i>
                                 Riwayat Absensi
                             </a>
                             
                             <a href="{{ route('leave-requests.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                                <i class="sb-icon fas fa-clipboard-list"></i>
                                 Izin Saya
+                            </a>
+                        </div>
+                    @endif
+
+                    <!-- 4.5. JADWAL ABSENSI (All roles except super admin) -->
+                    @if(strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        <div class="space-y-1">
+                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Jadwal</div>
+                            
+                            <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-calendar-check"></i>
+                                Jadwal Absensi
                             </a>
                         </div>
                     @endif
@@ -304,6 +323,16 @@
                                 <i class="sb-icon fas fa-palette"></i>
                                 Kustomisasi Aplikasi
                             </a>
+                            
+                            <a href="{{ route('admin.holidays.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.holidays.*') ? 'text-blue-900' : '' }}">
+                                <i class="sb-icon fas fa-calendar-times"></i>
+                                Kelola Hari Libur
+                            </a>
+                            
+                            <a href="{{ route('admin.special-schedules.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.special-schedules.*') ? 'text-blue-900' : '' }}">
+                                <i class="sb-icon fas fa-calendar-alt"></i>
+                                Kelola Jadwal Khusus
+                            </a>
                             </div>
                         </div>
                     @endif
@@ -317,6 +346,10 @@
                 <a href="{{ route('dashboard') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Dashboard" aria-label="Dashboard">
                     <i class="fas fa-home"></i>
                     <span class="rail-tooltip">Dashboard</span>
+                </a>
+                <a href="{{ route('schedule.index') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Jadwal Absensi" aria-label="Jadwal Absensi">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="rail-tooltip">Jadwal Absensi</span>
                 </a>
                 @if(auth()->user()->hasRole(['teacher','tu','bk','kesiswaan','admin','headmaster']))
                 <a href="{{ route('attendance.index') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Status Absensi" aria-label="Status Absensi">

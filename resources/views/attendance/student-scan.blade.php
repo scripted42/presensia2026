@@ -123,7 +123,7 @@
 
                     <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button id="syncButton" class="action-btn sync-btn">
+                    <button id="syncButtonBottom" class="action-btn sync-btn">
                         <i class="fas fa-sync-alt mr-2"></i>Synchronize
                         </button>
                     <button id="clearAllButton" class="action-btn clear-btn">
@@ -147,6 +147,32 @@
 @push('scripts')
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- Handle session notifications -->
+    @if(session('sync_result'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const syncResult = @json(session('sync_result'));
+                
+                // Show enhanced notification with detailed counts
+                showSyncNotification(
+                    syncResult.success_count,
+                    syncResult.duplicate_count,
+                    syncResult.error_count,
+                    syncResult.total_count
+                );
+                
+                // Clear the session data after displaying
+                fetch('{{ route("attendance.clear-sync-result") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            });
+        </script>
+    @endif
     
     <!-- Mobile Full Screen Layout CSS -->
     <style>
@@ -1052,6 +1078,15 @@
         // QR Code scan success callback
         function onScanSuccess(decodedText, decodedResult) {
             console.log('QR Code detected:', decodedText);
+            
+            // Check if student already exists
+            const existingStudent = capturedStudents.find(student => student.qrCode === decodedText);
+            if (existingStudent) {
+                console.log('⚠️ Siswa sudah ada dalam daftar:', decodedText);
+                showNotification('Siswa sudah ada dalam daftar', 'warning');
+                return;
+            }
+            
             addCapturedPhoto(decodedText, true);
         }
         
@@ -1186,26 +1221,7 @@
             }
         }
         
-        // Sync button event listener
-        document.getElementById('syncButton').addEventListener('click', function() {
-            if (capturedStudents.length === 0) {
-                showNotification('Tidak ada data untuk disinkronkan', 'warning');
-                return;
-            }
-            
-            // Show loading state
-            const syncButton = this;
-            const originalText = syncButton.innerHTML;
-            syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synchronizing...';
-            syncButton.disabled = true;
-            
-            // Simulate sync process
-            setTimeout(() => {
-                showNotification(`Berhasil menyinkronkan ${capturedStudents.length} data siswa`, 'success');
-                syncButton.innerHTML = originalText;
-                syncButton.disabled = false;
-            }, 2000);
-        });
+        // Sync button event listener - REMOVED (duplicate with working one below)
 
         // QR Code scan failure callback
         function onScanFailure(error) {
@@ -1215,6 +1231,14 @@
 
         // Add captured photo/QR to list
         function addCapturedPhoto(data, isQRText = false) {
+            // Check if student already exists in capturedStudents
+            const existingStudent = capturedStudents.find(student => student.qrCode === data);
+            if (existingStudent) {
+                console.log('⚠️ Siswa sudah ada dalam daftar:', data);
+                showNotification('Siswa sudah ada dalam daftar', 'warning');
+                return;
+            }
+            
             const currentTime = new Date().toLocaleTimeString('id-ID', { 
                 hour12: false, 
                 timeZone: 'Asia/Jakarta' 
@@ -1312,6 +1336,14 @@
         document.getElementById('addManual').addEventListener('click', function() {
             const manualQr = document.getElementById('manual_qr').value.trim();
             if (manualQr) {
+                // Check if student already exists
+                const existingStudent = capturedStudents.find(student => student.qrCode === manualQr);
+                if (existingStudent) {
+                    showNotification('Siswa sudah ada dalam daftar', 'warning');
+                    document.getElementById('manual_qr').value = '';
+                    return;
+                }
+                
                 addCapturedPhoto(manualQr, true);
                 document.getElementById('manual_qr').value = '';
             } else {
@@ -1320,12 +1352,47 @@
         });
 
 
-        // Synchronize button
+        // Synchronize button (top)
         document.getElementById('syncButton').addEventListener('click', function() {
             if (capturedStudents.length === 0) {
                 showNotification('Tidak ada siswa untuk disinkronkan', 'warning');
                 return;
             }
+            
+            // Show loading state
+            const syncButton = this;
+            const originalText = syncButton.innerHTML;
+            syncButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyinkronkan...';
+            syncButton.disabled = true;
+            
+            // Prepare hidden inputs
+            const hiddenInputs = document.getElementById('hiddenInputs');
+            hiddenInputs.innerHTML = '';
+            
+            capturedStudents.forEach(record => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'qr_codes[]';
+                input.value = record.qrCode;
+                hiddenInputs.appendChild(input);
+            });
+            
+            // Submit form
+            document.getElementById('syncForm').submit();
+        });
+
+        // Synchronize button (bottom)
+        document.getElementById('syncButtonBottom').addEventListener('click', function() {
+            if (capturedStudents.length === 0) {
+                showNotification('Tidak ada siswa untuk disinkronkan', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const syncButton = this;
+            const originalText = syncButton.innerHTML;
+            syncButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyinkronkan...';
+            syncButton.disabled = true;
             
             // Prepare hidden inputs
             const hiddenInputs = document.getElementById('hiddenInputs');
@@ -1377,6 +1444,33 @@
                     notification.parentNode.removeChild(notification);
                 }
             }, 3000);
+        }
+
+        // Enhanced notification function for sync results
+        function showSyncNotification(successCount, duplicateCount, errorCount, totalCount) {
+            let message = '';
+            let type = 'info';
+            
+            if (successCount > 0 && errorCount === 0) {
+                message = `✅ Berhasil: ${successCount} siswa`;
+                if (duplicateCount > 0) {
+                    message += ` | ⚠️ Duplikat: ${duplicateCount} siswa`;
+                }
+                type = 'success';
+            } else if (successCount > 0 && errorCount > 0) {
+                message = `✅ Berhasil: ${successCount} siswa | ❌ Gagal: ${errorCount} siswa`;
+                if (duplicateCount > 0) {
+                    message += ` | ⚠️ Duplikat: ${duplicateCount} siswa`;
+                }
+                type = 'warning';
+            } else if (errorCount > 0) {
+                message = `❌ Gagal: ${errorCount} siswa`;
+                type = 'error';
+            } else {
+                message = `📊 Total diproses: ${totalCount} siswa`;
+            }
+            
+            showNotification(message, type);
         }
     </script>
 @endpush

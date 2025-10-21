@@ -13,6 +13,9 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\AuditTrailController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\NetworkController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\Admin\HolidayController;
+use App\Http\Controllers\Admin\SpecialScheduleController;
 
 // Public routes
 Route::get('/', function () {
@@ -106,11 +109,18 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
             Route::get('/display-qr', [AttendanceController::class, 'showDisplayQr'])->name('display-qr')->middleware('role:admin');
             Route::get('/student-scan', [AttendanceController::class, 'showStudentScan'])->name('student-scan')->middleware('role:teacher|admin');
             Route::post('/student-scan', [AttendanceController::class, 'scanStudent'])->name('scan-student')->middleware('role:teacher|admin');
+            Route::post('/clear-sync-result', [AttendanceController::class, 'clearSyncResult'])->name('clear-sync-result')->middleware('role:teacher|admin');
         });
 
         // Laporan boleh diakses semua role termasuk student
         Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
         Route::get('/reports/export', [AttendanceController::class, 'exportReport'])->name('reports.export');
+    });
+    
+    // Schedule routes (accessible by all authenticated users)
+    Route::prefix('schedule')->name('schedule.')->group(function () {
+        Route::get('/', [ScheduleController::class, 'index'])->name('index');
+        Route::get('/today', [ScheduleController::class, 'today'])->name('today');
     });
     
     // Settings (Admin only)
@@ -124,6 +134,14 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
             Route::resource('permissions', PermissionController::class);
             Route::post('/roles/assign', [RoleController::class, 'assignToUser'])->name('roles.assign');
             Route::post('/roles/remove', [RoleController::class, 'removeFromUser'])->name('roles.remove');
+            
+            // Holiday Management
+            Route::resource('holidays', HolidayController::class);
+            Route::post('/holidays/{holiday}/toggle', [HolidayController::class, 'toggle'])->name('holidays.toggle');
+            
+            // Special Schedule Management
+            Route::resource('special-schedules', SpecialScheduleController::class);
+            Route::post('/special-schedules/{specialSchedule}/toggle', [SpecialScheduleController::class, 'toggle'])->name('special-schedules.toggle');
         });
     });
     

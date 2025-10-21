@@ -86,7 +86,33 @@ class AttendanceController extends Controller
         ]);
         
         $user = Auth::user();
-        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $today = Carbon::now('Asia/Jakarta');
+        $todayFormatted = $today->format('Y-m-d');
+        
+        // Validasi: Cek apakah hari ini adalah hari libur
+        if (\App\Models\HolidaySchedule::isHoliday($today, $user->school_id)) {
+            $holidayName = \App\Models\HolidaySchedule::getHolidayName($today, $user->school_id);
+            return redirect()->back()->withErrors(['holiday' => "Hari ini adalah {$holidayName}. Absensi tidak diperbolehkan pada hari libur."]);
+        }
+        
+        // Validasi: Cek apakah ada check-out kemarin yang belum dilakukan
+        $yesterday = $today->copy()->subDay()->format('Y-m-d');
+        $yesterdayAttendance = Attendance::where('user_id', $user->id)
+            ->where('date', $yesterday)
+            ->whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->first();
+            
+        if ($yesterdayAttendance) {
+            // Jika kemarin belum check-out, tetap boleh check-in hari ini
+            // Tapi beri peringatan dan log untuk monitoring
+            \Log::warning('User check-in without previous day checkout', [
+                'user_id' => $user->id,
+                'yesterday_date' => $yesterday,
+                'yesterday_check_in' => $yesterdayAttendance->check_in,
+                'current_time' => now()->setTimezone('Asia/Jakarta')
+            ]);
+        }
         
         // Validate QR code if provided (graceful fallback for generic QR)
         if ($request->qr_code) {
@@ -117,14 +143,15 @@ class AttendanceController extends Controller
         }
 
         // Create or update attendance
+        $checkInTime = now()->setTimezone('Asia/Jakarta');
         $attendance = Attendance::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'date' => Carbon::now('Asia/Jakarta')->format('Y-m-d'),
+                'date' => $todayFormatted,
             ],
             [
-                'check_in' => now()->setTimezone('Asia/Jakarta'),
-                'status' => $this->determineStatus($user, now()->setTimezone('Asia/Jakarta')),
+                'check_in' => $checkInTime,
+                'status' => $this->determineStatus($user, $checkInTime),
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'location_name' => $request->location_name,
@@ -379,18 +406,44 @@ class AttendanceController extends Controller
             }
         }
         
-        $message = $processedCount . ' siswa berhasil diabsensi.';
+        // Create detailed message with counts
+        $successCount = $processedCount;
+        $duplicateCount = count($duplicates);
+        $errorCount = count($errors);
+        $totalCount = $successCount + $duplicateCount + $errorCount;
         
-        if (count($duplicates) > 0) {
-            $message .= ' ' . count($duplicates) . ' siswa sudah diabsensi sebelumnya.';
+        $message = $successCount . ' siswa berhasil diabsensi';
+        
+        if ($duplicateCount > 0) {
+            $message .= ', ' . $duplicateCount . ' siswa sudah diabsensi sebelumnya';
         }
         
-        if (count($errors) > 0) {
-            $message .= ' Error: ' . implode(', ', array_slice($errors, 0, 3)) . (count($errors) > 3 ? '...' : '');
+        if ($errorCount > 0) {
+            $message .= ', ' . $errorCount . ' siswa gagal diabsensi';
         }
+        
+        // Store detailed data in session for JavaScript parsing
+        session([
+            'sync_result' => [
+                'success_count' => $successCount,
+                'duplicate_count' => $duplicateCount,
+                'error_count' => $errorCount,
+                'total_count' => $totalCount,
+                'errors' => $errors
+            ]
+        ]);
         
         return redirect()->route('attendance.student-scan')
             ->with('success', $message);
+    }
+    
+    /**
+     * Clear sync result session data
+     */
+    public function clearSyncResult()
+    {
+        session()->forget('sync_result');
+        return response()->json(['success' => true]);
     }
     
     /**
@@ -435,11 +488,12 @@ class AttendanceController extends Controller
                 }
                 
                 // Create attendance record for student
+                $checkInTime = now()->setTimezone('Asia/Jakarta');
                 Attendance::create([
                     'user_id' => $student->id,
                     'date' => Carbon::now('Asia/Jakarta')->format('Y-m-d'),
-                    'check_in' => now()->setTimezone('Asia/Jakarta'),
-                    'status' => 'ontime',
+                    'check_in' => $checkInTime,
+                    'status' => $this->determineStatus($student, $checkInTime),
                     'notes' => 'Absensi oleh guru: ' . Auth::user()->name,
                     'latitude' => null,
                     'longitude' => null,
@@ -711,8 +765,15 @@ class AttendanceController extends Controller
                 $cursor->addDay();
             }
         }
+
+        // Get holiday information for the month
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('date');
         
-        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user', 'leaveByUserDate'));
+        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user', 'leaveByUserDate', 'holidays'));
     }
 
     /**
@@ -748,6 +809,9 @@ class AttendanceController extends Controller
         $request->validate([
             'check_in_time' => 'required|date_format:H:i',
             'check_out_time' => 'required|date_format:H:i',
+            'teacher_max_time' => 'nullable|date_format:H:i',
+            'student_max_time' => 'nullable|date_format:H:i',
+            'other_roles_max_time' => 'nullable|date_format:H:i',
             'location_latitude' => 'required|numeric',
             'location_longitude' => 'required|numeric',
             'location_name' => 'required|string',
@@ -759,6 +823,9 @@ class AttendanceController extends Controller
             [
                 'check_in_time' => $request->check_in_time,
                 'check_out_time' => $request->check_out_time,
+                'teacher_max_time' => $request->teacher_max_time ?? '06:30',
+                'student_max_time' => $request->student_max_time ?? '06:30',
+                'other_roles_max_time' => $request->other_roles_max_time ?? '07:00',
                 'location_latitude' => $request->location_latitude,
                 'location_longitude' => $request->location_longitude,
                 'location_name' => $request->location_name,
@@ -774,26 +841,63 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Determine attendance status based on time.
+     * Determine attendance status based on time and role.
      */
     private function determineStatus($user, $checkInTime)
     {
-        $settings = AttendanceSetting::where('school_id', $user->school_id)
-            ->where('is_active', true)
-            ->first();
-            
-        if (!$settings) {
-            return 'ontime';
-        }
-        
         $checkInTimeFormatted = $checkInTime->format('H:i:s');
-        $expectedCheckIn = $settings->check_in_time;
         
-        if ($checkInTimeFormatted <= $expectedCheckIn) {
+        // Role-based time limits with special schedules and daily overrides
+        $maxTime = $this->getMaxCheckInTime($user, $checkInTime);
+        
+        if ($checkInTimeFormatted <= $maxTime) {
             return 'ontime';
         } else {
             return 'late';
         }
+    }
+
+    /**
+     * Get maximum check-in time based on user role.
+     */
+    private function getMaxCheckInTime($user, $checkInTime = null)
+    {
+        $checkInTime = $checkInTime ?: now('Asia/Jakarta');
+        
+        // Priority 1: Daily Override (highest priority)
+        $dailyOverrideTime = \App\Models\DailyOverride::getMaxCheckInTimeForDate($checkInTime, $user);
+        if ($dailyOverrideTime) {
+            return $dailyOverrideTime;
+        }
+        
+        // Priority 2: Special Schedule (e.g., Upacara Senin)
+        $specialScheduleTime = \App\Models\SpecialSchedule::getMaxCheckInTimeForDate($checkInTime, $user);
+        if ($specialScheduleTime) {
+            return $specialScheduleTime;
+        }
+        
+        // Priority 3: Regular settings
+        $settings = AttendanceSetting::where('school_id', $user->school_id)
+            ->where('is_active', true)
+            ->first();
+            
+        if ($settings) {
+            // Gunakan setting dari database jika tersedia
+            if ($user->hasRole(['teacher'])) {
+                return $settings->teacher_max_time ? $settings->teacher_max_time->format('H:i:s') : '06:30:00';
+            } elseif ($user->hasRole(['student'])) {
+                return $settings->student_max_time ? $settings->student_max_time->format('H:i:s') : '06:30:00';
+            } else {
+                return $settings->other_roles_max_time ? $settings->other_roles_max_time->format('H:i:s') : '07:00:00';
+            }
+        }
+        
+        // Fallback ke default jika tidak ada setting
+        if ($user->hasRole(['teacher', 'student'])) {
+            return '06:30:00';
+        }
+        
+        return '07:00:00';
     }
 
     private function isWithinRadius(float $lat, float $lng, float $centerLat, float $centerLng, int $radiusMeters): bool
@@ -1144,8 +1248,7 @@ class AttendanceController extends Controller
             
             // Jabatan/Kelas
             if ($user->user_type === 'student') {
-                $class = $user->classes()->first();
-                $sheet->setCellValue([5, $row], $class ? $class->name : '-');
+                $sheet->setCellValue([5, $row], 'Siswa');
             } else {
                 $roles = $user->roles->pluck('name')->implode(', ');
                 $sheet->setCellValue([5, $row], $roles ?: '-');

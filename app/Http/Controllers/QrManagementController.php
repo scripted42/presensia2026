@@ -76,7 +76,7 @@ class QrManagementController extends Controller
         foreach ($students as $student) {
             try {
                 $payload = ($student->nis ?? '').'|'.$student->name;
-                $png = $this->renderPng($payload, 600);
+            $png = $this->renderPng($payload, 600);
                 
                 if ($png && strlen($png) > 0) {
                     $filename = $this->sanitizeFilename(($student->nis ?? 'NIS')."_".$student->name).'.png';

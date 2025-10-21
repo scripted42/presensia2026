@@ -46,6 +46,31 @@
                         @error('check_out_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
+                
+                <!-- Role-specific Time Limits -->
+                <div class="mt-6">
+                    <h4 class="text-md font-medium text-gray-900 mb-3">Batas Waktu Maksimal Absensi Berdasarkan Role</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="teacher_max_time" class="block text-sm font-medium text-gray-700">Guru (Maksimal)</label>
+                            <input type="time" name="teacher_max_time" id="teacher_max_time" value="{{ old('teacher_max_time', $settings->teacher_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Guru yang absen setelah jam ini akan dicatat terlambat</p>
+                            @error('teacher_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="student_max_time" class="block text-sm font-medium text-gray-700">Siswa (Maksimal)</label>
+                            <input type="time" name="student_max_time" id="student_max_time" value="{{ old('student_max_time', $settings->student_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Siswa yang absen setelah jam ini akan dicatat terlambat</p>
+                            @error('student_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="other_roles_max_time" class="block text-sm font-medium text-gray-700">Role Lainnya (Maksimal)</label>
+                            <input type="time" name="other_roles_max_time" id="other_roles_max_time" value="{{ old('other_roles_max_time', $settings->other_roles_max_time ?? '07:00') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Role lainnya yang absen setelah jam ini akan dicatat terlambat</p>
+                            @error('other_roles_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Location Settings -->
@@ -112,7 +137,7 @@
             <!-- Submit Button -->
             <div class="px-4 py-5 sm:p-6 bg-gray-50">
                 <div class="flex justify-end">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         <i class="fas fa-save mr-2"></i>Simpan Pengaturan
                     </button>
                 </div>

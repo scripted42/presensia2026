@@ -286,9 +286,17 @@ class DashboardController extends Controller
 
     /**
      * Hitung usage absensi periode: persentase user aktif yang melakukan absensi.
+     * Mengecualikan hari libur dari perhitungan.
      */
     private function calculateUsageMetrics($user, string $startDate, string $endDate, ?string $roleFilter = null): array
     {
+        // Dapatkan daftar hari libur dalam periode
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->pluck('date')
+            ->toArray();
+
         $targetTypes = ['employee','student'];
         if ($roleFilter === 'employee') { $targetTypes = ['employee']; }
         if ($roleFilter === 'student') { $targetTypes = ['student']; }
@@ -298,6 +306,7 @@ class DashboardController extends Controller
             ->count();
 
         $activeUserIds = Attendance::whereBetween('date', [$startDate, $endDate])
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user) {
                 $q->where('school_id', $user->school_id)
                   ->whereDoesntHave('roles', function($r){ $r->where('name','super-admin'); })
@@ -446,16 +455,29 @@ class DashboardController extends Controller
 
     /**
      * Hitung KPI absensi sederhana 0-100: 60% ontime rate, 40% coverage rate.
+     * Mengecualikan hari libur dari perhitungan KPI.
      */
     private function calculateAttendanceKpi($user, string $startDate, string $endDate, array $usage, array $completeness, array $leak, array $weights): array
     {
+        // Dapatkan daftar hari libur dalam periode
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->pluck('date')
+            ->toArray();
+
+        // Hitung total hari kerja (exclude holidays)
+        $workingDays = $this->getWorkingDaysInPeriod($startDate, $endDate, $holidays);
+        
         $totalRecords = Attendance::whereBetween('date', [$startDate, $endDate])
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user) {
                 $q->where('school_id', $user->school_id);
             })->count();
 
         $ontimeRecords = Attendance::whereBetween('date', [$startDate, $endDate])
             ->where('status', 'ontime')
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user) {
                 $q->where('school_id', $user->school_id);
             })->count();
@@ -483,16 +505,27 @@ class DashboardController extends Controller
             'coverage_rate' => round($coverageRate * 100, 1),
             'completeness_rate' => round($completenessRate * 100, 1),
             'checkout_consistency' => round($checkoutConsistency * 100, 1),
+            'working_days' => $workingDays,
+            'holidays_count' => count($holidays),
         ];
     }
 
     /**
      * Hitung leak check-out: record dengan check_in ada dan check_out kosong.
+     * Mengecualikan hari libur dari perhitungan.
      */
     private function calculateLeakMetrics($user, string $startDate, string $endDate, ?string $roleFilter = null): array
     {
+        // Dapatkan daftar hari libur dalam periode
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->pluck('date')
+            ->toArray();
+
         $totalCheckInsQuery = Attendance::whereBetween('date', [$startDate, $endDate])
             ->whereNotNull('check_in')
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user, $roleFilter) {
                 $q->where('school_id', $user->school_id);
                 if ($roleFilter === 'employee') { $q->where('user_type','employee'); }
@@ -503,6 +536,7 @@ class DashboardController extends Controller
         $leaks = Attendance::whereBetween('date', [$startDate, $endDate])
             ->whereNotNull('check_in')
             ->whereNull('check_out')
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user, $roleFilter) {
                 $q->where('school_id', $user->school_id);
                 if ($roleFilter === 'employee') { $q->where('user_type','employee'); }
@@ -526,9 +560,17 @@ class DashboardController extends Controller
 
     /**
      * Daftar user yang tidak pernah melakukan absensi pada periode.
+     * Mengecualikan hari libur dari perhitungan.
      */
     private function getNonUserList($user, string $startDate, string $endDate, int $limit = 10, ?string $roleFilter = null)
     {
+        // Dapatkan daftar hari libur dalam periode
+        $holidays = \App\Models\HolidaySchedule::where('school_id', $user->school_id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->pluck('date')
+            ->toArray();
+
         $targetTypes = ['employee','student'];
         if ($roleFilter === 'employee') { $targetTypes = ['employee']; }
         if ($roleFilter === 'student') { $targetTypes = ['student']; }
@@ -538,6 +580,7 @@ class DashboardController extends Controller
             ->pluck('id');
 
         $activeIds = Attendance::whereBetween('date', [$startDate, $endDate])
+            ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereIn('user_id', $allUserIds)
             ->distinct('user_id')
             ->pluck('user_id');
@@ -685,6 +728,32 @@ class DashboardController extends Controller
             $buckets[] = [$ws->format('Y-m-d'), $we->format('Y-m-d'), $label];
         }
         return $buckets;
+    }
+
+    /**
+     * Hitung total hari kerja dalam periode (exclude holidays)
+     */
+    private function getWorkingDaysInPeriod(string $startDate, string $endDate, array $holidays): int
+    {
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        $workingDays = 0;
+        
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            // Skip weekends (Saturday = 6, Sunday = 0)
+            if ($date->dayOfWeek == 0 || $date->dayOfWeek == 6) {
+                continue;
+            }
+            
+            // Skip holidays
+            if (in_array($date->format('Y-m-d'), $holidays)) {
+                continue;
+            }
+            
+            $workingDays++;
+        }
+        
+        return $workingDays;
     }
 
     /**

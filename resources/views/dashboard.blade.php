@@ -228,10 +228,10 @@
                             <option value="employee" {{ ($metrics['role_filter'] ?? 'all') === 'employee' ? 'selected' : '' }}>Pegawai</option>
                             <option value="student" {{ ($metrics['role_filter'] ?? 'all') === 'student' ? 'selected' : '' }}>Siswa</option>
                         </select>
-                        <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Terapkan</button>
-                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-2 py-1 border rounded text-xs hover:bg-gray-50">Hari Ini</a>
-                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->subDays(6)->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-2 py-1 border rounded text-xs hover:bg-gray-50">7 Hari</a>
-                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->startOfMonth()->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->endOfDay()->format('Y-m-d')]) }}" class="px-2 py-1 border rounded text-xs hover:bg-gray-50">Bulan Ini</a>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors">Terapkan</button>
+                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1 border rounded text-xs hover:bg-gray-50 transition-colors">Hari Ini</a>
+                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->subDays(6)->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1 border rounded text-xs hover:bg-gray-50 transition-colors">7 Hari</a>
+                        <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->startOfMonth()->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->endOfDay()->format('Y-m-d')]) }}" class="px-3 py-1 border rounded text-xs hover:bg-gray-50 transition-colors">Bulan Ini</a>
                         
                     </form>
                 </div>
@@ -273,6 +273,16 @@
                         <div class="mt-1 text-2xl font-semibold">{{ $metrics['kpi']['score'] ?? 0 }}</div>
                         <div id="gauge-kpi" class="mt-2" style="height:120px;"></div>
                         <div class="mt-1 text-xs text-gray-500">Ontime {{ $metrics['kpi']['ontime_rate'] ?? 0 }}% • Coverage {{ $metrics['kpi']['coverage_rate'] ?? 0 }}% • Data {{ $metrics['kpi']['completeness_rate'] ?? 0 }}% • Checkout {{ $metrics['kpi']['checkout_consistency'] ?? 0 }}%</div>
+                        @if(isset($metrics['kpi']['working_days']) && isset($metrics['kpi']['holidays_count']))
+                        <div class="mt-2 text-xs text-gray-400">
+                            <i class="fas fa-calendar-alt mr-1"></i>{{ $metrics['kpi']['working_days'] }} hari kerja
+                            @if($metrics['kpi']['holidays_count'] > 0)
+                                <span class="text-red-500 ml-2">
+                                    <i class="fas fa-calendar-times mr-1"></i>{{ $metrics['kpi']['holidays_count'] }} hari libur
+                                </span>
+                            @endif
+                        </div>
+                        @endif
                     </div>
             <div class="p-4 rounded border solution_card">
                         <div class="flex items-center justify-between">

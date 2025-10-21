@@ -19,7 +19,37 @@ class MobileAttendanceController extends Controller
     public function checkIn(Request $request)
     {
         $user = Auth::user();
-        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $today = Carbon::now('Asia/Jakarta');
+        $todayFormatted = $today->format('Y-m-d');
+        
+        // Validasi: Cek apakah hari ini adalah hari libur
+        if (\App\Models\HolidaySchedule::isHoliday($today, $user->school_id)) {
+            $holidayName = \App\Models\HolidaySchedule::getHolidayName($today, $user->school_id);
+            return response()->json([
+                'success' => false,
+                'message' => "Hari ini adalah {$holidayName}. Absensi tidak diperbolehkan pada hari libur.",
+                'error_type' => 'holiday'
+            ], 400);
+        }
+        
+        // Validasi: Cek apakah ada check-out kemarin yang belum dilakukan
+        $yesterday = $today->copy()->subDay()->format('Y-m-d');
+        $yesterdayAttendance = Attendance::where('user_id', $user->id)
+            ->where('date', $yesterday)
+            ->whereNotNull('check_in')
+            ->whereNull('check_out')
+            ->first();
+            
+        if ($yesterdayAttendance) {
+            // Jika kemarin belum check-out, tetap boleh check-in hari ini
+            // Tapi beri peringatan dan log untuk monitoring
+            \Log::warning('Mobile user check-in without previous day checkout', [
+                'user_id' => $user->id,
+                'yesterday_date' => $yesterday,
+                'yesterday_check_in' => $yesterdayAttendance->check_in,
+                'current_time' => now()->setTimezone('Asia/Jakarta')
+            ]);
+        }
         
         // Validate request
         $request->validate([
@@ -90,13 +120,14 @@ class MobileAttendanceController extends Controller
         }
 
         // Determine status
-        $status = $this->determineStatus($user, now(), $settings);
+        $checkInTime = now();
+        $status = $this->determineStatus($user, $checkInTime, $settings);
 
         // Create attendance record
         $attendance = Attendance::create([
             'user_id' => $user->id,
-            'date' => $today,
-            'check_in' => now(),
+            'date' => $todayFormatted,
+            'check_in' => $checkInTime,
             'status' => $status,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
@@ -258,29 +289,65 @@ class MobileAttendanceController extends Controller
     }
 
     /**
-     * Determine attendance status
+     * Determine attendance status based on time and role.
      */
     private function determineStatus($user, $checkInTime, $settings = null)
     {
-        if (!$settings) {
-            $settings = AttendanceSetting::where('school_id', $user->school_id)
-                ->where('is_active', true)
-                ->first();
-        }
-
-        if (!$settings) {
-            return 'ontime';
-        }
-
         $checkInTimeFormatted = $checkInTime->format('H:i:s');
-        $expectedCheckIn = $settings->check_in_time;
+        
+        // Role-based time limits with special schedules and daily overrides
+        $maxTime = $this->getMaxCheckInTime($user, $checkInTime);
 
-        if ($checkInTimeFormatted <= $expectedCheckIn) {
+        if ($checkInTimeFormatted <= $maxTime) {
             return 'ontime';
         } else {
             return 'late';
         }
     }
+
+    /**
+     * Get maximum check-in time based on user role.
+     */
+    private function getMaxCheckInTime($user, $checkInTime = null)
+    {
+        $checkInTime = $checkInTime ?: now('Asia/Jakarta');
+        
+        // Priority 1: Daily Override (highest priority)
+        $dailyOverrideTime = \App\Models\DailyOverride::getMaxCheckInTimeForDate($checkInTime, $user);
+        if ($dailyOverrideTime) {
+            return $dailyOverrideTime;
+        }
+        
+        // Priority 2: Special Schedule (e.g., Upacara Senin)
+        $specialScheduleTime = \App\Models\SpecialSchedule::getMaxCheckInTimeForDate($checkInTime, $user);
+        if ($specialScheduleTime) {
+            return $specialScheduleTime;
+        }
+        
+        // Priority 3: Regular settings
+        $settings = AttendanceSetting::where('school_id', $user->school_id)
+            ->where('is_active', true)
+            ->first();
+            
+        if ($settings) {
+            // Gunakan setting dari database jika tersedia
+            if ($user->hasRole(['teacher'])) {
+                return $settings->teacher_max_time ? $settings->teacher_max_time->format('H:i:s') : '06:30:00';
+            } elseif ($user->hasRole(['student'])) {
+                return $settings->student_max_time ? $settings->student_max_time->format('H:i:s') : '06:30:00';
+            } else {
+                return $settings->other_roles_max_time ? $settings->other_roles_max_time->format('H:i:s') : '07:00:00';
+            }
+        }
+        
+        // Fallback ke default jika tidak ada setting
+        if ($user->hasRole(['teacher', 'student'])) {
+            return '06:30:00';
+        }
+        
+        return '07:00:00';
+    }
 }
+
 
 

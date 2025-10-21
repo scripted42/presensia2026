@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'security.monitor' => \App\Http\Middleware\SecurityMonitoringMiddleware::class,
             'cors' => \App\Http\Middleware\Cors::class,
         ]);
+        
+        // Add CSRF protection for web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\VerifyCsrfToken::class,
+        ]);
 
         // Add CORS middleware for ngrok support
         $middleware->append(\App\Http\Middleware\Cors::class);

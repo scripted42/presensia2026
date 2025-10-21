@@ -15,6 +15,35 @@
     .attendance-table { font-size: 12px; }
     .attendance-table th { padding: 6px 6px; }
     .attendance-table td { padding: 6px 4px; }
+    
+    /* Holiday styling - Very Simple */
+    .holiday-cell {
+        background: #f8f9fa !important;
+        border-left: 2px solid #dc3545 !important;
+    }
+    
+    .weekend-cell {
+        background: #f8f9fa !important;
+        border-left: 2px solid #fd7e14 !important;
+    }
+    
+    .holiday-badge {
+        background: #dc3545 !important;
+        color: white !important;
+        font-size: 9px !important;
+        padding: 1px 4px !important;
+        border-radius: 2px !important;
+        display: inline-block !important;
+    }
+    
+    .weekend-badge {
+        background: #fd7e14 !important;
+        color: white !important;
+        font-size: 9px !important;
+        padding: 1px 4px !important;
+        border-radius: 2px !important;
+        display: inline-block !important;
+    }
 
     /* Minimal pill badges */
     .att-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:9999px; border-width:1px; border-style:solid; font-size:10px; line-height:1; font-weight:600; min-width:64px; }
@@ -64,6 +93,20 @@
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="bg-gray-50 rounded mb-4 p-3">
+        <div class="flex gap-4 text-xs">
+            <div class="flex items-center gap-1">
+                <div class="holiday-badge">LIBUR</div>
+                <span class="text-gray-600">Hari Libur</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <div class="weekend-badge">WEEKEND</div>
+                <span class="text-gray-600">Sabtu/Minggu</span>
             </div>
         </div>
     </div>
@@ -203,6 +246,15 @@
                                 $attendance = $userAttendances->where(function($item) use ($dateKey) { return $item->date->format('Y-m-d') === $dateKey; })->first();
                                 // Overlay approved leave if no attendance record
                                 $overlayLeave = isset($leaveByUserDate[$userId][$dateKey]) ? $leaveByUserDate[$userId][$dateKey] : null;
+                                
+                                // Check if this date is a holiday
+                                $isHoliday = isset($holidays[$dateKey]);
+                                $holidayName = $isHoliday ? $holidays[$dateKey]->holiday_name : null;
+                                
+                                // Check if it's weekend (Saturday or Sunday)
+                                $isWeekend = $date->isWeekend();
+                                $weekendName = $isWeekend ? ($date->isSaturday() ? 'Hari Sabtu' : 'Hari Minggu') : null;
+                                
                                 $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
                                 // warna badge sesuai legenda (hex)
@@ -218,21 +270,27 @@
                                 $labels = [ 'ontime'=>'Ontime', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpha' ];
                                 $style = $badgeMap[$status] ?? $badgeMap['alpha'];
                             ?>
-                            <td class="px-1 py-1 text-center">
-                                <?php
-                                    $badgeClass = match($status){
-                                        'ontime' => 'att-badge att-ontime',
-                                        'late' => 'att-badge att-late',
-                                        'sick','permit','duty','leave' => 'att-badge att-leave',
-                                        default => 'att-badge att-alpha'
-                                    };
-                                ?>
-                                <div>
-                                    <span class="<?php echo e($badgeClass); ?>"><?php echo e($labels[$status] ?? 'Alpha'); ?></span>
-                                    <?php if($attendance && in_array($status, ['ontime', 'late']) && $time): ?>
-                                        <div class="att-time"><?php echo e($time); ?></div>
-                                    <?php endif; ?>
-                                </div>
+                            <td class="px-1 py-1 text-center <?php echo e($isHoliday ? 'holiday-cell' : ($isWeekend ? 'weekend-cell' : 'bg-white')); ?>">
+                                <?php if($isHoliday): ?>
+                                    <div class="holiday-badge">LIBUR</div>
+                                <?php elseif($isWeekend): ?>
+                                    <div class="weekend-badge">WEEKEND</div>
+                                <?php else: ?>
+                                    <?php
+                                        $badgeClass = match($status){
+                                            'ontime' => 'att-badge att-ontime',
+                                            'late' => 'att-badge att-late',
+                                            'sick','permit','duty','leave' => 'att-badge att-leave',
+                                            default => 'att-badge att-alpha'
+                                        };
+                                    ?>
+                                    <div>
+                                        <span class="<?php echo e($badgeClass); ?>"><?php echo e($labels[$status] ?? 'Alpha'); ?></span>
+                                        <?php if($attendance && in_array($status, ['ontime', 'late']) && $time): ?>
+                                            <div class="att-time"><?php echo e($time); ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <?php endfor; ?>
                         </tr>

@@ -13,15 +13,15 @@
             </div>
             <div class="flex space-x-3">
                 @if(!$attendances || !$attendances->check_in)
-                <a href="{{ route('attendance.check-in') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                <a href="{{ route('attendance.check-in') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
                     <i class="fas fa-sign-in-alt mr-2"></i>Absensi Masuk
                 </a>
                 @elseif(!$attendances->check_out)
-                <a href="{{ route('attendance.check-out') }}" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                <a href="{{ route('attendance.check-out') }}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
                     <i class="fas fa-sign-out-alt mr-2"></i>Absensi Keluar
                 </a>
                 @else
-                <span class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium">
+                <span class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium">
                     <i class="fas fa-check mr-2"></i>Absensi Sudah Lengkap
                 </span>
                 @endif

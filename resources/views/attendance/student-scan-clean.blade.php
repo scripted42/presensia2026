@@ -51,10 +51,10 @@
 
                             <!-- Camera Controls -->
                             <div class="flex space-x-3 mb-4">
-                                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                <button id="startCamera" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                     <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
                                 </button>
-                                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
+                                <button id="stopCamera" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
                                     <i class="fas fa-stop mr-2"></i>Stop Scan
                                 </button>
                             </div>
@@ -420,6 +420,7 @@
         }
     </script>
 @endpush
+
 
 
 

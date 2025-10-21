@@ -11,7 +11,7 @@
             </div>
             <div class="flex space-x-2">
                 <a href="{{ route('qr.zip') }}" 
-                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <i class="fas fa-download mr-2"></i>
                     Download Massal (.zip)
                 </a>
@@ -29,7 +29,7 @@
                     <option value="50" {{ ($perPageParam ?? '')=='50' ? 'selected' : '' }}>50</option>
                     <option value="all" {{ ($perPageParam ?? '')=='all' ? 'selected' : '' }}>All</option>
                 </select>
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-md">Filter</button>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">Filter</button>
             </form>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -102,10 +102,10 @@
                 
                 <!-- Modal Footer -->
                 <div class="flex justify-end space-x-2 mt-4">
-                    <button onclick="closeQRModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400">
+                    <button onclick="closeQRModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 transition-colors">
                         Tutup
                     </button>
-                    <button onclick="downloadQR()" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                    <button onclick="downloadQR()" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
                         <i class="fas fa-download mr-1"></i>Download
                     </button>
                 </div>
