@@ -112,7 +112,7 @@
                 
                 <!-- Navigation -->
                 <nav class="mt-5 flex-1 px-2 space-y-1" role="navigation" aria-label="Sidebar">
-                    <!-- Dashboard - tenant or SaaS -->
+                    <!-- Dashboard - Always visible -->
                     @php($isSuper = strtolower(auth()->user()->email) === strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
                     <a href="{{ $isSuper ? route('super-admin.index') : route('dashboard') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs($isSuper ? 'super-admin.index' : 'dashboard') ? 'page' : 'false' }}">
                         <i class="sb-icon fas fa-home"></i>
@@ -151,11 +151,140 @@
                         </div>
                     @endif
 
-                    <!-- 1. MANAJEMEN DATA (Admin Only) -->
+                    <!-- 1. ABSENSI (Priority 1 - Most Used) -->
+                    @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
+                                <span>📋 Absensi</span>
+                                <span id="chev-group-absensi">▾</span>
+                            </button>
+                            <div id="group-absensi" class="mt-1 space-y-1">
+                            
+                            <a href="{{ route('attendance.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-list-check"></i>
+                                Status Absensi
+                            </a>
+                            
+                            @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
+                            <a href="{{ route('attendance.check-in') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-sign-in-alt"></i>
+                                Absensi Masuk
+                            </a>
+                            
+                            <a href="{{ route('attendance.check-out') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-sign-out-alt"></i>
+                                Absensi Keluar
+                            </a>
+                            
+                            @if(auth()->user()->hasRole(['teacher','admin']))
+                                <a href="{{ route('attendance.student-scan') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
+                                    <i class="sb-icon fas fa-qrcode"></i>
+                                    Scan Siswa
+                                </a>
+                            @endif
+                            
+                            @if(auth()->user()->hasRole('admin'))
+                            <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center text-sm font-medium rounded-md text-gray-600" aria-current="false">
+                                <i class="sb-icon fas fa-qrcode"></i>
+                                QR Code Absensi
+                            </a>
+                            @endif
+                            @endif
+                            
+                            <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-chart-bar"></i>
+                                Laporan Absensi
+                            </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- 2. JADWAL & INFORMASI (Priority 2 - Schedule & Info) -->
+                    @if(strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-jadwal')">
+                                <span>📅 Jadwal & Info</span>
+                                <span id="chev-group-jadwal">▾</span>
+                            </button>
+                            <div id="group-jadwal" class="mt-1 space-y-1">
+                            
+                            <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-calendar-check"></i>
+                                Jadwal Absensi
+                            </a>
+                            
+                            @if(auth()->user()->hasRole('admin'))
+                            <a href="{{ route('admin.holidays.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.holidays.*') ? 'text-blue-900' : '' }}">
+                                <i class="sb-icon fas fa-calendar-times"></i>
+                                Kelola Hari Libur
+                            </a>
+                            
+                            <a href="{{ route('admin.special-schedules.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.special-schedules.*') ? 'text-blue-900' : '' }}">
+                                <i class="sb-icon fas fa-calendar-alt"></i>
+                                Kelola Jadwal Khusus
+                            </a>
+                            @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- 3. IZIN & CUTI (Priority 3 - Leave Management) -->
+                    @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
+                                <span>📝 Izin & Cuti</span>
+                                <span id="chev-group-izin">▾</span>
+                            </button>
+                            <div id="group-izin" class="mt-1 space-y-1">
+                            
+                            @php($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0))
+                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('leave-requests.*') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-clipboard-list"></i>
+                                @if(auth()->user()->hasRole('headmaster'))
+                                    Persetujuan Izin
+                                    @if($pendingApprovals > 0)
+                                        <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">{{ $pendingApprovals }}</span>
+                                    @endif
+                                @else
+                                    Manajemen Izin
+                                @endif
+                            </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- 4. MENU SISWA (Student Only) -->
+                    @if(auth()->user()->hasRole('student') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        <div class="space-y-1">
+                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-siswa')">
+                                <span>🎓 Menu Siswa</span>
+                                <span id="chev-group-siswa">▾</span>
+                            </button>
+                            <div id="group-siswa" class="mt-1 space-y-1">
+                            
+                            <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-calendar-check"></i>
+                                Jadwal Absensi
+                            </a>
+                            
+                            <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-chart-bar"></i>
+                                Riwayat Absensi
+                            </a>
+                            
+                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('leave-requests.*') ? 'page' : 'false' }}">
+                                <i class="sb-icon fas fa-clipboard-list"></i>
+                                Izin Saya
+                            </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- 5. MANAJEMEN DATA (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-manajemen-data')">
-                                <span>Manajemen Data</span>
+                                <span>👥 Manajemen Data</span>
                                 <span id="chev-group-manajemen-data">▾</span>
                             </button>
                             <div id="group-manajemen-data" class="mt-1 space-y-1">
@@ -183,118 +312,11 @@
                         </div>
                     @endif
 
-                    <!-- 2. ABSENSI (All roles except student) -->
-                    @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1">
-                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
-                                <span>Absensi</span>
-                                <span id="chev-group-absensi">▾</span>
-                            </button>
-                            <div id="group-absensi" class="mt-1 space-y-1">
-                            
-                            <a href="{{ route('attendance.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-list-check"></i>
-                                Status Absensi
-                            </a>
-                            
-                            @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
-                            <a href="{{ route('attendance.check-in') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-sign-in-alt"></i>
-                                    Absensi Masuk
-                                </a>
-                                
-                                @if(auth()->user()->hasRole('admin'))
-                                <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center text-sm font-medium rounded-md text-gray-600" aria-current="false">
-                                    <i class="sb-icon fas fa-qrcode"></i>
-                                        QR Code Absensi
-                                    </a>
-                                @endif
-                                
-                            <a href="{{ route('attendance.check-out') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-sign-out-alt"></i>
-                                    Absensi Keluar
-                                </a>
-                                
-                                @if(auth()->user()->hasRole(['teacher','admin']))
-                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
-                                        <i class="sb-icon fas fa-qrcode"></i>
-                                        Scan Siswa
-                                    </a>
-                                @endif
-                            @endif
-                            
-                            <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-chart-bar"></i>
-                                Laporan Absensi
-                            </a>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- 3. IZIN & CUTI (All roles except student) -->
-                    @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1">
-                            <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
-                                <span>Izin & Cuti</span>
-                                <span id="chev-group-izin">▾</span>
-                            </button>
-                            <div id="group-izin" class="mt-1 space-y-1">
-                            
-                            @php($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0))
-                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('leave-requests.*') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-clipboard-list"></i>
-                                @if(auth()->user()->hasRole('headmaster'))
-                                    Persetujuan Izin
-                                    @if($pendingApprovals > 0)
-                                        <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">{{ $pendingApprovals }}</span>
-                                    @endif
-                                @else
-                                    Manajemen Izin
-                                @endif
-                            </a>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- 4. SISWA (Student only) -->
-                    @if(auth()->user()->hasRole('student') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Siswa</div>
-                            
-                            <a href="{{ route('schedule.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                                <i class="sb-icon fas fa-calendar-check"></i>
-                                Jadwal Absensi
-                            </a>
-                            
-                            <a href="{{ route('attendance.reports') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                                <i class="sb-icon fas fa-chart-bar"></i>
-                                Riwayat Absensi
-                            </a>
-                            
-                            <a href="{{ route('leave-requests.index') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                                <i class="sb-icon fas fa-clipboard-list"></i>
-                                Izin Saya
-                            </a>
-                        </div>
-                    @endif
-
-                    <!-- 4.5. JADWAL ABSENSI (All roles except super admin) -->
-                    @if(strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
-                        <div class="space-y-1">
-                            <div class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Jadwal</div>
-                            
-                            <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-calendar-check"></i>
-                                Jadwal Absensi
-                            </a>
-                        </div>
-                    @endif
-
-                    <!-- 5. PENGATURAN (Admin Only) -->
+                    <!-- 6. PENGATURAN (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-settings')">
-                                <span>Pengaturan</span>
+                                <span>⚙️ Pengaturan</span>
                                 <span id="chev-group-settings">▾</span>
                             </button>
                             <div id="group-settings" class="mt-1 space-y-1">
@@ -322,16 +344,6 @@
                             <a href="{{ route('tenant.settings') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('tenant.*') ? 'text-blue-900' : '' }}">
                                 <i class="sb-icon fas fa-palette"></i>
                                 Kustomisasi Aplikasi
-                            </a>
-                            
-                            <a href="{{ route('admin.holidays.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.holidays.*') ? 'text-blue-900' : '' }}">
-                                <i class="sb-icon fas fa-calendar-times"></i>
-                                Kelola Hari Libur
-                            </a>
-                            
-                            <a href="{{ route('admin.special-schedules.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('admin.special-schedules.*') ? 'text-blue-900' : '' }}">
-                                <i class="sb-icon fas fa-calendar-alt"></i>
-                                Kelola Jadwal Khusus
                             </a>
                             
                             <a href="{{ route('performance.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('performance.*') ? 'text-blue-900' : '' }}">
@@ -378,6 +390,12 @@
                 <a href="{{ route('attendance.reports') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Laporan Absensi" aria-label="Laporan Absensi">
                     <i class="fas fa-chart-bar"></i>
                     <span class="rail-tooltip">Laporan</span>
+                </a>
+                @endif
+                @if(strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                <a href="{{ route('schedule.index') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Jadwal Absensi" aria-label="Jadwal Absensi">
+                    <i class="fas fa-calendar-check"></i>
+                    <span class="rail-tooltip">Jadwal</span>
                 </a>
                 @endif
                 @if(auth()->user()->hasRole(['admin','headmaster']))
