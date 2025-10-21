@@ -267,8 +267,8 @@
             border-top-left-radius: 24px;
             border-top-right-radius: 24px;
             padding: 24px;
-            max-height: 85vh;
-            min-height: 70vh;
+            max-height: 90vh;
+            min-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
             position: absolute;
@@ -282,6 +282,14 @@
         
         .students-section.show {
             transform: translateY(0);
+        }
+        
+        .students-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         .students-header {
@@ -391,10 +399,12 @@
                 flex: 1;
                 max-height: none;
                 min-height: 100vh;
+                height: 100vh;
                 transform: none;
                 border-radius: 0;
                 box-shadow: none;
                 padding: 32px;
+                overflow-y: auto;
             }
         }
         
@@ -636,6 +646,10 @@
             border-radius: 12px;
             padding: 20px;
             border: 1px solid #e2e8f0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
         
         .captured-header {
@@ -654,9 +668,9 @@
         }
         
         .captured-list {
-            min-height: 200px;
-            max-height: 400px;
+            flex: 1;
             overflow-y: auto;
+            min-height: 200px;
         }
         
         .empty-state {
