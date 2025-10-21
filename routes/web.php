@@ -72,6 +72,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// Loading screen route (protected)
+Route::middleware('auth')->group(function () {
+    Route::get('/loading', [LoginController::class, 'showLoading'])->name('loading');
+});
+
 // Protected routes
 Route::middleware(['auth', 'school.isolation'])->group(function () {
     // Dashboard

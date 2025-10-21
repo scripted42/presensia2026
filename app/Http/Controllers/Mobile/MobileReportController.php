@@ -102,3 +102,5 @@ class MobileReportController extends Controller
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }
+
+

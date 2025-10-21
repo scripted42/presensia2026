@@ -109,7 +109,8 @@ class LoginController extends Controller
                 return redirect()->intended(route('super-admin.index'));
             }
 
-            return redirect()->intended(route('dashboard'));
+            // Redirect to loading screen first, then dashboard
+            return redirect()->route('loading');
         }
 
         // On failed login: increment attempts
@@ -135,6 +136,18 @@ class LoginController extends Controller
             ->withInput($request->except('password'))
             ->with('captcha_required', $attempts >= 3)
             ->with('captcha_question', session('captcha_question'));
+    }
+
+    /**
+     * Show loading screen after successful login.
+     */
+    public function showLoading()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.loading');
     }
 
     /**

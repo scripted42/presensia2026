@@ -20,6 +20,73 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+        
+        /* Simple Loading Animation */
+        .banner-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .banner-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 60px;
+            z-index: 1;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        .banner-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Simple Loading Dot */
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+        
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+            } 
+            40% { 
+                transform: scale(1);
+            }
+        }
+        
+        /* Background Image dengan Fade In */
+        .banner-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            filter: blur(2px);
+        }
+        
+        .banner-background.loaded {
+            opacity: 1;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -41,11 +108,21 @@
 <body>
     <div class="min-h-screen flex">
         <!-- Left Side - Branding -->
-        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <!-- Full Background Illustration with Blur and Dark Overlay -->
+        <div class="hidden lg:flex lg:w-1/2 banner-container">
+            <!-- Simple Loading Animation -->
+            <div class="banner-loading" id="bannerLoading">
+                <div class="flex space-x-2">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            </div>
+            
+            <!-- Background Image dengan Animation -->
             <div 
-                class="absolute inset-0 bg-cover bg-center"
-                style="background-image: url('{{ asset('assets/images/banner/background.jpg') }}'); filter: blur(2px);"
+                class="banner-background"
+                id="bannerBackground"
+                style="background-image: url('{{ asset('assets/images/banner/background.jpg') }}');"
             ></div>
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900/90 to-gray-800/90"></div>
             
@@ -198,6 +275,44 @@
     </div>
     
     <script>
+        // Simple Loading Animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannerLoading = document.getElementById('bannerLoading');
+            const bannerBackground = document.getElementById('bannerBackground');
+            
+            // Preload gambar background
+            const img = new Image();
+            
+            // Event ketika gambar berhasil di-load
+            img.onload = function() {
+                // Fade in background
+                bannerBackground.classList.add('loaded');
+                
+                // Hide loading quickly
+                setTimeout(function() {
+                    bannerLoading.classList.add('hidden');
+                }, 200);
+            };
+            
+            // Event jika gambar gagal load
+            img.onerror = function() {
+                // Show fallback gradient
+                bannerLoading.classList.add('hidden');
+                bannerBackground.style.background = 'linear-gradient(135deg, #f8fafc 0%, #0f2a5f 100%)';
+            };
+            
+            // Start preload
+            img.src = '{{ asset('assets/images/banner/background.jpg') }}';
+            
+            // Timeout fallback
+            setTimeout(function() {
+                if (!bannerBackground.classList.contains('loaded')) {
+                    bannerLoading.classList.add('hidden');
+                    bannerBackground.style.background = 'linear-gradient(135deg, #f8fafc 0%, #0f2a5f 100%)';
+                }
+            }, 5000); // 5 detik timeout
+        });
+        
         // Refresh CSRF token on page load
         document.addEventListener('DOMContentLoaded', function() {
             fetch('/login', {
