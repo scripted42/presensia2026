@@ -44,16 +44,47 @@ class QrManagementController extends Controller
     {
         $students = User::where('school_id', auth()->user()->school_id)
             ->where('user_type', 'student')->orderBy('name')->get();
+        
+        // Check if ZipArchive is available
+        if (class_exists('ZipArchive')) {
+            return $this->downloadZipWithZipArchive($students);
+        } else {
+            // Fallback: return individual download links
+            return $this->downloadZipFallback($students);
+        }
+    }
+    
+    // Download ZIP using ZipArchive (if available)
+    private function downloadZipWithZipArchive($students)
+    {
         $zip = new ZipArchive();
         $tmp = tempnam(sys_get_temp_dir(), 'qrzip');
         $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        
         foreach ($students as $s) {
             $payload = ($s->nis ?? '').'|'.$s->name;
             $png = $this->renderPng($payload, 600);
             $zip->addFromString($this->sanitizeFilename(($s->nis ?? 'NIS')."_".$s->name).'.png', $png);
         }
+        
         $zip->close();
         return response()->download($tmp, 'qr_students.zip')->deleteFileAfterSend(true);
+    }
+    
+    // Fallback: return page with individual download links
+    private function downloadZipFallback($students)
+    {
+        $downloadLinks = [];
+        
+        foreach ($students as $s) {
+            $downloadLinks[] = [
+                'name' => $s->name,
+                'nis' => $s->nis ?? 'NIS',
+                'download_url' => route('qr.download', $s)
+            ];
+        }
+        
+        return view('qr.download-fallback', compact('downloadLinks'));
     }
 
     
