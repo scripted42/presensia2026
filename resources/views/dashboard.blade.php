@@ -30,16 +30,16 @@
                             transform-origin: center;"></div>
             @endif
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap relative z-10">
-                <div class="flex items-center">
+                <div class="flex items-start">
                     @if($school->logo)
-                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-20 w-auto mr-4">
+                        <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-20 w-auto mr-4 flex-shrink-0">
                     @endif
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <h1 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
                         @if($school->tenantSettings && $school->tenantSettings->banner_text)
-                            <p class="text-gray-600">{{ $school->tenantSettings->banner_text }}</p>
+                            <p class="text-gray-600 leading-relaxed">{{ $school->tenantSettings->banner_text }}</p>
                         @else
-                            <p class="text-gray-600">Selamat datang di sistem manajemen absensi sekolah, Presensia!</p>
+                            <p class="text-gray-600 leading-relaxed">Selamat datang di sistem manajemen absensi sekolah, Presensia!</p>
                         @endif
                     </div>
                 </div>
@@ -504,7 +504,7 @@
 .banner-custom-image{
     position:absolute; right:0; top:-10px; height:calc(100% + 20px); width:50%; border-radius:0 12px 12px 0;
     opacity:0; 
-    z-index: 2; pointer-events: none;
+    z-index: 1; pointer-events: none;
     transform: translateY(20px) scale(0.95);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
@@ -512,6 +512,21 @@
     opacity:1; 
     transform: translateY(0) scale(1);
 }
+
+/* Hide banner image on mobile devices only */
+@media (max-width: 767px) {
+    .banner-custom-image {
+        display: none !important;
+    }
+}
+
+/* Hide banner image on mobile devices */
+@media (max-width: 767px) {
+    .banner-custom-image {
+        display: none !important;
+    }
+}
+
 @media (min-width:768px){ .banner-custom-image{ width:45%; } }
 @media (min-width:1024px){ .banner-custom-image{ width:40%; } }
 
@@ -528,10 +543,9 @@
     filter: blur(0);
 }
 
-.welcome-hero-wrap{ position: relative; z-index: 1; }
+.welcome-hero-wrap{ position: relative; z-index: 2; }
 /* Mobile adjustments: keep text readable */
 @media (max-width: 639px){
-  .welcome-hero-wrap{ padding-right: 140px; }
   .welcome-hero-image{ height:120px; right:8px; top:-6px; }
 }
 

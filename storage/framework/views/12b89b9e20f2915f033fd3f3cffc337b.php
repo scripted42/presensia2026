@@ -6,13 +6,16 @@
     <!-- Camera Section - Full Screen on Mobile -->
     <div class="camera-section">
         <div class="camera-header">
-            <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
+            <div class="camera-header-left">
+                <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
+                <p class="text-sm text-white/80">Arahkan kamera ke QR Code siswa</p>
+            </div>
             <div class="camera-controls">
-                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
+                <button id="startCamera" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan
                 </button>
-                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
-                    <i class="fas fa-stop mr-2"></i>Stop Scan
+                <button id="stopCamera" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center" style="display: none;">
+                    <i class="fas fa-stop mr-2"></i>Stop
                 </button>
             </div>
         </div>
@@ -56,109 +59,100 @@
     <div class="students-section">
         <div class="students-header">
             <div class="students-header-left">
-                <h2 class="text-lg font-medium text-gray-900">Daftar Siswa yang Sudah Diabsensi</h2>
+                <h2 class="text-lg font-semibold text-gray-900">Daftar Absensi Siswa</h2>
                 <div class="swipe-indicator">
                     <i class="fas fa-chevron-up text-gray-400"></i>
                     <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
                 </div>
             </div>
             <div class="students-header-right">
+                <div class="record-count" id="recordCount">0 Record</div>
                 <button id="syncButton" class="sync-button">
                     <i class="fas fa-sync-alt"></i>
-                    Synchronize
+                    Sync
                 </button>
-                <div class="record-count" id="recordCount">0 Record</div>
             </div>
         </div>
         
         <div class="students-content">
-            <!-- Manual Input -->
-            <div class="mb-4">
-                <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
-
-                            <!-- Camera Controls -->
-                    <div class="flex space-x-3 mb-4">
-                                <button id="startCamera" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i class="fas fa-qrcode mr-2"></i>Mulai Scan QR Code
+            <!-- Manual Input Section -->
+            <div class="manual-input-section">
+                <div class="manual-input-header">
+                    <h3 class="text-sm font-medium text-gray-700">Input Manual</h3>
+                    <p class="text-xs text-gray-500">Masukkan QR Code secara manual</p>
+                </div>
+                
+                <!-- Quick Add Buttons -->
+                <div class="quick-add-section">
+                    <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
+                    <div class="quick-add-buttons">
+                        <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
+                                class="quick-add-btn">
+                            SISWA001
                         </button>
-                                <button id="stopCamera" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors" style="display: none;">
-                            <i class="fas fa-stop mr-2"></i>Stop Scan
+                        <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
+                                class="quick-add-btn">
+                            SISWA002
+                        </button>
+                        <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
+                                class="quick-add-btn">
+                            SISWA003
+                        </button>
+                        <button type="button" onclick="testQRDetection()" 
+                                class="quick-add-btn test-btn">
+                            Test QR
                         </button>
                     </div>
-
-                    <!-- Manual Input -->
-                    <div class="mb-4">
-                        <label for="manual_qr" class="block text-sm font-medium text-gray-700">Input Manual QR Code</label>
-                                
-                                <!-- Quick Add Buttons -->
-                                <div class="mb-3">
-                                    <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
-                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                            SISWA001
-                                        </button>
-                                        <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
-                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                            SISWA002
-                                        </button>
-                                        <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
-                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200">
-                                            SISWA003
-                                        </button>
-                                        <button type="button" onclick="testQRDetection()" 
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200">
-                                            Test QR
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                        <div class="flex space-x-2">
-                                    <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
-                                   class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <button id="addManual" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                                
-                                <!-- Help Text -->
-                                <div class="mt-1 text-xs text-gray-500">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    Format: NIS|Nama (contoh: SISWA001|John Doe)
-                        </div>
+                </div>
+                
+                <!-- Manual Input Form -->
+                <div class="manual-input-form">
+                    <div class="input-group">
+                        <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
+                               class="manual-input">
+                        <button id="addManual" class="add-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Help Text -->
+                    <div class="help-text">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Format: NIS|Nama (contoh: SISWA001|John Doe)
                     </div>
                 </div>
             </div>
 
-                    <!-- Captured Students -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Siswa yang Sudah Diabsensi</h3>
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-sm text-gray-600">Record Absensi</span>
-                                <span class="text-sm font-medium text-gray-900" id="studentCount">0 siswa</span>
-                            </div>
-                            
-                            <div id="capturedList" class="space-y-2 min-h-32">
-                                <div class="text-center text-gray-500 py-8">
-                                    <i class="fas fa-users text-2xl mb-2"></i>
-                                    <p>Belum ada siswa yang diabsensi</p>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                            <div class="mt-6 flex space-x-3">
-                                <button id="syncButton" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
-                                    <i class="fas fa-sync-alt mr-2"></i>Synchronize
-                        </button>
-                                <button id="clearAllButton" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center">
-                            <i class="fas fa-trash mr-2"></i>Clear All
-                        </button>
-                            </div>
-                        </div>
+            <!-- Captured Students List -->
+            <div class="captured-students-section">
+                <div class="captured-header">
+                    <h3 class="text-lg font-semibold text-gray-900">Siswa yang Sudah Diabsensi</h3>
+                    <div class="student-count">
+                        <span class="text-sm text-gray-600">Total:</span>
+                        <span class="text-sm font-semibold text-gray-900" id="studentCount">0 siswa</span>
                     </div>
                 </div>
+                
+                <div id="capturedList" class="captured-list">
+                    <div class="empty-state">
+                        <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Belum ada siswa yang diabsensi</p>
+                        <p class="text-xs text-gray-400 mt-1">Gunakan kamera atau input manual</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button id="syncButton" class="action-btn sync-btn">
+                        <i class="fas fa-sync-alt mr-2"></i>Synchronize
+                    </button>
+                    <button id="clearAllButton" class="action-btn clear-btn">
+                        <i class="fas fa-trash mr-2"></i>Clear All
+                    </button>
+                </div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>
@@ -217,6 +211,19 @@
             justify-content: space-between;
             align-items: center;
             backdrop-filter: blur(10px);
+        }
+        
+        .camera-header-left {
+            flex: 1;
+        }
+        
+        .camera-header-left h1 {
+            margin-bottom: 4px;
+        }
+        
+        .camera-header-left p {
+            font-size: 14px;
+            opacity: 0.8;
         }
         
         .camera-header h1 {
@@ -482,6 +489,247 @@
             display: none !important;
         }
         
+        /* Manual Input Section */
+        .manual-input-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .manual-input-header {
+            margin-bottom: 16px;
+        }
+        
+        .quick-add-section {
+            margin-bottom: 16px;
+        }
+        
+        .quick-add-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .quick-add-btn {
+            background: #dbeafe;
+            color: #1e40af;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quick-add-btn:hover {
+            background: #bfdbfe;
+            transform: translateY(-1px);
+        }
+        
+        .quick-add-btn.test-btn {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .quick-add-btn.test-btn:hover {
+            background: #bbf7d0;
+        }
+        
+        .manual-input-form {
+            margin-top: 16px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .manual-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .manual-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .add-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+        }
+        
+        .add-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Captured Students Section */
+        .captured-students-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .captured-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .student-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .captured-list {
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .student-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+        
+        .student-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .student-info {
+            flex: 1;
+        }
+        
+        .student-name {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+        
+        .student-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .student-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .remove-btn {
+            background: #fef2f2;
+            color: #dc2626;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .remove-btn:hover {
+            background: #fee2e2;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sync-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+        }
+        
+        .sync-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .clear-btn {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        
+        .clear-btn:hover {
+            background: #fee2e2;
+            transform: translateY(-1px);
+        }
+        
         /* Mobile responsive */
         @media (max-width: 768px) {
             #html5-qrcode-reader {
@@ -490,6 +738,18 @@
             
             #html5-qrcode-reader video {
                 height: 70vh !important;
+            }
+            
+            .manual-input-section {
+                padding: 16px;
+            }
+            
+            .captured-students-section {
+                padding: 16px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -785,9 +1045,10 @@
             
             if (capturedStudents.length === 0) {
                 listContainer.innerHTML = `
-                    <div class="text-center text-gray-500 py-8">
-                        <i class="fas fa-users text-2xl mb-2"></i>
-                        <p>Belum ada siswa yang diabsensi</p>
+                    <div class="empty-state">
+                        <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Belum ada siswa yang diabsensi</p>
+                        <p class="text-xs text-gray-400 mt-1">Gunakan kamera atau input manual</p>
                     </div>
                 `;
                 return;
@@ -795,53 +1056,26 @@
             
             let html = '';
             capturedStudents.forEach((record, index) => {
-                if (record.isQRText) {
-                    // QR Text detected by scanner
-            html += `
-                        <div class="px-3 py-2 border-b hover:bg-gray-50">
-                            <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                                <div class="col-span-1 text-gray-600">${index + 1}</div>
-                                <div class="col-span-3">
-                                    <div class="w-12 h-12 bg-blue-100 rounded border flex items-center justify-center">
-                                        <i class="fas fa-qrcode text-blue-600"></i>
-                                    </div>
-                                </div>
-                                <div class="col-span-6">
-                                    <div class="font-medium text-gray-900">${record.qrCode}</div>
-                                    <div class="text-xs text-gray-500">${record.timestamp}</div>
-                                </div>
-                                <div class="col-span-2 text-right">
-                                    <button onclick="removeStudent(${record.id})" class="text-red-600 hover:text-red-800">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                    </div>
-                </div>
-            `;
-                } else {
-                    // Manual input
+                const isQR = record.isQRText;
+                const avatarClass = isQR ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600';
+                const iconClass = isQR ? 'fas fa-qrcode' : 'fas fa-keyboard';
+                
                 html += `
-                    <div class="px-3 py-2 border-b hover:bg-gray-50">
-                        <div class="grid grid-cols-12 gap-2 items-center text-sm">
-                            <div class="col-span-1 text-gray-600">${index + 1}</div>
-                                <div class="col-span-3">
-                                    <div class="w-12 h-12 bg-green-100 rounded border flex items-center justify-center">
-                                        <i class="fas fa-keyboard text-green-600"></i>
-                                    </div>
-                                </div>
-                                <div class="col-span-6">
-                                    <div class="font-medium text-gray-900">${record.qrCode}</div>
-                                    <div class="text-xs text-gray-500">${record.timestamp}</div>
-                                </div>
-                                <div class="col-span-2 text-right">
-                                    <button onclick="removeStudent(${record.id})" class="text-red-600 hover:text-red-800">
-                                        <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                    <div class="student-item">
+                        <div class="student-avatar ${avatarClass}">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div class="student-info">
+                            <div class="student-name">${record.qrCode}</div>
+                            <div class="student-time">${record.timestamp}</div>
+                        </div>
+                        <div class="student-actions">
+                            <button onclick="removeStudent(${record.id})" class="remove-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `;
-                }
             });
             
             listContainer.innerHTML = html;
