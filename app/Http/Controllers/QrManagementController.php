@@ -56,21 +56,62 @@ class QrManagementController extends Controller
         return response()->download($tmp, 'qr_students.zip')->deleteFileAfterSend(true);
     }
 
-    // Render kartu pelajar PNG 85.6 x 53 mm (PORTRAIT) dengan QR di kiri bawah
+    // Render kartu pelajar PNG 85.6 x 54 mm (PORTRAIT) dengan QR di pojok kanan bawah
     public function card(Request $request, User $user)
     {
         abort_unless($user->user_type === 'student', 404);
         
-        // Use EXACT same method as download to ensure identical QR code
+        // DPI 300 → ukuran piksel (portrait: width 54mm, height 85.6mm)
+        $widthPx = (int) round(54 / 25.4 * 300);    // ~638 px
+        $heightPx = (int) round(85.6 / 25.4 * 300); // ~1011 px
+        
+        // Generate QR code with same data as download method
         $payload = ($user->nis ?? '').'|'.$user->name;
-        $png = $this->renderPng($payload, 600); // Same size and method as download
+        $qrPng = $this->renderPng($payload, 200); // Smaller QR for card
+        
+        // Create card with QR in bottom right corner and transparent background
+        $cardPng = $this->createStudentCard($user, $widthPx, $heightPx, $qrPng);
         
         $filename = $this->sanitizeFilename(($user->nis ?? 'NIS')."_".$user->name.'_card').'.png';
-        return response($png)->header('Content-Type', 'image/png')
+        return response($cardPng)->header('Content-Type', 'image/png')
             ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
     
-    // Create card with QR code using external service
+    // Create student card with QR in bottom right corner and transparent background
+    private function createStudentCard(User $user, int $widthPx, int $heightPx, string $qrPng): string
+    {
+        try {
+            // Create SVG with transparent background and QR in bottom right
+            $svg = '<?xml version="1.0" encoding="UTF-8"?>';
+            $svg .= '<svg width="' . $widthPx . '" height="' . $heightPx . '" xmlns="http://www.w3.org/2000/svg">';
+            
+            // Transparent background (no fill)
+            $svg .= '<rect width="' . $widthPx . '" height="' . $heightPx . '" fill="none"/>';
+            
+            // QR code in bottom right corner
+            $qrSize = 200; // QR code size
+            $margin = 20; // Margin from edges
+            $x = $widthPx - $qrSize - $margin; // Right side
+            $y = $heightPx - $qrSize - $margin; // Bottom side
+            
+            // Convert QR PNG to base64 for embedding
+            $qrBase64 = base64_encode($qrPng);
+            $svg .= '<image x="' . $x . '" y="' . $y . '" width="' . $qrSize . '" height="' . $qrSize . '" href="data:image/png;base64,' . $qrBase64 . '"/>';
+            
+            $svg .= '</svg>';
+            
+            // Convert SVG to PNG using external service
+            return $this->svgToPng($svg, $widthPx);
+            
+        } catch (\Exception $e) {
+            \Log::warning("Student card generation failed: " . $e->getMessage());
+            
+            // Fallback: return QR code directly
+            return $qrPng;
+        }
+    }
+    
+    // Create card with QR code using external service (legacy method)
     private function createCardWithQR(User $user, int $widthPx, int $heightPx, string $qrPng): string
     {
         try {
@@ -174,7 +215,7 @@ class QrManagementController extends Controller
             $png = file_get_contents($qrUrl, false, $context);
             
             if ($png !== false && strlen($png) > 0) {
-                return $png;
+            return $png;
             }
         } catch (\Exception $e) {
             \Log::warning("External QR generation failed: " . $e->getMessage());
