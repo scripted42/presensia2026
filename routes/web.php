@@ -148,7 +148,6 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
         Route::get('/qr', [\App\Http\Controllers\QrManagementController::class, 'index'])->name('qr.index');
         Route::get('/qr/download/{user}', [\App\Http\Controllers\QrManagementController::class, 'download'])->name('qr.download');
         Route::get('/qr/download-zip', [\App\Http\Controllers\QrManagementController::class, 'downloadZip'])->name('qr.zip');
-        Route::get('/qr/card/{user}', [\App\Http\Controllers\QrManagementController::class, 'card'])->name('qr.card');
     });
     
     // Leave Request routes

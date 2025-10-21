@@ -52,9 +52,6 @@
                                 <a class="text-blue-600 hover:text-blue-800 text-xs font-medium" href="{{ route('qr.download', $s) }}">
                                     <i class="fas fa-download mr-1"></i>Download QR (.png)
                                 </a>
-                                <a class="text-green-600 hover:text-green-800 text-xs font-medium" href="{{ route('qr.card', $s) }}">
-                                    <i class="fas fa-id-card mr-1"></i>Kartu Pelajar (.png)
-                                </a>
                             </div>
                         </td>
                     </tr>
