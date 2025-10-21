@@ -43,12 +43,23 @@ class QrManagementController extends Controller
     public function downloadZip(Request $request)
     {
         try {
+            \Log::info('=== DOWNLOAD ZIP DEBUG START ===');
             \Log::info('Download ZIP method called');
+            \Log::info('Request URL: ' . $request->fullUrl());
+            \Log::info('User ID: ' . auth()->id());
+            \Log::info('School ID: ' . auth()->user()->school_id);
+            
+            // Debug PHP extensions
+            \Log::info('PHP Version: ' . phpversion());
+            \Log::info('Available extensions: ' . implode(', ', get_loaded_extensions()));
+            \Log::info('ZipArchive class exists: ' . (class_exists('ZipArchive') ? 'YES' : 'NO'));
+            \Log::info('ZipArchive extension loaded: ' . (extension_loaded('zip') ? 'YES' : 'NO'));
             
             $students = User::where('school_id', auth()->user()->school_id)
                 ->where('user_type', 'student')->orderBy('name')->get();
             
             \Log::info('Found students: ' . $students->count());
+            \Log::info('Students data: ' . $students->toJson());
             
             if ($students->isEmpty()) {
                 \Log::warning('No students found');
@@ -58,48 +69,81 @@ class QrManagementController extends Controller
             // Check if ZipArchive is available
             if (!class_exists('ZipArchive')) {
                 \Log::error('ZipArchive not available');
+                \Log::error('Available classes: ' . implode(', ', get_declared_classes()));
                 return redirect()->back()->with('error', 'ZipArchive extension tidak tersedia di server ini. Silakan hubungi administrator untuk mengaktifkan PHP ZipArchive extension.');
             }
             
             \Log::info('ZipArchive available, creating ZIP');
             
             // Create ZIP file
+            \Log::info('Creating ZIP file...');
             $zip = new ZipArchive();
             $tmp = tempnam(sys_get_temp_dir(), 'qr_massal_');
+            \Log::info('Temp file created: ' . $tmp);
+            \Log::info('Temp directory: ' . sys_get_temp_dir());
+            \Log::info('Temp directory writable: ' . (is_writable(sys_get_temp_dir()) ? 'YES' : 'NO'));
             
-            if ($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
-                return redirect()->back()->with('error', 'Tidak dapat membuat file ZIP.');
+            $zipResult = $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+            \Log::info('ZIP open result: ' . $zipResult);
+            
+            if ($zipResult !== TRUE) {
+                \Log::error('Cannot open ZIP file. Error code: ' . $zipResult);
+                return redirect()->back()->with('error', 'Tidak dapat membuat file ZIP. Error code: ' . $zipResult);
             }
+            
+            \Log::info('ZIP file opened successfully');
             
             $successCount = 0;
             $errorCount = 0;
             
             foreach ($students as $student) {
                 try {
+                    \Log::info("Processing student: {$student->name} (ID: {$student->id})");
                     $payload = ($student->nis ?? '').'|'.$student->name;
+                    \Log::info("Payload: {$payload}");
+                    
                     $png = $this->renderPng($payload, 600);
+                    \Log::info("PNG generated, size: " . strlen($png) . " bytes");
                     
                     if ($png && strlen($png) > 0) {
                         $filename = $this->sanitizeFilename(($student->nis ?? 'NIS')."_".$student->name).'.png';
-                        $zip->addFromString($filename, $png);
-                        $successCount++;
+                        \Log::info("Adding file to ZIP: {$filename}");
+                        
+                        $addResult = $zip->addFromString($filename, $png);
+                        \Log::info("Add to ZIP result: " . ($addResult ? 'SUCCESS' : 'FAILED'));
+                        
+                        if ($addResult) {
+                            $successCount++;
+                            \Log::info("Successfully added {$filename} to ZIP");
+                        } else {
+                            $errorCount++;
+                            \Log::error("Failed to add {$filename} to ZIP");
+                        }
                     } else {
                         $errorCount++;
+                        \Log::error("Empty PNG generated for {$student->name}");
                     }
                 } catch (\Exception $e) {
                     $errorCount++;
-                    \Log::warning("Failed to generate QR for {$student->name}: " . $e->getMessage());
+                    \Log::error("Failed to generate QR for {$student->name}: " . $e->getMessage());
+                    \Log::error("Stack trace: " . $e->getTraceAsString());
                 }
             }
             
-            $zip->close();
+            \Log::info("ZIP creation completed. Success: {$successCount}, Errors: {$errorCount}");
+            $closeResult = $zip->close();
+            \Log::info("ZIP close result: " . ($closeResult ? 'SUCCESS' : 'FAILED'));
             
             if ($successCount === 0) {
+                \Log::error('No QR codes were successfully generated');
                 unlink($tmp);
                 return redirect()->back()->with('error', 'Tidak ada QR code yang berhasil di-generate.');
             }
             
             $filename = 'qr_students_' . date('Y-m-d_H-i-s') . '.zip';
+            \Log::info("Returning ZIP file: {$filename}");
+            \Log::info('=== DOWNLOAD ZIP DEBUG END ===');
+            
             return response()->download($tmp, $filename)->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
