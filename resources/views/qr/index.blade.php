@@ -121,6 +121,12 @@
 <script>
 async function downloadAllQR() {
     try {
+        // Check if JSZip is loaded
+        if (typeof JSZip === 'undefined') {
+            alert('JSZip library tidak dimuat. Silakan refresh halaman dan coba lagi.');
+            return;
+        }
+        
         // Show loading
         const button = event.target;
         const originalText = button.innerHTML;
@@ -130,8 +136,8 @@ async function downloadAllQR() {
         // Get all student data from the table
         const students = [];
         document.querySelectorAll('tbody tr').forEach(row => {
-            const nameCell = row.querySelector('td:nth-child(2)');
-            const nisCell = row.querySelector('td:nth-child(3)');
+            const nisCell = row.querySelector('td:nth-child(1)'); // NIS di kolom pertama
+            const nameCell = row.querySelector('td:nth-child(2)'); // Nama di kolom kedua
             const downloadLink = row.querySelector('a[href*="/qr/download/"]');
             
             if (nameCell && nisCell && downloadLink) {
@@ -142,6 +148,8 @@ async function downloadAllQR() {
                 });
             }
         });
+        
+        console.log('Found students:', students);
         
         if (students.length === 0) {
             alert('Tidak ada data siswa untuk di-download.');
@@ -156,13 +164,19 @@ async function downloadAllQR() {
         // Download each QR code and add to ZIP
         for (const student of students) {
             try {
+                console.log(`Downloading QR for ${student.name} from ${student.downloadUrl}`);
                 const response = await fetch(student.downloadUrl);
+                console.log(`Response status: ${response.status}`);
+                
                 if (response.ok) {
                     const blob = await response.blob();
+                    console.log(`Blob size: ${blob.size} bytes`);
                     const filename = sanitizeFilename(`${student.nis}_${student.name}.png`);
                     zip.file(filename, blob);
                     successCount++;
+                    console.log(`Successfully added ${filename} to ZIP`);
                 } else {
+                    console.error(`Failed to download QR for ${student.name}: ${response.status}`);
                     errorCount++;
                 }
             } catch (error) {
