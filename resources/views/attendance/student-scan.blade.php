@@ -765,6 +765,20 @@
             try {
                 console.log('🎥 Starting scanner...');
                 
+                // Check if Html5QrcodeScanner is available
+                if (typeof Html5QrcodeScanner === 'undefined') {
+                    throw new Error('Html5QrcodeScanner library not loaded');
+                }
+                
+                console.log('✅ Html5QrcodeScanner library loaded');
+                
+                // Check if camera is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera tidak didukung di browser ini');
+                }
+                
+                console.log('✅ Camera API supported');
+                
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
                 
@@ -779,7 +793,7 @@
                     guide.style.display = 'block';
                 }
                 
-                // Initialize scanner with original template
+                // Initialize scanner with mobile-optimized config
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
@@ -792,27 +806,50 @@
                                 height: Math.floor(minDimension * 0.8)
                             };
                         },
-                        rememberLastUsedCamera: true,
+                        rememberLastUsedCamera: false,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
-                        useBarCodeDetectorIfSupported: true
+                        useBarCodeDetectorIfSupported: true,
+                        verbose: false
                     },
                     false
                 );
                 
-                // Render scanner
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                
-                cameraActive = true;
-                document.getElementById('startCamera').style.display = 'none';
-                document.getElementById('stopCamera').style.display = 'inline-block';
-                
-                showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
-                console.log('✅ HTML5 QR Code Scanner started with back camera');
+                // Render scanner with error handling
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure)
+                    .then(() => {
+                        console.log('✅ Scanner rendered successfully');
+                        cameraActive = true;
+                        document.getElementById('startCamera').style.display = 'none';
+                        document.getElementById('stopCamera').style.display = 'inline-block';
+                        showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                    })
+                    .catch((renderError) => {
+                        console.error('❌ Scanner render failed:', renderError);
+                        showNotification('Gagal memulai scanner: ' + renderError.message, 'error');
+                        // Reset UI
+                        document.getElementById('startCamera').style.display = 'inline-block';
+                        document.getElementById('stopCamera').style.display = 'none';
+                    });
                 
             } catch (err) {
                 console.error('❌ Scanner error:', err);
                 showNotification('Gagal mengakses kamera belakang: ' + err.message, 'error');
+                
+                // Show fallback message for mobile
+                const camera = document.getElementById('camera');
+                if (camera) {
+                    camera.innerHTML = `
+                        <div class="text-center p-8">
+                            <i class="fas fa-camera-slash text-4xl text-red-400 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Kamera Tidak Dapat Diakses</h3>
+                            <p class="text-gray-600 mb-4">Pastikan browser memiliki izin akses kamera</p>
+                            <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    `;
+                }
             }
         });
 
