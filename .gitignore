@@ -14,6 +14,7 @@
 .env
 .env.backup
 .env.production
+env.txt
 
 # IDE
 .vscode/
@@ -27,13 +28,41 @@ Thumbs.db
 
 # Logs
 *.log
+laravel.log
 
 # Database
 *.sqlite
 *.db
+database/database.sqlite
 
 # Cache
 .phpunit.result.cache
+
+# Development files
+ATTENDANCE_UI_IMPROVEMENTS.md
+LOADING_ANIMATION_GUIDE.md
+LOADING_SCREEN_GUIDE.md
+SAAS_FLOW.md
+docs/
+tests/
+phpunit.xml
+
+# Node.js
+package-lock.json
+package.json
+postcss.config.js
+tailwind.config.js
+vite.config.js
+
+# Backup files
+*.zip
+*.sql
+presensia-v2-backup.zip
+presensia.sql
+
+# Temporary files
+*.tmp
+*.temp
 
 
 

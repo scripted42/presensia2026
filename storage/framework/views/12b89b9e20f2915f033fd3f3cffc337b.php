@@ -439,6 +439,45 @@
         
         /* Use default QR code scanning area styling - let library handle it */
         
+        /* Camera permission overlay */
+        .camera-permission-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .permission-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .permission-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .permission-buttons button {
+            transition: all 0.2s ease;
+        }
+        
+        .permission-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
         /* Custom UI for permission request */
         #html5-qrcode-reader div[style*="background-color: rgba"] {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
@@ -757,11 +796,99 @@
         let capturedStudents = [];
         let html5QrcodeScanner = null;
         let cameraActive = false;
+        let html5Qrcode = null;
+
+        // Function to start camera with permission
+        function startCameraWithPermission() {
+            try {
+                console.log('🎥 Starting camera with permission...');
+                
+                // Hide permission overlay
+                const permissionOverlay = document.getElementById('camera-permission-overlay');
+                if (permissionOverlay) {
+                    permissionOverlay.style.display = 'none';
+                }
+                
+                // Use Html5Qrcode directly (simpler approach)
+                html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+                
+                console.log('🎥 Requesting camera access...');
+                
+                html5Qrcode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                ).then(() => {
+                    console.log('✅ Camera started successfully');
+                    cameraActive = true;
+                    document.getElementById('startCamera').style.display = 'none';
+                    document.getElementById('stopCamera').style.display = 'inline-block';
+                    showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                }).catch((error) => {
+                    console.error('❌ Camera start failed:', error);
+                    showNotification('Gagal mengakses kamera: ' + error.message, 'error');
+                    
+                    // Show fallback message
+                    const camera = document.getElementById('camera');
+                    if (camera) {
+                        camera.innerHTML = `
+                            <div class="text-center p-8">
+                                <i class="fas fa-camera-slash text-4xl text-red-400 mb-4"></i>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Kamera Tidak Dapat Diakses</h3>
+                                <p class="text-gray-600 mb-4">Error: ${error.message}</p>
+                                <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+                
+            } catch (err) {
+                console.error('❌ Camera permission error:', err);
+                showNotification('Gagal mengakses kamera belakang: ' + err.message, 'error');
+                
+                // Show fallback message for mobile
+                const camera = document.getElementById('camera');
+                if (camera) {
+                    camera.innerHTML = `
+                        <div class="text-center p-8">
+                            <i class="fas fa-camera-slash text-4xl text-red-400 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Kamera Tidak Dapat Diakses</h3>
+                            <p class="text-gray-600 mb-4">Pastikan browser memiliki izin akses kamera</p>
+                            <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
 
         // Start camera with original template
         document.getElementById('startCamera').addEventListener('click', function() {
             try {
                 console.log('🎥 Starting scanner...');
+                
+                // Check if Html5QrcodeScanner is available
+                if (typeof Html5QrcodeScanner === 'undefined') {
+                    throw new Error('Html5QrcodeScanner library not loaded');
+                }
+                
+                console.log('✅ Html5QrcodeScanner library loaded');
+                
+                // Check if camera is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera tidak didukung di browser ini');
+                }
+                
+                console.log('✅ Camera API supported');
                 
                 const camera = document.getElementById('camera');
                 const guide = document.getElementById('qr-guide');
@@ -770,14 +897,50 @@
                     throw new Error('Camera element not found');
                 }
                 
-                // Clear previous content
-                camera.innerHTML = '<div id="html5-qrcode-reader"></div>';
+                // Clear previous content and show permission request
+                camera.innerHTML = `
+                    <div id="html5-qrcode-reader"></div>
+                    <div id="camera-permission-overlay" class="camera-permission-overlay">
+                        <div class="permission-content">
+                            <i class="fas fa-camera text-4xl text-blue-500 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Izin Akses Kamera</h3>
+                            <p class="text-gray-600 mb-4">Browser memerlukan izin untuk mengakses kamera belakang</p>
+                            <div class="permission-buttons">
+                                <button id="requestPermission" class="bg-blue-500 text-white px-6 py-2 rounded-lg mr-2">
+                                    Berikan Izin
+                                </button>
+                                <button id="cancelPermission" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg">
+                                    Batal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 
                 if (guide) {
                     guide.style.display = 'block';
                 }
                 
-                // Initialize scanner with original template
+                // Add event listeners for permission buttons
+                document.getElementById('requestPermission').addEventListener('click', function() {
+                    console.log('🎥 User requested camera permission');
+                    startCameraWithPermission();
+                });
+                
+                document.getElementById('cancelPermission').addEventListener('click', function() {
+                    console.log('❌ User cancelled camera permission');
+                    // Reset UI
+                    document.getElementById('startCamera').style.display = 'inline-block';
+                    document.getElementById('stopCamera').style.display = 'none';
+                    camera.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
+                        </div>
+                    `;
+                });
+                
+                // Initialize scanner with mobile-optimized config
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "html5-qrcode-reader",
                     {
@@ -790,27 +953,96 @@
                                 height: Math.floor(minDimension * 0.8)
                             };
                         },
-                        rememberLastUsedCamera: true,
+                        rememberLastUsedCamera: false,
                         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
                         showTorchButtonIfSupported: true,
-                        useBarCodeDetectorIfSupported: true
+                        useBarCodeDetectorIfSupported: true,
+                        verbose: false,
+                        // Force back camera for mobile
+                        videoConstraints: {
+                            facingMode: "environment"
+                        }
                     },
                     false
                 );
                 
-                // Render scanner
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                
-                cameraActive = true;
-                document.getElementById('startCamera').style.display = 'none';
-                document.getElementById('stopCamera').style.display = 'inline-block';
-                
-                showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
-                console.log('✅ HTML5 QR Code Scanner started with back camera');
+                // Render scanner with proper callback handling
+                try {
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                    
+                    // Use setTimeout to check if scanner is working
+                    setTimeout(() => {
+                        const videoElement = document.querySelector('#html5-qrcode-reader video');
+                        if (videoElement && videoElement.videoWidth > 0) {
+                            console.log('✅ Scanner rendered successfully');
+                            cameraActive = true;
+                            document.getElementById('startCamera').style.display = 'none';
+                            document.getElementById('stopCamera').style.display = 'inline-block';
+                            showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                        } else {
+                            throw new Error('Camera tidak dapat diakses atau tidak ada video stream');
+                        }
+                    }, 2000);
+                    
+                } catch (renderError) {
+                    console.error('❌ Scanner render failed:', renderError);
+                    console.log('🔄 Trying fallback with Html5Qrcode...');
+                    
+                    // Fallback: Try with Html5Qrcode directly
+                    try {
+                        const html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
+                        const config = {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 },
+                            aspectRatio: 1.0
+                        };
+                        
+                        html5Qrcode.start(
+                            { facingMode: "environment" },
+                            config,
+                            onScanSuccess,
+                            onScanFailure
+                        ).then(() => {
+                            console.log('✅ Fallback scanner started successfully');
+                            cameraActive = true;
+                            document.getElementById('startCamera').style.display = 'none';
+                            document.getElementById('stopCamera').style.display = 'inline-block';
+                            showNotification('Scanner aktif dengan kamera belakang (fallback mode).', 'success');
+                        }).catch((fallbackError) => {
+                            console.error('❌ Fallback scanner also failed:', fallbackError);
+                            showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
+                            // Reset UI
+                            document.getElementById('startCamera').style.display = 'inline-block';
+                            document.getElementById('stopCamera').style.display = 'none';
+                        });
+                        
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback scanner failed:', fallbackError);
+                        showNotification('Gagal memulai scanner: ' + fallbackError.message, 'error');
+                        // Reset UI
+                        document.getElementById('startCamera').style.display = 'inline-block';
+                        document.getElementById('stopCamera').style.display = 'none';
+                    }
+                }
                 
             } catch (err) {
                 console.error('❌ Scanner error:', err);
                 showNotification('Gagal mengakses kamera belakang: ' + err.message, 'error');
+                
+                // Show fallback message for mobile
+                const camera = document.getElementById('camera');
+                if (camera) {
+                    camera.innerHTML = `
+                        <div class="text-center p-8">
+                            <i class="fas fa-camera-slash text-4xl text-red-400 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Kamera Tidak Dapat Diakses</h3>
+                            <p class="text-gray-600 mb-4">Pastikan browser memiliki izin akses kamera</p>
+                            <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    `;
+                }
             }
         });
 
@@ -818,6 +1050,18 @@
         // Stop scanner
         document.getElementById('stopCamera').addEventListener('click', function() {
             try {
+                // Stop Html5Qrcode if active
+                if (html5Qrcode) {
+                    html5Qrcode.stop().then(() => {
+                        console.log('✅ Camera stopped successfully');
+                        html5Qrcode = null;
+                    }).catch((err) => {
+                        console.log('⚠️ Camera stop error:', err);
+                        html5Qrcode = null;
+                    });
+                }
+                
+                // Clear scanner if exists
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.clear();
                     html5QrcodeScanner = null;
