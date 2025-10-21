@@ -84,28 +84,6 @@
                     <p class="text-xs text-gray-500">Masukkan QR Code secara manual</p>
                 </div>
                 
-                <!-- Quick Add Buttons -->
-                <div class="quick-add-section">
-                    <p class="text-xs text-gray-600 mb-2">Quick Add (untuk testing):</p>
-                    <div class="quick-add-buttons">
-                        <button type="button" onclick="quickAddStudent('SISWA001|John Doe')" 
-                                class="quick-add-btn">
-                            SISWA001
-                        </button>
-                        <button type="button" onclick="quickAddStudent('SISWA002|Jane Smith')" 
-                                class="quick-add-btn">
-                            SISWA002
-                        </button>
-                        <button type="button" onclick="quickAddStudent('SISWA003|Bob Wilson')" 
-                                class="quick-add-btn">
-                            SISWA003
-                        </button>
-                        <button type="button" onclick="testQRDetection()" 
-                                class="quick-add-btn test-btn">
-                            Test QR
-                        </button>
-                    </div>
-                    </div>
 
                 <!-- Manual Input Form -->
                 <div class="manual-input-form">
@@ -552,41 +530,6 @@
             margin-bottom: 16px;
         }
         
-        .quick-add-section {
-            margin-bottom: 16px;
-        }
-        
-        .quick-add-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .quick-add-btn {
-            background: #dbeafe;
-            color: #1e40af;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .quick-add-btn:hover {
-            background: #bfdbfe;
-            transform: translateY(-1px);
-        }
-        
-        .quick-add-btn.test-btn {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .quick-add-btn.test-btn:hover {
-            background: #bbf7d0;
-        }
         
         .manual-input-form {
             margin-top: 16px;
@@ -1376,16 +1319,6 @@
             }
         });
 
-        // Quick add student
-        function quickAddStudent(qrCode) {
-            addCapturedPhoto(qrCode, true);
-        }
-
-        // Test QR detection
-        function testQRDetection() {
-            const testQR = 'SISWA999|Test Student';
-            addCapturedPhoto(testQR, true);
-        }
 
         // Synchronize button
         document.getElementById('syncButton').addEventListener('click', function() {
