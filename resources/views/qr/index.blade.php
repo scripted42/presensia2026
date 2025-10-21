@@ -10,7 +10,11 @@
                 <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama). Unduhan massal tersedia.</p>
             </div>
             <div class="flex space-x-2">
-                <a href="{{ route('qr.zip') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Download Massal (.zip)</a>
+                <a href="{{ route('qr.download-massal') }}" 
+                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-download mr-2"></i>
+                    Download Massal
+                </a>
             </div>
         </div>
     </div>
