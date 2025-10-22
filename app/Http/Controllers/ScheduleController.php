@@ -25,12 +25,18 @@ class ScheduleController extends Controller
         $endDate = $startDate->copy()->endOfMonth();
         
         // Get special schedules for this month
-        $specialSchedules = SpecialSchedule::where('school_id', $user->school_id)
+        $allSpecialSchedules = SpecialSchedule::where('school_id', $user->school_id)
             ->where('is_active', true)
-            ->get()
-            ->filter(function ($schedule) use ($user) {
-                return $schedule->appliesTo(now(), $user);
-            });
+            ->get();
+            
+        \Log::info('ScheduleController::index - All special schedules: ' . $allSpecialSchedules->count());
+        \Log::info('ScheduleController::index - User roles: ' . $user->roles->pluck('name')->toArray());
+        
+        $specialSchedules = $allSpecialSchedules->filter(function ($schedule) use ($user) {
+            $applies = $schedule->appliesTo(now(), $user);
+            \Log::info('ScheduleController::index - Schedule: ' . $schedule->name . ', applies: ' . ($applies ? 'true' : 'false'));
+            return $applies;
+        });
             
         // Get daily overrides for this month
         $dailyOverrides = DailyOverride::where('school_id', $user->school_id)
@@ -79,13 +85,20 @@ class ScheduleController extends Controller
         $holidayName = $isHoliday ? HolidaySchedule::getHolidayName($today, $user->school_id) : null;
         
         // Get special schedule for today
-        $specialSchedule = SpecialSchedule::where('school_id', $user->school_id)
+        $allTodaySchedules = SpecialSchedule::where('school_id', $user->school_id)
             ->where('day_of_week', strtolower($today->format('l')))
             ->where('is_active', true)
-            ->get()
-            ->first(function ($schedule) use ($today, $user) {
-                return $schedule->appliesTo($today, $user);
-            });
+            ->get();
+            
+        \Log::info('ScheduleController::today - All today schedules: ' . $allTodaySchedules->count());
+        \Log::info('ScheduleController::today - Today: ' . $today->format('Y-m-d l'));
+        \Log::info('ScheduleController::today - User roles: ' . $user->roles->pluck('name')->toArray());
+        
+        $specialSchedule = $allTodaySchedules->first(function ($schedule) use ($today, $user) {
+            $applies = $schedule->appliesTo($today, $user);
+            \Log::info('ScheduleController::today - Schedule: ' . $schedule->name . ', applies: ' . ($applies ? 'true' : 'false'));
+            return $applies;
+        });
             
         // Get daily override for today
         $dailyOverride = DailyOverride::where('school_id', $user->school_id)
