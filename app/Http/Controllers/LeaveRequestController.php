@@ -126,6 +126,7 @@ class LeaveRequestController extends Controller
 
         $leaveRequest = LeaveRequest::create([
             'user_id' => $targetUserId,
+            'school_id' => $user->school_id, // Tambahkan school_id
             'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
