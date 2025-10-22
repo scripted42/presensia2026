@@ -262,11 +262,6 @@
                             </button>
                             <div id="group-siswa" class="mt-1 space-y-1">
                             
-                            <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
-                                <i class="sb-icon fas fa-calendar-check"></i>
-                                Jadwal Absensi
-                            </a>
-                            
                             <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-chart-bar"></i>
                                 Riwayat Absensi
