@@ -174,6 +174,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Load today's schedule info
+    loadScheduleInfo();
+});
+
+function loadScheduleInfo() {
     fetch('{{ route("schedule.today") }}', {
         method: 'GET',
         headers: {
@@ -181,7 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        credentials: 'same-origin'
+        credentials: 'include',
+        mode: 'cors'
     })
         .then(response => {
             console.log('Response status:', response.status);
@@ -221,11 +226,24 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Schedule loading error:', error);
+            
+            // Try fallback for ngrok issues
+            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                console.log('Attempting fallback for ngrok/CORS issue...');
+                setTimeout(() => {
+                    loadScheduleInfo();
+                }, 2000);
+                return;
+            }
+            
             document.getElementById('today-info').innerHTML = `
                 <div class="text-center">
                     <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
                     <p class="text-gray-500">Gagal memuat informasi jadwal</p>
                     <p class="text-xs text-gray-400 mt-2">Error: ${error.message || 'Unknown error'}</p>
+                    <button onclick="loadScheduleInfo()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Coba Lagi
+                    </button>
                 </div>
             `;
         });
