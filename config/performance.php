@@ -40,3 +40,4 @@ return [
         'slow_query_threshold' => 100, // milliseconds
     ],
 ];
+

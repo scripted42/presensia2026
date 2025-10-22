@@ -52,3 +52,4 @@ class PerformanceController extends Controller
         return redirect()->back()->with('success', 'All caches cleared!');
     }
 }
+

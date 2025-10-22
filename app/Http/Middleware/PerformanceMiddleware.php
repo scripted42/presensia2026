@@ -46,3 +46,4 @@ class PerformanceMiddleware
         return $response;
     }
 }
+
