@@ -157,6 +157,17 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
         Route::post('/performance/clear-cache', [PerformanceController::class, 'clearCache'])->name('performance.clear-cache');
     });
     
+    // Evidence files access (for leave requests)
+    Route::get('/evidence/{filename}', function($filename) {
+        $path = storage_path('app/public/leave-evidence/' . $filename);
+        
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        
+        return response()->file($path);
+    })->name('evidence.view');
+    
     // Tenant Settings (Admin only)
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/tenant/settings', [TenantController::class, 'index'])->name('tenant.settings');
