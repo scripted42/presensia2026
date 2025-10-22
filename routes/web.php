@@ -103,7 +103,7 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
         Route::middleware('role:teacher|tu|bk|kesiswaan|admin|headmaster')->group(function () {
             Route::get('/', [AttendanceController::class, 'index'])->name('index');
             Route::get('/check-in', [AttendanceController::class, 'showCheckIn'])->name('check-in');
-            Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+            Route::post('/check-in', [AttendanceController::class, 'checkIn'])->name('checkin');
             Route::get('/check-out', [AttendanceController::class, 'showCheckOut'])->name('check-out');
             Route::post('/check-out', [AttendanceController::class, 'checkOut']);
             Route::get('/qr-code', [AttendanceController::class, 'getQrCode'])->name('qr-code')->middleware('role:admin');
@@ -116,6 +116,9 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
         // Laporan boleh diakses semua role termasuk student
         Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
         Route::get('/reports/export', [AttendanceController::class, 'exportReport'])->name('reports.export');
+        
+        // Recent attendance for check-in page
+        Route::get('/recent', [AttendanceController::class, 'recent'])->name('recent');
     });
     
     // Schedule routes (accessible by all authenticated users)

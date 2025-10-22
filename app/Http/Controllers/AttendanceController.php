@@ -1494,4 +1494,27 @@ class AttendanceController extends Controller
 
         return $earthRadius * $c;
     }
+
+    /**
+     * Get recent attendance for check-in page.
+     */
+    public function recent()
+    {
+        $user = Auth::user();
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        
+        $recent = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->whereNotNull('check_in')
+            ->orderBy('check_in', 'desc')
+            ->get()
+            ->map(function ($attendance) {
+                return [
+                    'time' => Carbon::parse($attendance->check_in)->format('H:i:s'),
+                    'location' => $attendance->location_name ?: 'Lokasi tidak tersedia'
+                ];
+            });
+            
+        return response()->json($recent);
+    }
 }
