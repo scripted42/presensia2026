@@ -16,9 +16,10 @@ class ScheduleController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $month = $request->get('month', now()->month);
-        $year = $request->get('year', now()->year);
+        try {
+            $user = Auth::user();
+            $month = $request->get('month', now()->month);
+            $year = $request->get('year', now()->year);
         
         $startDate = Carbon::create($year, $month, 1);
         $endDate = $startDate->copy()->endOfMonth();
@@ -46,7 +47,20 @@ class ScheduleController extends Controller
             ->where('is_active', true)
             ->get();
             
-        return view('schedule.index', compact('specialSchedules', 'dailyOverrides', 'holidays', 'month', 'year', 'startDate', 'endDate'));
+            return view('schedule.index', compact('specialSchedules', 'dailyOverrides', 'holidays', 'month', 'year', 'startDate', 'endDate'));
+        } catch (\Exception $e) {
+            \Log::error('ScheduleController::index error: ' . $e->getMessage());
+            return view('schedule.index', [
+                'specialSchedules' => collect(),
+                'dailyOverrides' => collect(),
+                'holidays' => collect(),
+                'month' => now()->month,
+                'year' => now()->year,
+                'startDate' => now()->startOfMonth(),
+                'endDate' => now()->endOfMonth(),
+                'error' => 'Gagal memuat informasi jadwal: ' . $e->getMessage()
+            ]);
+        }
     }
     
     /**
@@ -54,12 +68,13 @@ class ScheduleController extends Controller
      */
     public function today()
     {
-        $user = Auth::user();
-        $today = now('Asia/Jakarta');
+        try {
+            $user = Auth::user();
+            $today = now('Asia/Jakarta');
         
         // Check if today is holiday
-        $isHoliday = HolidaySchedule::isHoliday($today);
-        $holidayName = $isHoliday ? HolidaySchedule::getHolidayName($today) : null;
+        $isHoliday = HolidaySchedule::isHoliday($today, $user->school_id);
+        $holidayName = $isHoliday ? HolidaySchedule::getHolidayName($today, $user->school_id) : null;
         
         // Get special schedule for today
         $specialSchedule = SpecialSchedule::where('school_id', $user->school_id)
@@ -108,13 +123,24 @@ class ScheduleController extends Controller
             }
         }
         
-        return response()->json([
-            'is_holiday' => $isHoliday,
-            'holiday_name' => $holidayName,
-            'max_check_in_time' => $maxCheckInTime,
-            'reason' => $reason,
-            'special_schedule' => $specialSchedule,
-            'daily_override' => $dailyOverride
-        ]);
+            return response()->json([
+                'is_holiday' => $isHoliday,
+                'holiday_name' => $holidayName,
+                'max_check_in_time' => $maxCheckInTime,
+                'reason' => $reason,
+                'special_schedule' => $specialSchedule,
+                'daily_override' => $dailyOverride
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('ScheduleController::today error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Gagal memuat informasi jadwal',
+                'message' => $e->getMessage(),
+                'is_holiday' => false,
+                'holiday_name' => null,
+                'max_check_in_time' => '07:00',
+                'reason' => null
+            ], 500);
+        }
     }
 }
