@@ -76,38 +76,58 @@ class ScheduleController extends Controller
     {
         try {
             $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated'], 401);
+            }
+            
             $today = now('Asia/Jakarta');
             
             \Log::info('ScheduleController::today - User: ' . $user->id . ', School: ' . $user->school_id);
         
         // Check if today is holiday
-        $isHoliday = HolidaySchedule::isHoliday($today, $user->school_id);
-        $holidayName = $isHoliday ? HolidaySchedule::getHolidayName($today, $user->school_id) : null;
+        $isHoliday = false;
+        $holidayName = null;
+        try {
+            $isHoliday = HolidaySchedule::isHoliday($today, $user->school_id);
+            $holidayName = $isHoliday ? HolidaySchedule::getHolidayName($today, $user->school_id) : null;
+        } catch (\Exception $e) {
+            \Log::error('HolidaySchedule error: ' . $e->getMessage());
+        }
         
         // Get special schedule for today
-        $allTodaySchedules = SpecialSchedule::where('school_id', $user->school_id)
-            ->where('day_of_week', strtolower($today->format('l')))
-            ->where('is_active', true)
-            ->get();
+        $specialSchedule = null;
+        try {
+            $allTodaySchedules = SpecialSchedule::where('school_id', $user->school_id)
+                ->where('day_of_week', strtolower($today->format('l')))
+                ->where('is_active', true)
+                ->get();
+                
+            \Log::info('ScheduleController::today - All today schedules: ' . $allTodaySchedules->count());
+            \Log::info('ScheduleController::today - Today: ' . $today->format('Y-m-d l'));
+            \Log::info('ScheduleController::today - User roles: ' . $user->roles->pluck('name')->toArray());
             
-        \Log::info('ScheduleController::today - All today schedules: ' . $allTodaySchedules->count());
-        \Log::info('ScheduleController::today - Today: ' . $today->format('Y-m-d l'));
-        \Log::info('ScheduleController::today - User roles: ' . $user->roles->pluck('name')->toArray());
-        
-        $specialSchedule = $allTodaySchedules->first(function ($schedule) use ($today, $user) {
-            $applies = $schedule->appliesTo($today, $user);
-            \Log::info('ScheduleController::today - Schedule: ' . $schedule->name . ', applies: ' . ($applies ? 'true' : 'false'));
-            return $applies;
-        });
+            $specialSchedule = $allTodaySchedules->first(function ($schedule) use ($today, $user) {
+                $applies = $schedule->appliesTo($today, $user);
+                \Log::info('ScheduleController::today - Schedule: ' . $schedule->name . ', applies: ' . ($applies ? 'true' : 'false'));
+                return $applies;
+            });
+        } catch (\Exception $e) {
+            \Log::error('SpecialSchedule error: ' . $e->getMessage());
+        }
             
         // Get daily override for today
-        $dailyOverride = DailyOverride::where('school_id', $user->school_id)
-            ->where('date', $today->format('Y-m-d'))
-            ->where('is_active', true)
-            ->get()
-            ->first(function ($override) use ($today, $user) {
-                return $override->appliesTo($today, $user);
-            });
+        $dailyOverride = null;
+        try {
+            $dailyOverride = DailyOverride::where('school_id', $user->school_id)
+                ->where('date', $today->format('Y-m-d'))
+                ->where('is_active', true)
+                ->get()
+                ->first(function ($override) use ($today, $user) {
+                    return $override->appliesTo($today, $user);
+                });
+        } catch (\Exception $e) {
+            \Log::error('DailyOverride error: ' . $e->getMessage());
+        }
             
         // Determine max check-in time
         $maxCheckInTime = null;
