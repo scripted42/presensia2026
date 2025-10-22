@@ -174,9 +174,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Load today's schedule info
-    fetch('{{ route("schedule.today") }}')
-        .then(response => response.json())
+    fetch('{{ route("schedule.today") }}', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Schedule data:', data);
             const todayInfo = document.getElementById('today-info');
             
             if (data.is_holiday) {
@@ -205,10 +220,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            console.error('Schedule loading error:', error);
             document.getElementById('today-info').innerHTML = `
                 <div class="text-center">
                     <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
                     <p class="text-gray-500">Gagal memuat informasi jadwal</p>
+                    <p class="text-xs text-gray-400 mt-2">Error: ${error.message || 'Unknown error'}</p>
                 </div>
             `;
         });
