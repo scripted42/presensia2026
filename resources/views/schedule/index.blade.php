@@ -282,7 +282,7 @@ function loadScheduleInfo() {
                 </div>
             `;
         });
-});
+}
 </script>
 @endsection
 
