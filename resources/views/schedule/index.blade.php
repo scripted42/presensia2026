@@ -178,6 +178,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadScheduleInfo() {
+    // Show loading state
+    const todayInfo = document.getElementById('today-info');
+    todayInfo.innerHTML = `
+        <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+        <p class="mt-2 text-gray-500">Memuat informasi jadwal...</p>
+    `;
+    
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+        todayInfo.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                <p class="text-gray-500">Timeout - Gagal memuat informasi jadwal</p>
+                <button onclick="loadScheduleInfo()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Coba Lagi
+                </button>
+            </div>
+        `;
+    }, 10000); // 10 second timeout
+    
     fetch('{{ route("schedule.today") }}', {
         method: 'GET',
         headers: {
@@ -190,6 +210,7 @@ function loadScheduleInfo() {
     })
         .then(response => {
             console.log('Response status:', response.status);
+            clearTimeout(timeoutId); // Clear timeout on successful response
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -197,6 +218,7 @@ function loadScheduleInfo() {
         })
         .then(data => {
             console.log('Schedule data:', data);
+            clearTimeout(timeoutId); // Clear timeout on successful data
             const todayInfo = document.getElementById('today-info');
             
             if (data.is_holiday) {
@@ -226,13 +248,24 @@ function loadScheduleInfo() {
         })
         .catch(error => {
             console.error('Schedule loading error:', error);
+            clearTimeout(timeoutId); // Clear timeout on error
             
             // Try fallback for ngrok issues
             if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
                 console.log('Attempting fallback for ngrok/CORS issue...');
-                setTimeout(() => {
-                    loadScheduleInfo();
-                }, 2000);
+                
+                // Show fallback content instead of retrying
+                document.getElementById('today-info').innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-clock text-4xl text-blue-500 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Jadwal Hari Ini</h3>
+                        <p class="text-2xl font-bold text-blue-600 mb-2">Max Check-in: 07:00</p>
+                        <p class="text-sm text-gray-600">Jadwal default (tidak ada jadwal khusus)</p>
+                        <button onclick="loadScheduleInfo()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Refresh
+                        </button>
+                    </div>
+                `;
                 return;
             }
             
