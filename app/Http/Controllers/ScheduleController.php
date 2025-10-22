@@ -71,6 +71,8 @@ class ScheduleController extends Controller
         try {
             $user = Auth::user();
             $today = now('Asia/Jakarta');
+            
+            \Log::info('ScheduleController::today - User: ' . $user->id . ', School: ' . $user->school_id);
         
         // Check if today is holiday
         $isHoliday = HolidaySchedule::isHoliday($today, $user->school_id);
@@ -123,14 +125,18 @@ class ScheduleController extends Controller
             }
         }
         
-            return response()->json([
+            $response = [
                 'is_holiday' => $isHoliday,
                 'holiday_name' => $holidayName,
                 'max_check_in_time' => $maxCheckInTime,
                 'reason' => $reason,
                 'special_schedule' => $specialSchedule,
                 'daily_override' => $dailyOverride
-            ]);
+            ];
+            
+            \Log::info('ScheduleController::today - Response: ' . json_encode($response));
+            
+            return response()->json($response);
         } catch (\Exception $e) {
             \Log::error('ScheduleController::today error: ' . $e->getMessage());
             return response()->json([

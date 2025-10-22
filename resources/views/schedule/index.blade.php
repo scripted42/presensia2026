@@ -189,14 +189,16 @@ function loadScheduleInfo() {
     const timeoutId = setTimeout(() => {
         todayInfo.innerHTML = `
             <div class="text-center">
-                <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
-                <p class="text-gray-500">Timeout - Gagal memuat informasi jadwal</p>
+                <i class="fas fa-clock text-4xl text-blue-500 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Jadwal Hari Ini</h3>
+                <p class="text-2xl font-bold text-blue-600 mb-2">Max Check-in: 07:00</p>
+                <p class="text-sm text-gray-600">Jadwal default (tidak ada jadwal khusus)</p>
                 <button onclick="loadScheduleInfo()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Coba Lagi
+                    Refresh
                 </button>
             </div>
         `;
-    }, 10000); // 10 second timeout
+    }, 5000); // 5 second timeout
     
     fetch('{{ route("schedule.today") }}', {
         method: 'GET',
