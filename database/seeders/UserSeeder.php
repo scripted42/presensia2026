@@ -18,39 +18,49 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $school = School::first();
+        
+        // Skip if users already exist
+        if (User::where('email', 'admin@presensia.com')->exists()) {
+            $this->command->info('Users already exist, skipping user creation.');
+            return;
+        }
 
         // Create admin user
-        $admin = User::create([
-            'school_id' => $school->id,
-            'name' => 'Administrator',
-            'email' => 'admin@presensia.com',
-            'password' => Hash::make('password'),
-            'phone' => '081234567890',
-            'address' => 'Jl. Admin No. 1',
-            'birth_date' => '1990-01-01',
-            'gender' => 'L',
-            'qr_code' => Str::random(32),
-            'nik' => '1234567890123456',
-            'user_type' => 'employee',
-            'is_active' => true,
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@presensia.com'],
+            [
+                'school_id' => $school->id,
+                'name' => 'Administrator',
+                'password' => Hash::make('password'),
+                'phone' => '081234567890',
+                'address' => 'Jl. Admin No. 1',
+                'birth_date' => '1990-01-01',
+                'gender' => 'L',
+                'qr_code' => Str::random(32),
+                'nik' => '1234567890123456',
+                'user_type' => 'employee',
+                'is_active' => true,
+            ]
+        );
         $admin->assignRole('admin');
 
         // Create headmaster user
-        $headmaster = User::create([
-            'school_id' => $school->id,
-            'name' => 'Kepala Sekolah',
-            'email' => 'kepala@presensia.com',
-            'password' => Hash::make('password'),
-            'phone' => '081234567888',
-            'address' => 'Jl. Kepala Sekolah No. 1',
-            'birth_date' => '1975-12-01',
-            'gender' => 'L',
-            'qr_code' => Str::random(32),
-            'nik' => '1234567890123444',
-            'user_type' => 'employee',
-            'is_active' => true,
-        ]);
+        $headmaster = User::firstOrCreate(
+            ['email' => 'kepala@presensia.com'],
+            [
+                'school_id' => $school->id,
+                'name' => 'Kepala Sekolah',
+                'password' => Hash::make('password'),
+                'phone' => '081234567888',
+                'address' => 'Jl. Kepala Sekolah No. 1',
+                'birth_date' => '1975-12-01',
+                'gender' => 'L',
+                'qr_code' => Str::random(32),
+                'nik' => '1234567890123444',
+                'user_type' => 'employee',
+                'is_active' => true,
+            ]
+        );
         $headmaster->assignRole('headmaster');
 
         // Create teacher user

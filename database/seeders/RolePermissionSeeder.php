@@ -51,14 +51,14 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission, 'guard_name' => 'web']);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
         // Create roles and assign permissions
-        $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->givePermissionTo(Permission::all());
 
-        $headmasterRole = Role::create(['name' => 'headmaster', 'guard_name' => 'web']);
+        $headmasterRole = Role::firstOrCreate(['name' => 'headmaster', 'guard_name' => 'web']);
         $headmasterRole->givePermissionTo([
             'view-dashboard',
             'view-attendance', 'view-student-attendance',
@@ -66,7 +66,7 @@ class RolePermissionSeeder extends Seeder
             'view-leaves', 'approve-leaves',
         ]);
 
-        $teacherRole = Role::create(['name' => 'teacher', 'guard_name' => 'web']);
+        $teacherRole = Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'web']);
         $teacherRole->givePermissionTo([
             'view-dashboard',
             'view-own-attendance', 'create-own-attendance',
@@ -74,7 +74,7 @@ class RolePermissionSeeder extends Seeder
             'view-own-leaves', 'create-own-leaves',
         ]);
 
-        $tuRole = Role::create(['name' => 'tu', 'guard_name' => 'web']);
+        $tuRole = Role::firstOrCreate(['name' => 'tu', 'guard_name' => 'web']);
         $tuRole->givePermissionTo([
             'view-dashboard',
             'view-users', 'create-users', 'edit-users',
@@ -86,7 +86,7 @@ class RolePermissionSeeder extends Seeder
             'bulk-import-users', 'bulk-import-students',
         ]);
 
-        $bkRole = Role::create(['name' => 'bk', 'guard_name' => 'web']);
+        $bkRole = Role::firstOrCreate(['name' => 'bk', 'guard_name' => 'web']);
         $bkRole->givePermissionTo([
             'view-dashboard',
             'view-students', 'edit-students',
@@ -94,7 +94,7 @@ class RolePermissionSeeder extends Seeder
             'view-reports',
         ]);
 
-        $kesiswaanRole = Role::create(['name' => 'kesiswaan', 'guard_name' => 'web']);
+        $kesiswaanRole = Role::firstOrCreate(['name' => 'kesiswaan', 'guard_name' => 'web']);
         $kesiswaanRole->givePermissionTo([
             'view-dashboard',
             'view-students', 'edit-students',
@@ -102,7 +102,7 @@ class RolePermissionSeeder extends Seeder
             'view-reports',
         ]);
 
-        $studentRole = Role::create(['name' => 'student', 'guard_name' => 'web']);
+        $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
         $studentRole->givePermissionTo([
             'view-own-attendance',
             'view-own-leaves', 'create-own-leaves',

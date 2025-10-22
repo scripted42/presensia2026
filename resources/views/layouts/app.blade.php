@@ -168,18 +168,18 @@
                             @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin']))
                             <a href="{{ route('attendance.check-in') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-in') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-in') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-sign-in-alt"></i>
-                                Absensi Masuk
-                            </a>
-                            
+                                    Absensi Masuk
+                                </a>
+                                
                             <a href="{{ route('attendance.check-out') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.check-out') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.check-out') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-sign-out-alt"></i>
-                                Absensi Keluar
-                            </a>
-                            
-                            @if(auth()->user()->hasRole(['teacher','admin']))
-                                <a href="{{ route('attendance.student-scan') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
-                                    <i class="sb-icon fas fa-qrcode"></i>
-                                    Scan Siswa
+                                    Absensi Keluar
+                                </a>
+                                
+                                @if(auth()->user()->hasRole(['teacher','admin']))
+                                    <a href="{{ route('attendance.student-scan') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.student-scan') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.student-scan') ? 'page' : 'false' }}">
+                                        <i class="sb-icon fas fa-qrcode"></i>
+                                        Scan Siswa
                                 </a>
                             @endif
                             
@@ -187,8 +187,8 @@
                             <a href="{{ route('attendance.display-qr') }}" target="_blank" class="group flex items-center text-sm font-medium rounded-md text-gray-600" aria-current="false">
                                 <i class="sb-icon fas fa-qrcode"></i>
                                 QR Code Absensi
-                            </a>
-                            @endif
+                                    </a>
+                                @endif
                             @endif
                             
                             <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">

@@ -9,7 +9,7 @@
     <div class="camera-section">
         <div class="camera-header">
             <div class="camera-header-left">
-                <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
+            <h1 class="text-xl font-bold text-white">Scan QR Code Siswa</h1>
                 <p class="text-sm text-white/80">Arahkan kamera ke QR Code siswa</p>
                     </div>
             <div class="camera-controls">
@@ -29,7 +29,7 @@
                     <i class="fas fa-camera text-4xl text-gray-400 mb-2"></i>
                     <p class="text-gray-600">Kamera akan aktif saat tombol start ditekan</p>
         </div>
-
+                
                 <!-- Overlay Panduan QR -->
                 <div id="qr-guide" class="absolute inset-0 pointer-events-none" style="display: none;">
                     <!-- Sudut kiri atas -->
@@ -45,7 +45,7 @@
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="w-48 h-48 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center">
                             <span class="text-blue-500 text-sm font-medium">Arahkan QR Code ke area ini</span>
-        </div>
+                        </div>
                     </div>
 
                     <!-- Simple instruction -->
@@ -53,10 +53,10 @@
                         <i class="fas fa-camera mr-1"></i>Arahkan QR ke area ini
                     </div>
                 </div>
-                            </div>
-                        </div>
-                    </div>
-
+            </div>
+        </div>
+    </div>
+    
     <!-- Students List Section - Swipeable -->
     <div class="students-section">
         <div class="students-header">
@@ -65,40 +65,40 @@
                 <div class="swipe-indicator">
                     <i class="fas fa-chevron-up text-gray-400"></i>
                     <span class="text-sm text-gray-500">Swipe ke atas untuk melihat daftar</span>
-                            </div>
-                        </div>
+                </div>
+            </div>
             <div class="students-header-right">
                 <div class="record-count" id="recordCount">0 Record</div>
                 <button id="syncButton" class="sync-button">
                     <i class="fas fa-sync-alt"></i>
                     Sync
-                        </button>
-                        </div>
-                    </div>
-
+                </button>
+            </div>
+        </div>
+        
         <div class="students-content">
             <!-- Manual Input Section -->
             <div class="manual-input-section">
                 <div class="manual-input-header">
                     <h3 class="text-sm font-medium text-gray-700">Input Manual</h3>
                     <p class="text-xs text-gray-500">Masukkan QR Code secara manual</p>
-                </div>
-                
+                    </div>
+
 
                 <!-- Manual Input Form -->
                 <div class="manual-input-form">
                     <div class="input-group">
-                        <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
+                                    <input type="text" id="manual_qr" placeholder="Masukkan QR Code siswa (NIS|Nama)"
                                class="manual-input">
                         <button id="addManual" class="add-btn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                    
-                    <!-- Help Text -->
+                                
+                                <!-- Help Text -->
                     <div class="help-text">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Format: NIS|Nama (contoh: SISWA001|John Doe)
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Format: NIS|Nama (contoh: SISWA001|John Doe)
                     </div>
                 </div>
             </div>
@@ -111,8 +111,8 @@
                         <span class="text-sm text-gray-600">Total:</span>
                         <span class="text-sm font-semibold text-gray-900" id="studentCount">0 siswa</span>
                         </div>
-                </div>
-                
+                            </div>
+                            
                 <div id="capturedList" class="captured-list">
                     <div class="empty-state">
                         <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
@@ -124,16 +124,16 @@
                     <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button id="syncButtonBottom" class="action-btn sync-btn">
-                        <i class="fas fa-sync-alt mr-2"></i>Synchronize
+                                    <i class="fas fa-sync-alt mr-2"></i>Synchronize
                         </button>
                     <button id="clearAllButton" class="action-btn clear-btn">
                             <i class="fas fa-trash mr-2"></i>Clear All
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 </div>
 
@@ -952,17 +952,17 @@
                 
                 // Render scanner with proper callback handling
                 try {
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                    
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                
                     // Use setTimeout to check if scanner is working
                     setTimeout(() => {
                         const videoElement = document.querySelector('#html5-qrcode-reader video');
                         if (videoElement && videoElement.videoWidth > 0) {
                             console.log('✅ Scanner rendered successfully');
-                            cameraActive = true;
-                            document.getElementById('startCamera').style.display = 'none';
-                            document.getElementById('stopCamera').style.display = 'inline-block';
-                            showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
+                cameraActive = true;
+                document.getElementById('startCamera').style.display = 'none';
+                document.getElementById('stopCamera').style.display = 'inline-block';
+                showNotification('Scanner aktif dengan kamera belakang. Arahkan QR Code ke area panduan.', 'success');
                         } else {
                             throw new Error('Camera tidak dapat diakses atau tidak ada video stream');
                         }
@@ -1284,8 +1284,8 @@
                         <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
                         <p class="text-gray-500">Belum ada siswa yang diabsensi</p>
                         <p class="text-xs text-gray-400 mt-1">Gunakan kamera atau input manual</p>
-                </div>
-            `;
+                    </div>
+                `;
                 return;
             }
             
@@ -1304,22 +1304,22 @@
                     }
                 }
                 
-                html += `
+            html += `
                     <div class="student-item">
                         <div class="student-avatar ${avatarClass}">
                             <i class="${iconClass}"></i>
-                            </div>
+                                    </div>
                         <div class="student-info">
                             <div class="student-name">${displayName}</div>
                             <div class="student-time">${record.timestamp}</div>
-                        </div>
+                                </div>
                         <div class="student-actions">
                             <button onclick="removeStudent(${record.id})" class="remove-btn">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                     </div>
-                `;
+                </div>
+            `;
             });
             
             listContainer.innerHTML = html;
