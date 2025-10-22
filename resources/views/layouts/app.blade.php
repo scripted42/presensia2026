@@ -519,40 +519,13 @@
     </script>
     
     <script>
-        // Handle logout with CSRF token refresh
+        // Handle logout
         document.addEventListener('DOMContentLoaded', function() {
             const logoutForm = document.getElementById('logout-form');
             if (logoutForm) {
                 logoutForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Get fresh CSRF token
-                    fetch('/login', {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            // Update CSRF token in form
-                            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                            if (csrfToken) {
-                                const csrfInput = logoutForm.querySelector('input[name="_token"]');
-                                if (csrfInput) {
-                                    csrfInput.value = csrfToken.getAttribute('content');
-                                }
-                            }
-                            
-                            // Submit form
-                            logoutForm.submit();
-                        } else {
-                            // Fallback: submit form anyway
-                            logoutForm.submit();
-                        }
-                    }).catch(error => {
-                        console.log('CSRF refresh failed, submitting anyway:', error);
-                        logoutForm.submit();
-                    });
+                    // Let the form submit normally with POST method
+                    // No need to prevent default or refresh CSRF token
                 });
             }
         });
