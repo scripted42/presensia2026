@@ -11,6 +11,7 @@ class LeaveRequest extends Model
 
     protected $fillable = [
         'user_id',
+        'school_id',
         'type',
         'start_date',
         'end_date',
@@ -35,6 +36,14 @@ class LeaveRequest extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the school that owns the leave request.
+     */
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 
     /**
