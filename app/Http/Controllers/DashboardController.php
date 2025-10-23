@@ -580,6 +580,7 @@ class DashboardController extends Controller
 
         $allUserIds = User::where('school_id', $user->school_id)
             ->whereIn('user_type', $targetTypes)
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
             ->pluck('id');
 
         $activeIds = Attendance::whereBetween('date', [$startDate, $endDate])
@@ -590,7 +591,6 @@ class DashboardController extends Controller
 
         $nonActiveIds = $allUserIds->diff($activeIds)->take($limit);
         return User::whereIn('id', $nonActiveIds)
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
             ->get(['id','name','user_type']);
     }
 
@@ -817,13 +817,13 @@ class DashboardController extends Controller
         $employees = User::with('employeeProfile')
             ->where('school_id', $user->school_id)
             ->where('user_type', 'employee')
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
             ->whereNotIn('email', $superAdminEmails)
             ->get(['id','name','user_type','phone','address','nik']);
         $students = User::with('studentProfile')
             ->where('school_id', $user->school_id)
             ->where('user_type', 'student')
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
             ->whereNotIn('email', $superAdminEmails)
             ->get(['id','name','user_type','nis','nisn','phone']);
 
