@@ -89,6 +89,30 @@ class AttendanceController extends Controller
         $today = Carbon::now('Asia/Jakarta');
         $todayFormatted = $today->format('Y-m-d');
         
+        // Anti-GPS Spoofing: Deteksi GPS spoofing untuk pegawai
+        if ($request->latitude && $request->longitude) {
+            $suspiciousIndicators = $this->detectGpsSpoofing($request->latitude, $request->longitude, $user);
+            
+            if (!empty($suspiciousIndicators)) {
+                // Log suspicious activity
+                \Log::warning('Suspicious GPS activity detected during check-in', [
+                    'user_id' => $user->id,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                    'indicators' => $suspiciousIndicators,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent()
+                ]);
+                
+                // Block attendance if multiple indicators found
+                if (count($suspiciousIndicators) >= 2) {
+                    return redirect()->back()->withErrors([
+                        'location' => 'Lokasi tidak valid. Silakan pastikan GPS aktif dan berada di lokasi yang benar.'
+                    ]);
+                }
+            }
+        }
+        
         // Validasi: Cek apakah hari ini adalah hari libur
         if (\App\Models\HolidaySchedule::isHoliday($today, $user->school_id)) {
             $holidayName = \App\Models\HolidaySchedule::getHolidayName($today, $user->school_id);
@@ -228,6 +252,30 @@ class AttendanceController extends Controller
         
         $user = Auth::user();
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        
+        // Anti-GPS Spoofing: Deteksi GPS spoofing untuk pegawai
+        if ($request->latitude && $request->longitude) {
+            $suspiciousIndicators = $this->detectGpsSpoofing($request->latitude, $request->longitude, $user);
+            
+            if (!empty($suspiciousIndicators)) {
+                // Log suspicious activity
+                \Log::warning('Suspicious GPS activity detected during check-out', [
+                    'user_id' => $user->id,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                    'indicators' => $suspiciousIndicators,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent()
+                ]);
+                
+                // Block attendance if multiple indicators found
+                if (count($suspiciousIndicators) >= 2) {
+                    return redirect()->back()->withErrors([
+                        'location' => 'Lokasi tidak valid. Silakan pastikan GPS aktif dan berada di lokasi yang benar.'
+                    ]);
+                }
+            }
+        }
         
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -1334,5 +1382,139 @@ class AttendanceController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"'
         ]);
+    }
+
+    /**
+     * Detect GPS spoofing for employee attendance.
+     */
+    private function detectGpsSpoofing($latitude, $longitude, $user)
+    {
+        $suspiciousIndicators = [];
+
+        // 1. Check coordinate precision (too precise = suspicious)
+        if ($this->isTooPrecise($latitude, $longitude)) {
+            $suspiciousIndicators[] = 'Koordinat terlalu presisi (kemungkinan fake)';
+        }
+
+        // 2. Check for common fake locations
+        if ($this->isCommonFakeLocation($latitude, $longitude)) {
+            $suspiciousIndicators[] = 'Lokasi terdeteksi sebagai koordinat fake umum';
+        }
+
+        // 3. Check for impossible location changes
+        if ($this->hasImpossibleLocationChange($latitude, $longitude, $user)) {
+            $suspiciousIndicators[] = 'Perubahan lokasi tidak mungkin (terlalu cepat/jauh)';
+        }
+
+        return $suspiciousIndicators;
+    }
+
+    /**
+     * Check if coordinates are too precise (indicating fake GPS).
+     */
+    private function isTooPrecise($latitude, $longitude)
+    {
+        // Check if coordinates have too many decimal places
+        $latDecimals = strlen(substr(strrchr($latitude, "."), 1));
+        $lngDecimals = strlen(substr(strrchr($longitude, "."), 1));
+        
+        // More than 6 decimal places is suspicious
+        return $latDecimals > 6 || $lngDecimals > 6;
+    }
+
+    /**
+     * Check for common fake GPS locations.
+     */
+    private function isCommonFakeLocation($latitude, $longitude)
+    {
+        $fakeLocations = [
+            // Common fake locations
+            ['lat' => 0.0, 'lng' => 0.0], // Null Island
+            ['lat' => 37.7749, 'lng' => -122.4194], // San Francisco (common default)
+            ['lat' => 40.7128, 'lng' => -74.0060], // New York (common default)
+            ['lat' => 51.5074, 'lng' => -0.1278], // London (common default)
+        ];
+
+        foreach ($fakeLocations as $fake) {
+            $distance = $this->calculateDistance($latitude, $longitude, $fake['lat'], $fake['lng']);
+            if ($distance < 100) { // Within 100 meters
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check for impossible location changes.
+     */
+    private function hasImpossibleLocationChange($latitude, $longitude, $user)
+    {
+        // Get last attendance location
+        $lastAttendance = Attendance::where('user_id', $user->id)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$lastAttendance) {
+            return false; // No previous location to compare
+        }
+
+        $distance = $this->calculateDistance(
+            $latitude, $longitude,
+            $lastAttendance->latitude, $lastAttendance->longitude
+        );
+
+        $timeDiff = now()->diffInMinutes($lastAttendance->created_at);
+
+        // If moved more than 1000km in less than 1 hour, it's suspicious
+        if ($distance > 1000 && $timeDiff < 60) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate distance between two coordinates using Haversine formula.
+     */
+    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat/2) * sin($dLat/2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLng/2) * sin($dLng/2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+        return $earthRadius * $c;
+    }
+
+    /**
+     * Get recent attendance for check-in page.
+     */
+    public function recent()
+    {
+        $user = Auth::user();
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        
+        $recent = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->whereNotNull('check_in')
+            ->orderBy('check_in', 'desc')
+            ->get()
+            ->map(function ($attendance) {
+                return [
+                    'time' => Carbon::parse($attendance->check_in)->format('H:i:s'),
+                    'location' => $attendance->location_name ?: 'Lokasi tidak tersedia'
+                ];
+            });
+            
+        return response()->json($recent);
     }
 }
