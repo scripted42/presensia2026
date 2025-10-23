@@ -116,4 +116,68 @@ class HolidayController extends Controller
         return redirect()->back()
             ->with('success', "Hari libur berhasil {$status}!");
     }
+    
+    /**
+     * Show import national holidays form.
+     */
+    public function showImport()
+    {
+        $years = \App\Services\NationalHolidayService::getAvailableYears();
+        return view('admin.holidays.import', compact('years'));
+    }
+    
+    /**
+     * Import national holidays.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer|min:2020|max:2030',
+            'confirm' => 'required|accepted'
+        ]);
+        
+        $user = Auth::user();
+        $year = $request->year;
+        
+        try {
+            $result = \App\Services\NationalHolidayService::importNationalHolidays($year, $user->school_id);
+            
+            $message = "Import berhasil! ";
+            $message .= "Ditambahkan: {$result['imported']} hari libur, ";
+            $message .= "Dilewati: {$result['skipped']} hari libur (sudah ada)";
+            
+            return redirect()->route('admin.holidays.index', ['year' => $year])
+                ->with('success', $message);
+                
+        } catch (\Exception $e) {
+            \Log::error('Failed to import national holidays: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->with('error', 'Gagal mengimport hari libur nasional. Silakan coba lagi.');
+        }
+    }
+    
+    /**
+     * Get national holidays preview via AJAX.
+     */
+    public function preview(Request $request)
+    {
+        $year = $request->get('year', now()->year);
+        
+        try {
+            $holidays = \App\Services\NationalHolidayService::getNationalHolidays($year);
+            
+            return response()->json([
+                'success' => true,
+                'holidays' => $holidays,
+                'count' => count($holidays)
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data hari libur nasional'
+            ], 500);
+        }
+    }
 }

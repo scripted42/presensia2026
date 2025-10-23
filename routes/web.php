@@ -142,6 +142,9 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
             // Holiday Management
             Route::resource('holidays', HolidayController::class);
             Route::post('/holidays/{holiday}/toggle', [HolidayController::class, 'toggle'])->name('holidays.toggle');
+            Route::get('/holidays/import/national', [HolidayController::class, 'showImport'])->name('holidays.import');
+            Route::post('/holidays/import/national', [HolidayController::class, 'import'])->name('holidays.import.store');
+            Route::get('/holidays/preview/national', [HolidayController::class, 'preview'])->name('holidays.preview');
             
             // Special Schedule Management
             Route::resource('special-schedules', SpecialScheduleController::class);

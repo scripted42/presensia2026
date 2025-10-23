@@ -13,6 +13,9 @@
                     <p class="text-gray-600 mt-1">Atur hari libur untuk sistem absensi</p>
                 </div>
                 <div class="flex space-x-3">
+                    <a href="{{ route('admin.holidays.import') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Import Hari Libur Nasional
+                    </a>
                     <a href="{{ route('admin.holidays.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                         <i class="fas fa-plus mr-2"></i>Tambah Hari Libur
                     </a>

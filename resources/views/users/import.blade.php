@@ -1,45 +1,9 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Data User - Presensia</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <i class="fas fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                        <span class="text-xl font-bold text-gray-900">Presensia</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('dashboard') }}" class="text-sm text-gray-700 hover:text-gray-900">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="{{ route('users.index') }}" class="text-sm text-gray-700 hover:text-gray-900">
-                        <i class="fas fa-users mr-1"></i>Users
-                    </a>
-                    <span class="text-sm text-gray-700">Selamat datang, <strong>{{ auth()->user()->name }}</strong></span>
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="text-sm text-gray-700 hover:text-gray-900">
-                            <i class="fas fa-sign-out-alt mr-1"></i>Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+@extends('layouts.app')
 
-    <!-- Main Content -->
-    <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+@section('title', 'Import Data User - Presensia')
+
+@section('content')
+<div>
         <!-- Header -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
             <div class="px-4 py-5 sm:p-6">
@@ -167,6 +131,6 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+@endsection
 
