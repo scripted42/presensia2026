@@ -578,9 +578,14 @@ class DashboardController extends Controller
         if ($roleFilter === 'employee') { $targetTypes = ['employee']; }
         if ($roleFilter === 'student') { $targetTypes = ['student']; }
 
+        $superAdminEmails = \App\Models\SuperAdmin::pluck('email');
+        
         $allUserIds = User::where('school_id', $user->school_id)
             ->whereIn('user_type', $targetTypes)
             ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
+            ->whereNotIn('email', $superAdminEmails)
+            ->where('email', 'not like', 'superadmin@%')
+            ->where('name', 'not like', '%Super Administrator%')
             ->pluck('id');
 
         $activeIds = Attendance::whereBetween('date', [$startDate, $endDate])
@@ -819,12 +824,16 @@ class DashboardController extends Controller
             ->where('user_type', 'employee')
             ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
             ->whereNotIn('email', $superAdminEmails)
+            ->where('email', 'not like', 'superadmin@%')
+            ->where('name', 'not like', '%Super Administrator%')
             ->get(['id','name','user_type','phone','address','nik']);
         $students = User::with('studentProfile')
             ->where('school_id', $user->school_id)
             ->where('user_type', 'student')
             ->whereDoesntHave('roles', function($q){ $q->whereIn('name',['super-admin','admin']); })
             ->whereNotIn('email', $superAdminEmails)
+            ->where('email', 'not like', 'superadmin@%')
+            ->where('name', 'not like', '%Super Administrator%')
             ->get(['id','name','user_type','nis','nisn','phone']);
 
         $badEmp = $employees->map(function ($u) use ($employeeRequired) {
