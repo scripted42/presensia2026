@@ -16,7 +16,6 @@ use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\SpecialScheduleController;
-use App\Http\Controllers\PerformanceController;
 
 // Public routes
 Route::get('/', function () {
@@ -156,12 +155,6 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     Route::get('/attendance/export-detail', [AttendanceController::class, 'exportDetail'])->name('attendance.export-detail');
     
-    // Performance monitoring (Admin only)
-    Route::middleware(['role:admin'])->group(function () {
-        Route::get('/performance', [PerformanceController::class, 'index'])->name('performance.index');
-        Route::post('/performance/optimize', [PerformanceController::class, 'optimize'])->name('performance.optimize');
-        Route::post('/performance/clear-cache', [PerformanceController::class, 'clearCache'])->name('performance.clear-cache');
-    });
     
     // Evidence files access (for leave requests)
     Route::get('/evidence/{filename}', function($filename) {

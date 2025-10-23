@@ -341,10 +341,6 @@
                                 Kustomisasi Aplikasi
                             </a>
                             
-                            <a href="{{ route('performance.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('performance.*') ? 'text-blue-900' : '' }}">
-                                <i class="sb-icon fas fa-tachometer-alt"></i>
-                                Performance Dashboard
-                            </a>
                             </div>
                         </div>
                     @endif
