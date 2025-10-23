@@ -2,6 +2,72 @@
 
 @section('title', 'Dashboard - Presensia')
 
+@push('styles')
+<style>
+    /* Mobile responsive grid */
+    @media (max-width: 768px) {
+        .mobile\:grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    
+    /* Tooltip styles */
+    .tooltip-container {
+        position: relative;
+    }
+    
+    .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 8px;
+        padding: 12px 16px;
+        background-color: #1f2937;
+        color: white;
+        font-size: 12px;
+        border-radius: 8px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease-in-out;
+        pointer-events: none;
+        z-index: 50;
+        white-space: nowrap;
+        max-width: 300px;
+        white-space: normal;
+    }
+    
+    .tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: #1f2937;
+    }
+    
+    .tooltip-trigger:hover .tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Mobile tooltip positioning */
+    @media (max-width: 768px) {
+        .tooltip {
+            left: 0;
+            transform: none;
+            max-width: 250px;
+        }
+        
+        .tooltip::after {
+            left: 20px;
+            transform: none;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
         
         <!-- Welcome Section -->
@@ -59,7 +125,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mobile:grid-cols-2 gap-6 mb-8">
             @if(isset($stats['total_employees']))
             <div class="overflow-hidden shadow rounded-lg border border-gray-200 bg-white">
                 <div class="p-5">
@@ -236,7 +302,7 @@
                     </form>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mobile:grid-cols-2 gap-4">
                     @php
                         $good = $metrics['thresholds']['good'] ?? 90;
                         $warn = $metrics['thresholds']['warn'] ?? 75;
@@ -267,7 +333,21 @@
                     </div>
             <div class="p-4 rounded border solution_card">
                         <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-600">KPI Absensi</div>
+                            <div class="text-sm text-gray-600 flex items-center gap-2">
+                                KPI Absensi
+                                <div class="tooltip-container tooltip-trigger">
+                                    <i class="fas fa-info-circle text-gray-400 cursor-pointer hover:text-gray-600"></i>
+                                    <div class="tooltip">
+                                        <div class="font-semibold mb-1">Rumus KPI Absensi:</div>
+                                        <div>KPI = (Kehadiran / Total Hari Kerja) × 100%</div>
+                                        <div class="mt-1 text-xs text-gray-300">
+                                            • Hijau: ≥90% (Sangat Baik)<br>
+                                            • Kuning: 75-89% (Baik)<br>
+                                            • Merah: <75% (Perlu Perhatian)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <i class="fas fa-gauge-high text-emerald-600"></i>
                         </div>
                         <div class="mt-1 text-2xl font-semibold">{{ $metrics['kpi']['score'] ?? 0 }}</div>
