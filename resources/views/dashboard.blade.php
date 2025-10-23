@@ -11,59 +11,9 @@
         }
     }
     
-    /* Tooltip styles */
-    .tooltip-container {
-        position: relative;
-    }
-    
-    .tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-bottom: 8px;
-        padding: 12px 16px;
-        background-color: #1f2937;
-        color: white;
-        font-size: 12px;
-        border-radius: 8px;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease-in-out;
-        pointer-events: none;
-        z-index: 50;
-        white-space: nowrap;
-        max-width: 300px;
-        white-space: normal;
-    }
-    
-    .tooltip::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 4px solid transparent;
-        border-top-color: #1f2937;
-    }
-    
-    .tooltip-trigger:hover .tooltip {
+    /* Simple tooltip styles */
+    .group:hover .opacity-0 {
         opacity: 1;
-        visibility: visible;
-    }
-    
-    /* Mobile tooltip positioning */
-    @media (max-width: 768px) {
-        .tooltip {
-            left: 0;
-            transform: none;
-            max-width: 250px;
-        }
-        
-        .tooltip::after {
-            left: 20px;
-            transform: none;
-        }
     }
 </style>
 @endpush
@@ -333,18 +283,11 @@
                     </div>
             <div class="p-4 rounded border solution_card">
                         <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-600 flex items-center gap-2">
+                            <div class="text-sm text-gray-600 relative group cursor-help">
                                 KPI Absensi
-                                <div class="tooltip-container tooltip-trigger">
-                                    <i class="fas fa-info-circle text-gray-400 cursor-pointer hover:text-gray-600"></i>
-                                    <div class="tooltip">
-                                        <div class="font-semibold mb-1">Rumus KPI Absensi:</div>
-                                        <div>KPI = (Kehadiran / Total Hari Kerja) × 100%</div>
-                                        <div class="mt-1 text-xs text-gray-300">
-                                            • Hijau: ≥90% (Sangat Baik)<br>
-                                            • Kuning: 75-89% (Baik)<br>
-                                            • Merah: <75% (Perlu Perhatian)
-                                        </div>
+                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 w-80 text-center shadow-lg">
+                                    <div class="text-xs text-gray-300">
+                                        🟢 Baik (≥80%) • 🟡 Sedang (60-79%) • 🔴 Perlu Perhatian (<60%)
                                     </div>
                                 </div>
                             </div>
@@ -352,7 +295,32 @@
                         </div>
                         <div class="mt-1 text-2xl font-semibold">{{ $metrics['kpi']['score'] ?? 0 }}</div>
                         <div id="gauge-kpi" class="mt-2" style="height:120px;"></div>
-                        <div class="mt-1 text-xs text-gray-500">Ontime {{ $metrics['kpi']['ontime_rate'] ?? 0 }}% • Coverage {{ $metrics['kpi']['coverage_rate'] ?? 0 }}% • Data {{ $metrics['kpi']['completeness_rate'] ?? 0 }}% • Checkout {{ $metrics['kpi']['checkout_consistency'] ?? 0 }}%</div>
+                        <div class="mt-3 space-y-1 text-xs text-gray-600">
+                            <div class="flex items-center justify-between">
+                                <span>• Tepat Waktu</span>
+                                <span class="font-semibold {{ ($metrics['kpi']['ontime_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['ontime_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">
+                                    {{ $metrics['kpi']['ontime_rate'] ?? 0 }}%
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>• Keaktifan User</span>
+                                <span class="font-semibold {{ ($metrics['kpi']['coverage_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['coverage_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">
+                                    {{ $metrics['kpi']['coverage_rate'] ?? 0 }}%
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>• Kelengkapan Data</span>
+                                <span class="font-semibold {{ ($metrics['kpi']['completeness_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['completeness_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">
+                                    {{ $metrics['kpi']['completeness_rate'] ?? 0 }}%
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>• Konsistensi Absensi</span>
+                                <span class="font-semibold {{ ($metrics['kpi']['checkout_consistency'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['checkout_consistency'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">
+                                    {{ $metrics['kpi']['checkout_consistency'] ?? 0 }}%
+                                </span>
+                            </div>
+                        </div>
                         @if(isset($metrics['kpi']['working_days']) && isset($metrics['kpi']['holidays_count']))
                         <div class="mt-2 text-xs text-gray-400">
                             <i class="fas fa-calendar-alt mr-1"></i>{{ $metrics['kpi']['working_days'] }} hari kerja
