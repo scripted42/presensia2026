@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Simple PWA Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .icon { display: inline-block; margin: 10px; text-align: center; }
+        canvas { border: 1px solid #ccc; }
+        button { margin: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>PWA Icons Generator</h1>
+    <p>Klik tombol di bawah untuk generate dan download icons PWA:</p>
+    
+    <button onclick="generateAllIcons()">Generate All Icons</button>
+    
+    <div id="icons"></div>
+    
+    <script>
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#1d4ed8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add border radius effect
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Text "P"
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('P', size/2, size/2);
+            
+            return canvas;
+        }
+        
+        function downloadIcon(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function generateAllIcons() {
+            const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+            const container = document.getElementById('icons');
+            container.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = createIcon(size);
+                const filename = `icon-${size}x${size}.png`;
+                
+                const div = document.createElement('div');
+                div.className = 'icon';
+                div.innerHTML = `
+                    <canvas width="${size}" height="${size}" style="width: 64px; height: 64px;"></canvas>
+                    <br>
+                    <button onclick="downloadIcon(this.previousElementSibling, '${filename}')">Download ${size}x${size}</button>
+                `;
+                
+                // Copy canvas content
+                const newCanvas = div.querySelector('canvas');
+                const newCtx = newCanvas.getContext('2d');
+                newCtx.drawImage(canvas, 0, 0);
+                
+                container.appendChild(div);
+            });
+        }
+        
+        // Auto generate on load
+        window.onload = generateAllIcons;
+    </script>
+</body>
+</html>
