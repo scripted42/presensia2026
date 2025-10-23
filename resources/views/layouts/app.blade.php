@@ -5,6 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Presensia')</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Presensia">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Presensia">
+    <meta name="description" content="Sistem absensi digital untuk sekolah dengan fitur GPS, QR Code, dan laporan real-time">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="/icons/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="shortcut icon" href="/icons/icon-32x32.png">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <meta name="msapplication-square70x70logo" content="/icons/icon-72x72.png">
+    <meta name="msapplication-square150x150logo" content="/icons/icon-144x144.png">
+    <meta name="msapplication-wide310x150logo" content="/icons/icon-192x192.png">
+    <meta name="msapplication-square310x310logo" content="/icons/icon-512x512.png">
     <!-- Resource Hints: speed up hard refresh by preconnecting to CDNs -->
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -525,6 +558,151 @@
                 });
             }
         });
+    </script>
+    
+    <!-- PWA JavaScript -->
+    <script>
+        // PWA Installation and Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('PWA: Service Worker registered successfully');
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    if (confirm('Versi baru tersedia. Muat ulang halaman?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('PWA: Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        let installButton;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA: Install prompt triggered');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button if not already installed
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                showInstallButton();
+            }
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA: App installed successfully');
+            hideInstallButton();
+            deferredPrompt = null;
+        });
+        
+        function showInstallButton() {
+            // Create install button
+            if (!document.getElementById('pwa-install-button')) {
+                const installBtn = document.createElement('button');
+                installBtn.id = 'pwa-install-button';
+                installBtn.innerHTML = '📱 Install Aplikasi';
+                installBtn.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300 z-50';
+                installBtn.onclick = installApp;
+                document.body.appendChild(installBtn);
+            }
+        }
+        
+        function hideInstallButton() {
+            const installBtn = document.getElementById('pwa-install-button');
+            if (installBtn) {
+                installBtn.remove();
+            }
+        }
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA: User accepted install prompt');
+                    } else {
+                        console.log('PWA: User dismissed install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        // Check if app is running in standalone mode
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('PWA: Running in standalone mode');
+            // Hide address bar on mobile
+            if (window.innerHeight < window.innerWidth) {
+                document.body.classList.add('landscape-mode');
+            }
+        }
+        
+        // Handle orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    if (window.innerHeight < window.innerWidth) {
+                        document.body.classList.add('landscape-mode');
+                    } else {
+                        document.body.classList.remove('landscape-mode');
+                    }
+                }
+            }, 100);
+        });
+        
+        // Offline detection
+        window.addEventListener('online', () => {
+            console.log('PWA: Back online');
+            // Show online indicator
+            showNotification('Koneksi internet tersedia', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('PWA: Gone offline');
+            // Show offline indicator
+            showNotification('Tidak ada koneksi internet', 'warning');
+        });
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 
+                'bg-blue-500'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Background sync for attendance data
+        function syncAttendanceData() {
+            if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                navigator.serviceWorker.ready.then(registration => {
+                    return registration.sync.register('attendance-sync');
+                });
+            }
+        }
+        
+        // Expose sync function globally
+        window.syncAttendanceData = syncAttendanceData;
     </script>
     
     @stack('scripts')
