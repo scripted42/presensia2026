@@ -562,6 +562,35 @@ class DashboardController extends Controller
     }
 
     /**
+     * Check if user is admin or super admin
+     */
+    private function isAdminUser($user): bool
+    {
+        // Check by roles
+        if ($user->hasRole(['admin', 'super-admin'])) {
+            return true;
+        }
+        
+        // Check by name patterns
+        $adminNames = ['Super Administrator', 'Super Admin', 'Administrator', 'Admin'];
+        foreach ($adminNames as $adminName) {
+            if (stripos($user->name, $adminName) !== false) {
+                return true;
+            }
+        }
+        
+        // Check by email patterns
+        $adminEmails = ['admin@', 'superadmin@', 'super@'];
+        foreach ($adminEmails as $emailPattern) {
+            if (stripos($user->email, $emailPattern) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
      * Daftar user yang tidak pernah melakukan absensi pada periode.
      * Mengecualikan hari libur dari perhitungan.
      */
@@ -586,6 +615,11 @@ class DashboardController extends Controller
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%')
             ->where('name', 'not like', '%Super Administrator%')
+            ->where('name', 'not like', '%Super Admin%')
+            ->where('name', 'not like', '%Administrator%')
+            ->where('name', 'not like', '%Admin%')
+            ->where('email', 'not like', '%admin%')
+            ->where('email', 'not like', '%super%')
             ->pluck('id');
 
         $activeIds = Attendance::whereBetween('date', [$startDate, $endDate])
@@ -595,8 +629,13 @@ class DashboardController extends Controller
             ->pluck('user_id');
 
         $nonActiveIds = $allUserIds->diff($activeIds)->take($limit);
-        return User::whereIn('id', $nonActiveIds)
+        $nonActiveUsers = User::whereIn('id', $nonActiveIds)
             ->get(['id','name','user_type']);
+            
+        // Filter out admin users using the helper method
+        return $nonActiveUsers->filter(function($user) {
+            return !$this->isAdminUser($user);
+        })->values();
     }
 
     /**
@@ -826,6 +865,11 @@ class DashboardController extends Controller
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%')
             ->where('name', 'not like', '%Super Administrator%')
+            ->where('name', 'not like', '%Super Admin%')
+            ->where('name', 'not like', '%Administrator%')
+            ->where('name', 'not like', '%Admin%')
+            ->where('email', 'not like', '%admin%')
+            ->where('email', 'not like', '%super%')
             ->get(['id','name','user_type','phone','address','nik']);
         $students = User::with('studentProfile')
             ->where('school_id', $user->school_id)
@@ -834,19 +878,28 @@ class DashboardController extends Controller
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%')
             ->where('name', 'not like', '%Super Administrator%')
+            ->where('name', 'not like', '%Super Admin%')
+            ->where('name', 'not like', '%Administrator%')
+            ->where('name', 'not like', '%Admin%')
+            ->where('email', 'not like', '%admin%')
+            ->where('email', 'not like', '%super%')
             ->get(['id','name','user_type','nis','nisn','phone']);
 
         $badEmp = $employees->map(function ($u) use ($employeeRequired) {
             $missing = [];
             foreach ($employeeRequired as $f) { if ($this->isFieldEmpty($u, $f, 'employee_profile')) $missing[] = $f; }
             $u->missing_fields = $missing; $u->missing_count = count($missing); return $u;
-        })->filter(function($u){ return $u->missing_count > 0; });
+        })->filter(function($u){ 
+            return $u->missing_count > 0 && !$this->isAdminUser($u); 
+        });
 
         $badStu = $students->map(function ($u) use ($studentRequired) {
             $missing = [];
             foreach ($studentRequired as $f) { if ($this->isFieldEmpty($u, $f, 'student_profile')) $missing[] = $f; }
             $u->missing_fields = $missing; $u->missing_count = count($missing); return $u;
-        })->filter(function($u){ return $u->missing_count > 0; });
+        })->filter(function($u){ 
+            return $u->missing_count > 0 && !$this->isAdminUser($u); 
+        });
 
         // Filter defensif terakhir: buang nama yang sama persis "Super Admin"
         $merged = $badEmp->merge($badStu)
