@@ -7,6 +7,25 @@
 @endpush
 
 @section('content')
+<!-- Device Detection Notice for Web -->
+<div id="web-notice" class="hidden">
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div class="max-w-sm w-full bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-mobile-alt text-4xl text-blue-600 mb-3"></i>
+                <h1 class="text-xl font-bold text-gray-900 mb-2">Absensi Masuk</h1>
+                <p class="text-gray-600 text-sm">Fitur absensi hanya dapat diakses melalui Mobile Platform</p>
+            </div>
+            
+            <a href="{{ route('attendance.index') }}" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors inline-block text-sm">
+                <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Original Content (Hidden on Web) -->
+<div id="mobile-content">
 <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
@@ -56,6 +75,7 @@
     <input type="hidden" name="latitude" id="latitude">
     <input type="hidden" name="longitude" id="longitude">
     <input type="hidden" name="location_name" id="location_name">
+</div>
 </div>
 @endsection
 
@@ -234,6 +254,32 @@
             }, 500);
         } catch(e){ alert('Tidak bisa mengakses kamera: '+e.message); }
     });
+
+    // Device Detection
+    function detectDevice() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+                         window.innerWidth <= 768;
+        
+        const webNotice = document.getElementById('web-notice');
+        const mobileContent = document.getElementById('mobile-content');
+        
+        if (isMobile) {
+            // Show mobile content, hide notice
+            webNotice.classList.add('hidden');
+            mobileContent.classList.remove('hidden');
+        } else {
+            // Show notice, hide mobile content
+            webNotice.classList.remove('hidden');
+            mobileContent.classList.add('hidden');
+        }
+    }
+    
+    // Run detection on page load
+    detectDevice();
+    
+    // Re-run on window resize
+    window.addEventListener('resize', detectDevice);
 </script>
 @endpush
 
