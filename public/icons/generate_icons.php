@@ -41,3 +41,4 @@ foreach ($sizes as $size) {
 
 echo "All icons generated successfully!\n";
 ?>
+

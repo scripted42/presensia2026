@@ -57,3 +57,4 @@ convert icon-512x512.png -resize 384x384 icon-384x384.png
 - Gunakan **warna brand** Presensia (#3b82f6)
 - **Konsisten** dengan logo aplikasi
 - **Test** di berbagai device untuk memastikan kualitas
+
