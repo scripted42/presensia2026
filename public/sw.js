@@ -2,9 +2,9 @@
 // Version: 1.0.0
 // Last Updated: 2024
 
-const CACHE_NAME = 'presensia-v1.0.0';
-const STATIC_CACHE = 'presensia-static-v1.0.0';
-const DYNAMIC_CACHE = 'presensia-dynamic-v1.0.0';
+const CACHE_NAME = 'presensia-v1.0.1';
+const STATIC_CACHE = 'presensia-static-v1.0.1';
+const DYNAMIC_CACHE = 'presensia-dynamic-v1.0.1';
 
 // Files to cache for offline use
 const STATIC_FILES = [
@@ -248,3 +248,4 @@ self.addEventListener('message', event => {
 });
 
 console.log('Service Worker: Loaded successfully');
+
