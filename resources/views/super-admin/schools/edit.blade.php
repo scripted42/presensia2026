@@ -82,7 +82,7 @@
                             
                             <!-- Current Logo Display -->
                             @if($school->logo)
-                                <div class="mb-4">
+                                <div class="mb-4" id="current-logo-container">
                                     <p class="text-sm text-gray-600 mb-2">Logo saat ini:</p>
                                     <div class="flex items-center space-x-4">
                                         <img src="{{ asset('storage/' . $school->logo) }}" alt="{{ $school->name }}" class="h-16 w-auto border border-gray-300 rounded">
@@ -182,17 +182,29 @@
 <script>
 function removeCurrentLogo() {
     if (confirm('Apakah Anda yakin ingin menghapus logo saat ini?')) {
-        // Add hidden input to indicate logo should be removed
-        const removeInput = document.createElement('input');
-        removeInput.type = 'hidden';
-        removeInput.name = 'remove_logo';
-        removeInput.value = '1';
-        document.querySelector('form').appendChild(removeInput);
+        const form = document.querySelector('form');
+        
+        // Check if remove_logo input already exists
+        let removeInput = form.querySelector('input[name="remove_logo"]');
+        if (!removeInput) {
+            // Add hidden input to indicate logo should be removed
+            removeInput = document.createElement('input');
+            removeInput.type = 'hidden';
+            removeInput.name = 'remove_logo';
+            removeInput.value = '1';
+            form.appendChild(removeInput);
+        }
         
         // Hide current logo display
-        const currentLogoDiv = document.querySelector('.mb-4');
+        const currentLogoDiv = document.getElementById('current-logo-container');
         if (currentLogoDiv) {
             currentLogoDiv.style.display = 'none';
+        }
+        
+        // Clear file input if any
+        const fileInput = document.getElementById('school_logo');
+        if (fileInput) {
+            fileInput.value = '';
         }
     }
 }

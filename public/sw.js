@@ -15,20 +15,13 @@ const STATIC_FILES = [
     '/attendance/reports',
     '/dashboard',
     '/manifest.json',
+    '/icons/icon-16x16.png',
+    '/icons/icon-32x32.png',
+    '/icons/icon-72x72.png',
+    '/icons/icon-96x96.png',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
-    // CSS Files
-    '/assets/css/style.css',
-    '/assets/css/color-6.css',
-    // JS Files
-    '/assets/js/jquery.min.js',
-    '/assets/js/bootstrap.bundle.min.js',
-    '/assets/js/leaflet.js',
-    '/assets/js/jsQR.js',
-    // Fonts
-    '/assets/fonts/',
-    // Images
-    '/assets/images/'
+    '/icons/favicon.ico'
 ];
 
 // Install event - cache static files
@@ -39,7 +32,22 @@ self.addEventListener('install', event => {
         caches.open(STATIC_CACHE)
             .then(cache => {
                 console.log('Service Worker: Caching static files');
-                return cache.addAll(STATIC_FILES);
+                // Cache files individually to handle errors gracefully
+                return Promise.allSettled(
+                    STATIC_FILES.map(url => 
+                        fetch(url)
+                            .then(response => {
+                                if (response.ok) {
+                                    return cache.put(url, response);
+                                }
+                                throw new Error(`Failed to fetch ${url}: ${response.status}`);
+                            })
+                            .catch(error => {
+                                console.warn(`Service Worker: Failed to cache ${url}:`, error.message);
+                                return null; // Continue with other files
+                            })
+                    )
+                );
             })
             .then(() => {
                 console.log('Service Worker: Static files cached');
@@ -47,6 +55,8 @@ self.addEventListener('install', event => {
             })
             .catch(error => {
                 console.error('Service Worker: Error caching static files', error);
+                // Still skip waiting even if caching fails
+                return self.skipWaiting();
             })
     );
 });

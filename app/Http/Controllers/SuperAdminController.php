@@ -364,16 +364,7 @@ class SuperAdminController extends Controller
         // Handle logo upload/removal
         $logoPath = $school->logo; // Keep current logo by default
         
-        // If remove_logo is set, set logo to null
-        if ($request->has('remove_logo')) {
-            // Delete old logo file if exists
-            if ($school->logo && \Storage::disk('public')->exists($school->logo)) {
-                \Storage::disk('public')->delete($school->logo);
-            }
-            $logoPath = null;
-        }
-        
-        // If new logo is uploaded
+        // If new logo is uploaded, prioritize upload over removal
         if ($request->hasFile('school_logo')) {
             // Delete old logo file if exists
             if ($school->logo && \Storage::disk('public')->exists($school->logo)) {
@@ -381,6 +372,13 @@ class SuperAdminController extends Controller
             }
             // Store new logo
             $logoPath = $request->file('school_logo')->store('schools/logos', 'public');
+        } elseif ($request->has('remove_logo') && $request->remove_logo == '1') {
+            // If remove_logo is set and no new file uploaded, set logo to null
+            // Delete old logo file if exists
+            if ($school->logo && \Storage::disk('public')->exists($school->logo)) {
+                \Storage::disk('public')->delete($school->logo);
+            }
+            $logoPath = null;
         }
 
         // Update school
