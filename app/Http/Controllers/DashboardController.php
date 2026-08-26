@@ -98,7 +98,7 @@ class DashboardController extends Controller
             // Admin statistics
             $stats = [
                 'total_employees' => User::where('user_type', 'employee')->where('school_id', $user->school_id)
-                    ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+                    ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
                     ->count(),
                 'total_students' => User::where('user_type', 'student')->where('school_id', $user->school_id)
                     ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
@@ -106,19 +106,20 @@ class DashboardController extends Controller
                 'total_classes' => SchoolClass::where('school_id', $user->school_id)->count(),
                 // Absensi hari ini (distinct user) untuk persentase
                 'today_attendance' => Attendance::where('date', $today)->whereHas('user', function($query) use ($user) {
-                    $query->where('school_id', $user->school_id);
+                    $query->where('school_id', $user->school_id)
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->distinct('user_id')->count('user_id'),
                 'today_total_users' => User::where('school_id', $user->school_id)->whereIn('user_type', ['employee','student'])
-                    ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+                    ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
                     ->count(),
                 'today_attendance_percent' => 0, // diisi di bawah
                 'pending_leaves' => LeaveRequest::where('status', 'pending')->whereHas('user', function($query) use ($user) {
                     $query->where('school_id', $user->school_id)
-                          ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); });
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->count(),
                 'pending_leaves_total' => LeaveRequest::whereHas('user', function($query) use ($user) {
                     $query->where('school_id', $user->school_id)
-                          ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); });
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->count(),
                 'pending_leaves_percent' => 0,
             ];
@@ -132,26 +133,27 @@ class DashboardController extends Controller
             // Headmaster statistics
             $stats = [
                 'total_employees' => User::where('user_type', 'employee')->where('school_id', $user->school_id)
-                    ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+                    ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
                     ->count(),
                 'total_students' => User::where('user_type', 'student')->where('school_id', $user->school_id)
                     ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
                     ->count(),
                 'total_classes' => SchoolClass::where('school_id', $user->school_id)->count(),
                 'today_attendance' => Attendance::where('date', $today)->whereHas('user', function($query) use ($user) {
-                    $query->where('school_id', $user->school_id);
+                    $query->where('school_id', $user->school_id)
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->distinct('user_id')->count('user_id'),
                 'today_total_users' => User::where('school_id', $user->school_id)->whereIn('user_type', ['employee','student'])
-                    ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+                    ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
                     ->count(),
                 'today_attendance_percent' => 0,
                 'pending_leaves' => LeaveRequest::where('status', 'pending')->whereHas('user', function($query) use ($user) {
                     $query->where('school_id', $user->school_id)
-                          ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); });
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->count(),
                 'pending_leaves_total' => LeaveRequest::whereHas('user', function($query) use ($user) {
                     $query->where('school_id', $user->school_id)
-                          ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); });
+                          ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); });
                 })->count(),
                 'pending_leaves_percent' => 0,
                 'approved_leaves' => LeaveRequest::where('status', 'approved')->whereHas('user', function($query) use ($user) {
@@ -307,13 +309,14 @@ class DashboardController extends Controller
 
         $totalUsers = User::where('school_id', $user->school_id)
             ->whereIn('user_type', $targetTypes)
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
             ->count();
 
         $activeUserIds = Attendance::whereBetween('date', [$startDate, $endDate])
             ->whereNotIn('date', $holidays) // Exclude holidays
             ->whereHas('user', function ($q) use ($user) {
                 $q->where('school_id', $user->school_id)
-                  ->whereDoesntHave('roles', function($r){ $r->where('name','super-admin'); })
+                  ->whereDoesntHave('roles', function($r){ $r->whereIn('name', ['super-admin', 'admin']); })
                   ->where('email', 'not like', 'superadmin@%');
             })
             ->distinct('user_id')
@@ -321,7 +324,7 @@ class DashboardController extends Controller
 
         // Breakdown per role
         $employeeTotal = User::where('school_id', $user->school_id)->where('user_type', 'employee')
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
             ->where('email', 'not like', 'superadmin@%')
             ->count();
         $studentTotal = User::where('school_id', $user->school_id)->where('user_type', 'student')
@@ -330,7 +333,7 @@ class DashboardController extends Controller
             ->count();
 
         $activeEmployee = User::whereIn('id', $activeUserIds)->where('user_type','employee')
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
             ->where('email', 'not like', 'superadmin@%')
             ->count();
         $activeStudent = User::whereIn('id', $activeUserIds)->where('user_type','student')
