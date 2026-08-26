@@ -243,13 +243,14 @@ body { overscroll-behavior: none; touch-action: pan-y; }
 
 /* IDLE */
 .cam-idle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; z-index: 5; }
+.cam-idle.hidden { display: none !important; }
 .cam-idle-pulse { width: 110px; height: 110px; border-radius: 50%; border: 2px dashed rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; animation: idlePulse 2.5s ease-in-out infinite; background: rgba(255,255,255,.04); margin-bottom: 20px; }
 @keyframes idlePulse { 0%,100%{transform:scale(1);opacity:.7;} 50%{transform:scale(1.08);opacity:1;} }
 .cam-idle-text { color: rgba(255,255,255,.4); font-size: 13px; text-align: center; line-height: 1.6; }
 
 /* SCAN OVERLAY */
 .cam-scan-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
-.cam-scan-overlay.hidden { display: none; }
+.cam-scan-overlay.hidden { display: none !important; }
 .scan-frame {
     position: relative;
     width: 260px;
