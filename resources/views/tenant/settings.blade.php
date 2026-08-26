@@ -488,15 +488,9 @@ function stopDrag() {
 }
 
 function updatePositionFromDrag(x, y) {
-    // Convert percentage to position values
-    let positionX = 'center';
-    let positionY = 'center';
-    
-    if (x < 30) positionX = 'left';
-    else if (x > 70) positionX = 'right';
-    
-    if (y < 30) positionY = 'top';
-    else if (y > 70) positionY = 'bottom';
+    // Store exact percentage (formatted to 1 decimal place)
+    const positionX = x.toFixed(1) + '%';
+    const positionY = y.toFixed(1) + '%';
     
     // Update hidden inputs
     document.getElementById('school_photo_position_x').value = positionX;
@@ -505,9 +499,7 @@ function updatePositionFromDrag(x, y) {
     // Update display
     const display = document.getElementById('position-display');
     if (display) {
-        const xText = positionX === 'left' ? 'Kiri' : (positionX === 'right' ? 'Kanan' : 'Tengah');
-        const yText = positionY === 'top' ? 'Atas' : (positionY === 'bottom' ? 'Bawah' : 'Tengah');
-        display.textContent = `${xText}, ${yText}`;
+        display.textContent = `${positionX}, ${positionY}`;
     }
     
     updatePreview();
@@ -540,8 +532,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const display = document.getElementById('position-display');
     
     if (display) {
-        const xText = positionX === 'left' ? 'Kiri' : (positionX === 'right' ? 'Kanan' : 'Tengah');
-        const yText = positionY === 'top' ? 'Atas' : (positionY === 'bottom' ? 'Bawah' : 'Tengah');
+        const xText = positionX.includes('%') ? positionX : (positionX === 'left' ? 'Kiri' : (positionX === 'right' ? 'Kanan' : 'Tengah'));
+        const yText = positionY.includes('%') ? positionY : (positionY === 'top' ? 'Atas' : (positionY === 'bottom' ? 'Bawah' : 'Tengah'));
         display.textContent = `${xText}, ${yText}`;
     }
 });
