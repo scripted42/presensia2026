@@ -34,7 +34,7 @@
         }
 
         async function refreshQr() {
-            const url = '{{ route('attendance.qr-code') }}';
+            const url = '{{ route('attendance.qr-code', [], false) }}';
             const res = await fetch(url, { cache: 'no-store' });
             if (!res.ok) return;
             const data = await res.json();
