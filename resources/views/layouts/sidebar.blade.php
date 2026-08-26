@@ -26,18 +26,18 @@
                              class="sidebar-link sidebar-title link-nav"
                              href="https://larathemes.pixelstrap.com/cuba/admin/default-dashboard" target="_blank">
                              <svg class="stroke-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#stroke-home"></use>
                              </svg>
                              <svg class="fill-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#fill-home') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#fill-home"></use>
                              </svg><span>Dashboard</span></a></li>
                      <li class="sidebar-list"><i class="fa-solid fa-thumbtack"></i><a class="sidebar-link sidebar-title"
                              href="#">
                              <svg class="stroke-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-starter-kit') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#stroke-starter-kit"></use>
                              </svg>
                              <svg class="fill-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#fill-starter-kit') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#fill-starter-kit"></use>
                              </svg><span>Starter kit</span></a>
                          <ul class="sidebar-submenu">
                              <li><a class="submenu-title" href="#">color version<span class="sub-arrow"><i
@@ -69,19 +69,19 @@
                              class="sidebar-link sidebar-title link-nav" href="https://support.pixelstrap.com/"
                              target="_blank">
                              <svg class="stroke-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-social') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#stroke-social"></use>
                              </svg>
                              <svg class="fill-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#fill-social') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#fill-social"></use>
                              </svg><span>Raise Support</span></a></li>
                      <li class="sidebar-list"><i class="fa-solid fa-thumbtack"></i><a
                              class="sidebar-link sidebar-title link-nav"
                              href="https://docs.pixelstrap.com/cuba/laravel/document/" target="_blank">
                              <svg class="stroke-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#stroke-form"></use>
                              </svg>
                              <svg class="fill-icon">
-                                 <use href="{{ asset('assets/svg/icon-sprite.svg#fill-form') }}"></use>
+                                 <use href="/assets/svg/icon-sprite.svg#fill-form"></use>
                              </svg><span>Documentation </span></a></li>
                  </ul>
              </div>

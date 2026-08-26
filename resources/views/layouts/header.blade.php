@@ -61,15 +61,15 @@
                  </li>
                  <li class="fullscreen-body"> <span>
                          <svg id="maximize-screen">
-                             <use href="{{ asset('assets/svg/icon-sprite.svg#full-screen') }}"></use>
+                             <use href="/assets/svg/icon-sprite.svg#full-screen"></use>
                          </svg></span></li>
                  <li> <span class="header-search">
                          <svg>
-                             <use href="{{ asset('assets/svg/icon-sprite.svg#search') }}"></use>
+                             <use href="/assets/svg/icon-sprite.svg#search"></use>
                          </svg></span></li>
                  <li class="onhover-dropdown">
                      <svg>
-                         <use href="{{ asset('assets/svg/icon-sprite.svg#star') }}"></use>
+                         <use href="/assets/svg/icon-sprite.svg#star"></use>
                      </svg>
                      <div class="onhover-show-div bookmark-flip">
                          <div class="flip-card">
@@ -121,14 +121,14 @@
                  <li>
                      <div class="mode">
                          <svg>
-                             <use href="{{ asset('assets/svg/icon-sprite.svg#moon') }}"></use>
+                             <use href="/assets/svg/icon-sprite.svg#moon"></use>
                          </svg>
                      </div>
                  </li>
                  <li class="cart-nav onhover-dropdown">
                      <div class="cart-box">
                          <svg>
-                             <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-ecommerce') }}"></use>
+                             <use href="/assets/svg/icon-sprite.svg#stroke-ecommerce"></use>
                          </svg><span class="badge rounded-pill badge-danger">2</span>
                      </div>
                      <div class="cart-dropdown onhover-show-div">
@@ -190,7 +190,7 @@
                  <li class="onhover-dropdown">
                      <div class="notification-box">
                          <svg>
-                             <use href="{{ asset('assets/svg/icon-sprite.svg#notification') }}"></use>
+                             <use href="/assets/svg/icon-sprite.svg#notification"></use>
                          </svg><span class="badge rounded-pill badge-success">4 </span>
                      </div>
                      <div class="onhover-show-div notification-dropdown">

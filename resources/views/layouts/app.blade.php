@@ -49,6 +49,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Inspired by Bedimcode responsive sidebar dark/light [1] */
         :root{
@@ -64,7 +66,18 @@
             --container-color:#111827; /* gray-900 */
             --hover-color:#1F2937; /* gray-800 */
         }
-        body{background:var(--body-color)}
+        body {
+            background: var(--body-color);
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+        @media (max-width: 768px) {
+            #main-content {
+                padding-bottom: 80px; /* space for bottom tab bar */
+            }
+        }
         /* Sidebar look & active indicator */
         nav[aria-label='Sidebar'] a{
             color:var(--text-color);
@@ -461,10 +474,14 @@
         <!-- Main content -->
         <div class="flex flex-col w-0 flex-1 overflow-hidden">
             <!-- Top navigation -->
-            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow" role="banner">
-                <a href="{{ route('dashboard') }}" aria-label="Dashboard" class="flex items-center justify-center px-4 border-r border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden min-h-[64px]">
-                    <i class="fas fa-home text-lg"></i>
-                </a>
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow-sm border-b border-gray-100" role="banner">
+                <!-- Mobile App Logo -->
+                <div class="flex items-center px-4 md:hidden">
+                    <a href="{{ route('dashboard') }}">
+                        <img src="{{ asset('assets/images/logo/presensia-logo.png') }}" alt="Presensia" class="h-4 w-auto object-contain">
+                    </a>
+                </div>
+                
                 <button type="button" id="desktop-collapse-btn" onclick="toggleDesktopSidebar()" aria-label="Collapse sidebar" aria-pressed="false" class="ml-2 px-3 text-gray-500 hover:text-gray-700 hidden md:inline-flex items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                     <i class="fas fa-columns"></i>
                 </button>
@@ -472,16 +489,16 @@
                 <div class="flex-1 px-4 flex justify-end">
                     <div class="flex items-center space-x-3">
                         <!-- User info minimal -->
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</div>
-                            <div class="text-xs text-gray-500">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</div>
+                        <div class="text-right hidden sm:block">
+                            <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</div>
+                            <div class="text-xs text-gray-400 font-medium">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</div>
                         </div>
                         
-                        <!-- Avatar -->
-                        <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
+                        <!-- Clickable Avatar on Mobile -->
+                        <img onclick="if(window.innerWidth < 768) openMenuBottomSheet();" class="h-8 w-8 rounded-full border border-gray-100 cursor-pointer" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
                         
-                        <!-- Logout button minimal -->
-                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                        <!-- Logout button minimal (Desktop only) -->
+                        <form method="POST" action="{{ route('logout') }}" id="logout-form" class="hidden md:block">
                             @csrf
                             <button type="submit" class="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -720,8 +737,159 @@
                 }
             });
         }
+        
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // Mobile Menu Bottom Sheet toggles
+        function openMenuBottomSheet() {
+            const backdrop = document.getElementById('mobile-menu-backdrop');
+            const sheet = document.getElementById('mobile-menu-sheet');
+            if (backdrop && sheet) {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    backdrop.classList.add('opacity-100');
+                    sheet.classList.remove('translate-y-full');
+                }, 50);
+            }
+        }
+
+        // Expose to window for inline calls
+        window.openMenuBottomSheet = openMenuBottomSheet;
+
+        function closeMenuBottomSheet() {
+            const backdrop = document.getElementById('mobile-menu-backdrop');
+            const sheet = document.getElementById('mobile-menu-sheet');
+            if (backdrop && sheet) {
+                backdrop.classList.remove('opacity-100');
+                sheet.classList.add('translate-y-full');
+                setTimeout(() => {
+                    backdrop.classList.add('hidden');
+                }, 300);
+            }
+        }
+        window.closeMenuBottomSheet = closeMenuBottomSheet;
     </script>
     
+    <!-- Bottom Tab Bar (Mobile Only) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center py-2.5 md:hidden z-40 safe-bottom">
+        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-400' }}">
+            <i data-lucide="home" class="h-5 w-5"></i>
+            <span class="mt-0.5">Home</span>
+        </a>
+        
+        @if(auth()->user()->hasRole('student'))
+            <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('attendance.reports') ? 'text-blue-600' : 'text-gray-400' }}">
+                <i data-lucide="calendar" class="h-5 w-5"></i>
+                <span class="mt-0.5">Riwayat</span>
+            </a>
+        @else
+            <a href="{{ route('attendance.index') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('attendance.index') ? 'text-blue-600' : 'text-gray-400' }}">
+                <i data-lucide="calendar" class="h-5 w-5"></i>
+                <span class="mt-0.5">Absensi</span>
+            </a>
+        @endif
+        
+        <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('leave-requests.*') ? 'text-blue-600' : 'text-gray-400' }}">
+            <i data-lucide="file-text" class="h-5 w-5"></i>
+            <span class="mt-0.5">Izin</span>
+        </a>
+        
+        <button type="button" onclick="openMenuBottomSheet()" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-gray-400 focus:outline-none">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+            <span class="mt-0.5">Menu</span>
+        </button>
+    </div>
+
+    <!-- Mobile Menu Bottom Sheet Backdrop -->
+    <div id="mobile-menu-backdrop" onclick="closeMenuBottomSheet()" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Mobile Menu Bottom Sheet -->
+    <div id="mobile-menu-sheet" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transform translate-y-full transition-transform duration-300 shadow-2xl safe-bottom max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-center py-3" onclick="closeMenuBottomSheet()">
+            <div class="w-12 h-1 bg-gray-200 rounded-full"></div>
+        </div>
+        
+        <div class="px-6 pb-8">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
+                <img class="h-10 w-10 rounded-full border border-gray-100" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900">{{ auth()->user()->name }}</h4>
+                    <p class="text-xs text-gray-400 font-medium">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</p>
+                </div>
+            </div>
+            
+            <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Semua Fitur</h5>
+            
+            <div class="grid grid-cols-3 gap-4">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl mb-1.5">
+                        <i data-lucide="home" class="h-5 w-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-700 text-center">Dashboard</span>
+                </a>
+                
+                @if(auth()->user()->hasRole(['teacher','tu','bk','kesiswaan','admin','headmaster']))
+                    <a href="{{ route('attendance.index') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl mb-1.5">
+                            <i data-lucide="calendar-check" class="h-5 w-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-700 text-center">Status Absensi</span>
+                    </a>
+                @endif
+                
+                @if(auth()->user()->hasRole(['teacher','admin']))
+                    <a href="{{ route('attendance.student-scan') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                        <div class="p-2.5 bg-purple-50 text-purple-600 rounded-xl mb-1.5">
+                            <i data-lucide="qr-code" class="h-5 w-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-700 text-center">Scan Siswa</span>
+                    </a>
+                @endif
+
+                <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl mb-1.5">
+                        <i data-lucide="file-text" class="h-5 w-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-700 text-center">Izin & Cuti</span>
+                </a>
+                
+                <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl mb-1.5">
+                        <i data-lucide="bar-chart-2" class="h-5 w-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-700 text-center">Laporan</span>
+                </a>
+
+                @if(auth()->user()->hasRole('admin'))
+                    <a href="{{ route('users.index') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                        <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl mb-1.5">
+                            <i data-lucide="users" class="h-5 w-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-700 text-center">Manajemen User</span>
+                    </a>
+                    <a href="{{ route('tenant.settings') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
+                        <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl mb-1.5">
+                            <i data-lucide="settings" class="h-5 w-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-700 text-center">Kustomisasi</span>
+                    </a>
+                @endif
+                
+                <button type="button" onclick="document.getElementById('logout-form').submit();" class="flex flex-col items-center p-3 bg-red-50 hover:bg-red-100 rounded-2xl transition-colors w-full focus:outline-none">
+                    <div class="p-2.5 bg-red-100 text-red-600 rounded-xl mb-1.5">
+                        <i data-lucide="log-out" class="h-5 w-5"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-red-700 text-center">Logout</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     @stack('scripts')
 </body>
 </html>

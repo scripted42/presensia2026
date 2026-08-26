@@ -16,7 +16,7 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('layout_light') }}">
                                 <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
+                                    <use href="/assets/svg/icon-sprite.svg#stroke-home"></use>
                                 </svg></a></li>
                         <li class="breadcrumb-item">Footers</li>
                         <li class="breadcrumb-item active">Footer fix</li>
