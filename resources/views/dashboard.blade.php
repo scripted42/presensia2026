@@ -682,11 +682,17 @@
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Laporan</span>
                             </a>
-                            <a href="{{ route('leave-requests.index') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl mb-2">
-                                    <i data-lucide="file-text" class="h-6 w-6"></i>
+                            <a href="{{ route('leave-requests.create') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
+                                <div class="p-3 bg-orange-50 text-orange-600 rounded-2xl mb-2">
+                                    <i data-lucide="calendar-days" class="h-6 w-6"></i>
                                 </div>
-                                <span class="text-xs font-bold text-gray-700">Manajemen Izin</span>
+                                <span class="text-xs font-bold text-gray-700">Izin Pribadi</span>
+                            </a>
+                            <a href="{{ route('leave-requests.create', ['user_id' => 'student']) }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
+                                <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl mb-2">
+                                    <i data-lucide="user-x" class="h-6 w-6"></i>
+                                </div>
+                                <span class="text-xs font-bold text-gray-700">Izin Siswa</span>
                             </a>
                         @elseif($user->hasRole('headmaster'))
                             <!-- Headmaster Menu -->
@@ -742,12 +748,20 @@
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Laporan</span>
                             </a>
-                            <a href="{{ route('leave-requests.index') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl mb-2">
-                                    <i data-lucide="file-text" class="h-6 w-6"></i>
+                            <a href="{{ route('leave-requests.create') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
+                                <div class="p-3 bg-orange-50 text-orange-600 rounded-2xl mb-2">
+                                    <i data-lucide="calendar-days" class="h-6 w-6"></i>
                                 </div>
-                                <span class="text-xs font-bold text-gray-700">Manajemen Izin</span>
+                                <span class="text-xs font-bold text-gray-700">Izin Pribadi</span>
                             </a>
+                            @if($user->hasRole(['teacher', 'admin']))
+                                <a href="{{ route('leave-requests.create', ['user_id' => 'student']) }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
+                                    <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl mb-2">
+                                        <i data-lucide="user-x" class="h-6 w-6"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-700">Izin Siswa</span>
+                                </a>
+                            @endif
                         @elseif($user->hasRole('student'))
                             <!-- Student Menu -->
                             <a href="{{ route('attendance.reports') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
