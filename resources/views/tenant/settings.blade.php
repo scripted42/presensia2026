@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Remove banner function
 function removeBanner() {
     if (confirm('Apakah Anda yakin ingin menghapus banner?')) {
-        fetch('{{ route("tenant.banner.remove", ["type" => "banner"]) }}', {
+        fetch('{{ route("tenant.banner.remove", ["type" => "banner"], false) }}', {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -566,7 +566,7 @@ function removeBanner() {
 // Remove school photo function
 function removeSchoolPhoto() {
     if (confirm('Apakah Anda yakin ingin menghapus foto sekolah?')) {
-        fetch('{{ route("tenant.banner.remove", ["type" => "school_photo"]) }}', {
+        fetch('{{ route("tenant.banner.remove", ["type" => "school_photo"], false) }}', {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
