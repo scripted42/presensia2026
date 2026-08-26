@@ -38,12 +38,12 @@
                     
                     $backgroundPosition = $positionX . ' ' . $positionY;
                 @endphp
-                <div class="absolute inset-0 bg-cover school-photo-bg" 
+                <div class="absolute inset-0 school-photo-bg" 
                      style="background-image: url('{{ asset('storage/' . $school->tenantSettings->school_photo) }}'); 
+                            background-size: auto {{ $scale }}%;
                             background-position: {{ $backgroundPosition }};
-                            opacity: {{ $opacity / 100 }};
-                            transform: scale({{ $scale / 100 }});
-                            transform-origin: center;"></div>
+                            background-repeat: no-repeat;
+                            opacity: {{ $opacity / 100 }};"></div>
             @endif
             <div class="px-4 py-5 sm:p-6 welcome-hero-wrap relative z-10">
                 <div class="flex items-start">
