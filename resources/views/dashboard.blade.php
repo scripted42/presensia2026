@@ -75,7 +75,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="flex flex-col gap-4 mb-8 md:grid md:grid-cols-2 lg:grid-cols-4">
+        <div class="flex flex-col gap-4 mb-8 md:grid md:grid-cols-2 lg:grid-cols-4 desktop-stats-grid">
             @if(isset($stats['total_employees']))
             <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
                 <div class="flex items-center gap-4">
@@ -299,6 +299,10 @@
                             if ($p >= $warn) return 'bg-yellow-500';
                             return 'bg-red-500';
                         };
+                        $formatPercent = function($val) {
+                            $num = (float) ($val ?? 0);
+                            return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
+                        };
                     @endphp
                     
                     <!-- Penggunaan Absensi Card -->
@@ -308,7 +312,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Penggunaan Absensi</div>
                                 <i data-lucide="user-check" class="text-blue-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $metrics['usage']['percentage'] ?? 0 }}%</div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}</div>
                             <div id="gauge-usage" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -340,7 +344,7 @@
                                 </div>
                                 <i data-lucide="gauge" class="text-emerald-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $metrics['kpi']['score'] ?? 0 }}</div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['kpi']['score'] ?? 0) }}</div>
                             <div id="gauge-kpi" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50">
@@ -403,7 +407,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Pegawai</div>
                                 <i data-lucide="contact" class="text-indigo-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $metrics['completeness']['employees']['percentage'] ?? 0 }}%</div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}</div>
                             <div id="gauge-emp" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -418,7 +422,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Siswa</div>
                                 <i data-lucide="graduation-cap" class="text-rose-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $metrics['completeness']['students']['percentage'] ?? 0 }}%</div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}</div>
                             <div id="gauge-stu" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -880,7 +884,7 @@
                     hollow: { size: '60%' },
                     dataLabels: {
                         name: { show: false },
-                        value: { formatter: (v)=>`${Math.round(v)}%`, fontSize: '16px' }
+                        value: { formatter: (v)=>{ const n = Math.round(v * 10) / 10; return (Number.isInteger(n) ? n : n.toFixed(1)) + '%'; }, fontSize: '16px' }
                     }
                 }
             }
