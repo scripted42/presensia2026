@@ -12,6 +12,6 @@
     </div>
     <p class="font-semibold text-gray-600 text-xs">{{ $title }}</p>
     @if($subtitle)
-        <p class="text-[11px] text-gray-400 mt-0.5 max-w-xs">{{ $subtitle }}</p>
+        <p class="text-xs text-gray-400 mt-0.5 max-w-xs">{{ $subtitle }}</p>
     @endif
 </div>

@@ -10,7 +10,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Detail Permohonan Izin</h1>
-                    <p class="text-gray-600 mt-1">Informasi lengkap permohonan izin</p>
+                    <p class="text-xs text-gray-500 mt-1">Informasi lengkap permohonan izin</p>
                 </div>
                 <div class="flex space-x-2">
                     <a href="{{ route('leave-requests.index') }}" 
@@ -20,7 +20,7 @@
                     </a>
                     @if($leaveRequest->status === 'pending' && $leaveRequest->user_id === Auth::id())
                         <a href="{{ route('leave-requests.edit', $leaveRequest) }}" 
-                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
                             <i class="fas fa-edit mr-2"></i>
                             Edit
                         </a>
@@ -36,7 +36,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- User Info -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Pengguna</h3>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Informasi Pengguna</h2>
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-12 w-12">
@@ -45,9 +45,9 @@
                                 </div>
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $leaveRequest->user->name }}</div>
-                                <div class="text-sm text-gray-500">{{ $leaveRequest->user->email }}</div>
-                                <div class="text-sm text-gray-500">{{ ucfirst($leaveRequest->user->user_type) }}</div>
+                                <p class="text-sm font-medium text-gray-900">{{ $leaveRequest->user->name }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $leaveRequest->user->email }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ ucfirst($leaveRequest->user->user_type) }}</p>
                             </div>
                         </div>
                     </div>
@@ -55,7 +55,7 @@
 
                 <!-- Status Info -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Status Permohonan</h3>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Status Permohonan</h2>
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <div class="flex items-center justify-between">
                             <span class="text-sm font-medium text-gray-900">Status:</span>

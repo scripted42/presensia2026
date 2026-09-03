@@ -10,7 +10,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Ajukan Izin</h1>
-                    <p class="text-gray-600 mt-1">Formulir permohonan izin, cuti, sakit, atau dinas luar</p>
+                    <p class="text-xs text-gray-500 mt-1">Formulir permohonan izin, cuti, sakit, atau dinas luar</p>
                 </div>
                 <a href="{{ route('leave-requests.index') }}" 
                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -30,7 +30,7 @@
                 <!-- Target User (hidden for self, visible for others) -->
                 @if($targetUser->id !== Auth::id())
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Untuk Pengguna</label>
+                        <label class="block text-sm text-gray-500 font-normal mb-2">Untuk Pengguna</label>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
@@ -39,8 +39,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ $targetUser->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $targetUser->email }} - {{ ucfirst($targetUser->user_type) }}</div>
+                                    <p class="text-sm font-medium text-gray-900 leading-tight">{{ $targetUser->name }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $targetUser->email }} - {{ ucfirst($targetUser->user_type) }}</p>
                                 </div>
                             </div>
                         </div>

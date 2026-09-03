@@ -15,7 +15,7 @@
                                 Tambah Siswa Baru
                             @endif
                         </h1>
-                        <p class="text-gray-600 mt-1">
+                        <p class="text-xs text-gray-500 mt-1">
                             @if($type === 'employee')
                                 Tambah data pegawai baru ke sistem
                             @else
@@ -23,7 +23,7 @@
                             @endif
                         </p>
                     </div>
-                    <a href="{{ route('users.index', ['type' => $type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('users.index', ['type' => $type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>

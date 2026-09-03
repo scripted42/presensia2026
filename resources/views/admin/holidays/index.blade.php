@@ -10,16 +10,16 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Kelola Hari Libur</h1>
-                    <p class="text-gray-600 mt-1">Atur hari libur untuk sistem absensi</p>
+                    <p class="text-xs text-gray-500 mt-1">Atur hari libur untuk sistem absensi</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('admin.holidays.import') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <a href="{{ route('admin.holidays.import') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                         <i class="fas fa-download mr-2"></i>Import Hari Libur Nasional
                     </a>
-                    <a href="{{ route('admin.holidays.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <a href="{{ route('admin.holidays.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <i class="fas fa-plus mr-2"></i>Tambah Hari Libur
                     </a>
-                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
@@ -32,15 +32,15 @@
         <div class="px-4 py-5 sm:p-6">
             <form method="GET" action="{{ route('admin.holidays.index') }}" class="flex items-center gap-4">
                 <div>
-                    <label for="year" class="block text-sm font-medium text-gray-700">Tahun</label>
-                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
+                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         @for($i = now()->year - 1; $i <= now()->year + 2; $i++)
                         <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
                 <div class="mt-6">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <i class="fas fa-filter mr-2"></i>Filter
                     </button>
                 </div>
@@ -51,7 +51,7 @@
     <!-- Holidays List -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Daftar Hari Libur Tahun {{ $year }}</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Daftar Hari Libur Tahun {{ $year }}</h2>
             
             @if($holidays->count() > 0)
             <div class="overflow-x-auto">

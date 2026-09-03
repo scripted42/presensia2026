@@ -88,10 +88,10 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Laporan Absensi</h1>
-                    <p class="text-gray-600 mt-1">{{ $startDate->format('F Y') }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $startDate->format('F Y') }}</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
@@ -104,11 +104,11 @@
         <div class="flex gap-4 text-xs">
             <div class="flex items-center gap-1">
                 <div class="holiday-badge">LIBUR</div>
-                <span class="text-gray-600">Hari Libur</span>
+                <span class="text-xs text-gray-500">Hari Libur</span>
             </div>
             <div class="flex items-center gap-1">
                 <div class="weekend-badge">WEEKEND</div>
-                <span class="text-gray-600">Sabtu/Minggu</span>
+                <span class="text-xs text-gray-500">Sabtu/Minggu</span>
             </div>
         </div>
     </div>
@@ -118,8 +118,8 @@
         <div class="px-4 py-5 sm:p-6">
             <form method="GET" action="{{ route('attendance.reports') }}" class="flex flex-wrap gap-4">
                 <div>
-                    <label for="month" class="block text-sm font-medium text-gray-700">Bulan</label>
-                    <select name="month" id="month" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="month" class="block text-sm text-gray-500 font-normal">Bulan</label>
+                    <select name="month" id="month" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         @for($i = 1; $i <= 12; $i++)
                         <option value="{{ $i }}" {{ $month == $i ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create(null, $i, 1)->format('F') }}
@@ -128,8 +128,8 @@
                     </select>
                 </div>
                 <div>
-                    <label for="year" class="block text-sm font-medium text-gray-700">Tahun</label>
-                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
+                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         @for($i = now()->year - 2; $i <= now()->year + 1; $i++)
                         <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
@@ -137,8 +137,8 @@
                 </div>
                 @if($user->hasRole('admin') || $user->hasRole('teacher'))
                 <div>
-                    <label for="type" class="block text-sm font-medium text-gray-700">Tipe Data</label>
-                    <select name="type" id="type" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="type" class="block text-sm text-gray-500 font-normal">Tipe Data</label>
+                    <select name="type" id="type" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         <option value="all" {{ $type == 'all' ? 'selected' : '' }}>Semua</option>
                         <option value="employees" {{ $type == 'employees' ? 'selected' : '' }}>Pegawai</option>
                         <option value="students" {{ $type == 'students' ? 'selected' : '' }}>Siswa</option>
@@ -146,7 +146,7 @@
                 </div>
                 @endif
                 <div class="flex items-end">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <i class="fas fa-search mr-2"></i>Filter
                     </button>
                 </div>
@@ -161,7 +161,7 @@
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div class="flex items-center">
             <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-            <span class="text-blue-800 font-medium">
+            <span class="text-blue-800 text-xs font-medium">
                 @if($type === 'employees')
                     Menampilkan data absensi pegawai
                 @elseif($type === 'students')
@@ -177,7 +177,7 @@
         <div class="px-4 py-5 sm:p-6">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900">
+                    <h2 class="text-lg font-semibold text-gray-900">
                         @if($type === 'employees')
                             Laporan Absensi Pegawai
                         @elseif($type === 'students')
@@ -185,8 +185,8 @@
                         @else
                             Laporan Absensi
                         @endif
-                    </h3>
-                    <span class="text-sm text-gray-500">{{ $attendances->count() }} {{ $type === 'employees' ? 'pegawai' : ($type === 'students' ? 'siswa' : 'pengguna') }}</span>
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ $attendances->count() }} {{ $type === 'employees' ? 'pegawai' : ($type === 'students' ? 'siswa' : 'pengguna') }}</p>
                 </div>
                 <div class="flex space-x-2">
                     <a href="{{ route('attendance.export', ['month' => $month, 'year' => $year, 'type' => $type]) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
@@ -231,11 +231,11 @@
                                         <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->user_type === 'student' ? '10B981' : '3B82F6' }}&color=fff" alt="{{ $user->name }}">
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                                        <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
                                         @if($type === 'all')
-                                        <div class="text-sm text-gray-500">
+                                        <p class="text-xs text-gray-500 mt-0.5">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $user->user_type === 'student' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">{{ $userTypeLabel }}</span>
-                                        </div>
+                                        </p>
                                         @endif
                                     </div>
                                 </div>

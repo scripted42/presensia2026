@@ -10,7 +10,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Manajemen Izin</h1>
-                    <p class="text-gray-600 mt-1">Kelola permohonan izin, cuti, sakit, dan dinas luar</p>
+                    <p class="text-xs text-gray-500 mt-1">Kelola permohonan izin, cuti, sakit, dan dinas luar</p>
                 </div>
                 <div class="flex space-x-2">
                     <a href="{{ route('leave-requests.create') }}" 
@@ -18,7 +18,7 @@
                         <i class="fas fa-plus mr-2"></i>
                         Ajukan Izin
                     </a>
-    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -28,8 +28,8 @@
         <div class="px-4 py-5 sm:p-6">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="status" class="block text-sm text-gray-500 font-normal">Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         <option value="">Semua Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Persetujuan</option>
                         <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
@@ -37,8 +37,8 @@
                     </select>
                 </div>
                 <div>
-                    <label for="type" class="block text-sm font-medium text-gray-700">Jenis Izin</label>
-                    <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="type" class="block text-sm text-gray-500 font-normal">Jenis Izin</label>
+                    <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         <option value="">Semua Jenis</option>
                         <option value="sick" {{ request('type') == 'sick' ? 'selected' : '' }}>Sakit</option>
                         <option value="leave" {{ request('type') == 'leave' ? 'selected' : '' }}>Cuti</option>
@@ -82,16 +82,16 @@
                                                 </div>
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $request->user->name }}</div>
-                                                <div class="text-sm text-gray-500">{{ $request->user->email }}</div>
+                                                <p class="text-sm font-medium text-gray-900 leading-tight">{{ $request->user->name }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5">{{ $request->user->email }}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $request->type === 'sick' ? 'bg-red-100 text-red-800' : '' }}
-                                            {{ $request->type === 'leave' ? 'bg-blue-100 text-blue-800' : '' }}
-                                            {{ $request->type === 'duty' ? 'bg-green-100 text-green-800' : '' }}">
+                                        <span class="badge badge-sm text-xs font-medium
+                                            {{ $request->type === 'sick' ? 'badge-error' : '' }}
+                                            {{ $request->type === 'leave' ? 'badge-info' : '' }}
+                                            {{ $request->type === 'duty' ? 'badge-success' : '' }}">
                                             {{ $request->type_label }}
                                         </span>
                                     </td>
@@ -103,10 +103,10 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $request->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                            {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' : '' }}
-                                            {{ $request->status === 'rejected' ? 'bg-red-100 text-red-800' : '' }}">
+                                        <span class="badge badge-sm text-xs font-medium
+                                            {{ $request->status === 'pending' ? 'badge-warning' : '' }}
+                                            {{ $request->status === 'approved' ? 'badge-success' : '' }}
+                                            {{ $request->status === 'rejected' ? 'badge-error' : '' }}">
                                             {{ $request->status_label }}
                                         </span>
                                     </td>

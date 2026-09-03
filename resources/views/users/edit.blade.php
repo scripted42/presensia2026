@@ -7,9 +7,9 @@
         <div class="px-4 py-5 sm:p-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Edit User</h1>
-                <p class="text-gray-600 mt-1">Perbarui data pengguna</p>
+                <p class="text-xs text-gray-500 mt-1">Perbarui data pengguna</p>
             </div>
-            <a href="{{ route('users.index', ['type' => $user->user_type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">Kembali</a>
+            <a href="{{ route('users.index', ['type' => $user->user_type]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">Kembali</a>
         </div>
     </div>
 

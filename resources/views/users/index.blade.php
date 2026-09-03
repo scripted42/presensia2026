@@ -15,7 +15,7 @@
                                 Manajemen Siswa
                             @endif
                         </h1>
-                        <p class="text-gray-600 mt-1">
+                        <p class="text-xs text-gray-500 mt-1">
                             @if($type === 'employee')
                                 Kelola data pegawai sekolah
                             @else
@@ -24,7 +24,7 @@
                         </p>
                     </div>
                     <div class="flex space-x-3">
-                        <a href="{{ route('users.import', ['type' => $type]) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <a href="{{ route('users.import', ['type' => $type]) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                             <i class="fas fa-upload mr-2"></i>Import Excel
                         </a>
                     </div>
@@ -36,12 +36,12 @@
 
         <!-- Success Message -->
         @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-sm">
             <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
         </div>
         @endif
         @if($errors->any())
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
             <i class="fas fa-exclamation-triangle mr-2"></i>Terjadi kesalahan saat menyimpan data.
         </div>
         @endif
@@ -53,7 +53,7 @@
                 <form method="GET" action="{{ route('users.index') }}" class="mb-4 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
                     <input type="hidden" name="type" value="{{ $type }}">
                     <div class="flex items-center space-x-2">
-                        <label for="per_page" class="text-sm text-gray-600">Tampilkan</label>
+                        <label for="per_page" class="text-sm text-gray-500 font-normal">Tampilkan</label>
                         <select name="per_page" id="per_page" onchange="this.form.submit()"
                                 class="border-gray-300 rounded-md text-sm">
                             <option value="10" {{ ($perPageParam ?? '10') == '10' ? 'selected' : '' }}>10</option>
@@ -61,12 +61,12 @@
                             <option value="50" {{ ($perPageParam ?? '') == '50' ? 'selected' : '' }}>50</option>
                             <option value="all" {{ ($perPageParam ?? '') == 'all' ? 'selected' : '' }}>All</option>
                         </select>
-                        <span class="text-sm text-gray-600">data</span>
+                        <span class="text-sm text-gray-500">data</span>
                     </div>
                     <div class="flex items-center space-x-2 md:ml-auto">
                         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama, email, NIK/NIS"
                                class="border-gray-300 rounded-md text-sm w-64" />
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors">Cari</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">Cari</button>
                     </div>
                 </form>
                 <div class="overflow-x-auto">
@@ -103,23 +103,23 @@
                                             <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=3B82F6&color=fff" alt="{{ $user->name }}">
                                         </div>
                                         <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $user->email }}</div>
+                                            <p class="text-sm font-medium text-gray-900 leading-tight">{{ $user->name }}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">{{ $user->email }}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <span class="badge badge-info badge-sm text-xs font-medium">
                                         {{ $user->roles->first()->display_name ?? $user->roles->first()->name ?? 'No Role' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->user_type === 'employee' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800' }}">
+                                    <span class="badge {{ $user->user_type === 'employee' ? 'badge-success' : 'badge-neutral' }} badge-sm text-xs font-medium">
                                         {{ $user->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    <span class="badge {{ $user->is_active ? 'badge-success' : 'badge-error' }} badge-sm text-xs font-medium">
                                         {{ $user->is_active ? 'Aktif' : 'Tidak Aktif' }}
                                     </span>
                                 </td>

@@ -617,8 +617,8 @@
                     <div class="flex items-center space-x-3">
                         <!-- User info minimal -->
                         <div class="text-right hidden sm:block">
-                            <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</div>
-                            <div class="text-xs text-gray-400 font-medium">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</div>
+                            <p class="text-sm font-medium text-gray-900 leading-tight">{{ auth()->user()->name }}</p>
+                            <p class="text-xs text-gray-500 font-normal mt-0.5">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</p>
                         </div>
                         
                         <!-- Clickable Avatar on Mobile / Link Profile -->
@@ -950,29 +950,29 @@
     
     <!-- Bottom Tab Bar (Mobile Only) -->
     <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center py-2.5 md:hidden z-40 safe-bottom">
-        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-400' }}">
+        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-0.5 text-xs font-medium {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-400' }}">
             <i data-lucide="home" class="h-5 w-5"></i>
             <span class="mt-0.5">Home</span>
         </a>
         
         @if(auth()->user()->hasRole('student'))
-            <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('attendance.reports') ? 'text-blue-600' : 'text-gray-400' }}">
+            <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center gap-0.5 text-xs font-medium {{ request()->routeIs('attendance.reports') ? 'text-blue-600' : 'text-gray-400' }}">
                 <i data-lucide="calendar" class="h-5 w-5"></i>
                 <span class="mt-0.5">Riwayat</span>
             </a>
         @else
-            <a href="{{ route('attendance.index') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('attendance.index') ? 'text-blue-600' : 'text-gray-400' }}">
+            <a href="{{ route('attendance.index') }}" class="flex flex-col items-center gap-0.5 text-xs font-medium {{ request()->routeIs('attendance.index') ? 'text-blue-600' : 'text-gray-400' }}">
                 <i data-lucide="calendar" class="h-5 w-5"></i>
                 <span class="mt-0.5">Absensi</span>
             </a>
         @endif
         
-        <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ request()->routeIs('leave-requests.*') ? 'text-blue-600' : 'text-gray-400' }}">
+        <a href="{{ route('leave-requests.index') }}" class="flex flex-col items-center gap-0.5 text-xs font-medium {{ request()->routeIs('leave-requests.*') ? 'text-blue-600' : 'text-gray-400' }}">
             <i data-lucide="file-text" class="h-5 w-5"></i>
             <span class="mt-0.5">Izin</span>
         </a>
         
-        <button type="button" onclick="openMenuBottomSheet()" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-gray-400 focus:outline-none">
+        <button type="button" onclick="openMenuBottomSheet()" class="flex flex-col items-center gap-0.5 text-xs font-medium text-gray-400 focus:outline-none">
             <i data-lucide="menu" class="h-5 w-5"></i>
             <span class="mt-0.5">Menu</span>
         </button>
@@ -991,19 +991,19 @@
             <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
                 <img class="h-10 w-10 rounded-full border border-gray-100" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
                 <div>
-                    <h4 class="text-sm font-bold text-gray-900">{{ auth()->user()->name }}</h4>
-                    <p class="text-xs text-gray-400 font-medium">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</p>
+                    <p class="text-sm font-medium text-gray-900 leading-tight">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-gray-500 font-normal mt-0.5">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</p>
                 </div>
             </div>
             
-            <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Semua Fitur</h5>
+            <h5 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Semua Fitur</h5>
             
             <div class="grid grid-cols-3 gap-4">
                 <a href="{{ route('dashboard') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
                     <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl mb-1.5">
                         <i data-lucide="home" class="h-5 w-5"></i>
                     </div>
-                    <span class="text-[10px] font-bold text-gray-700 text-center">Dashboard</span>
+                    <span class="text-xs font-medium text-gray-700 text-center">Dashboard</span>
                 </a>
                 
                 @if(auth()->user()->hasRole(['teacher','tu','bk','kesiswaan','admin','headmaster']))
@@ -1011,7 +1011,7 @@
                         <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl mb-1.5">
                             <i data-lucide="calendar-check" class="h-5 w-5"></i>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-700 text-center">Status Absensi</span>
+                        <span class="text-xs font-medium text-gray-700 text-center">Status Absensi</span>
                     </a>
                 @endif
                 
@@ -1020,7 +1020,7 @@
                         <div class="p-2.5 bg-purple-50 text-purple-600 rounded-xl mb-1.5">
                             <i data-lucide="qr-code" class="h-5 w-5"></i>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-700 text-center">Scan Siswa</span>
+                        <span class="text-xs font-medium text-gray-700 text-center">Scan Siswa</span>
                     </a>
                 @endif
 
@@ -1028,14 +1028,14 @@
                     <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl mb-1.5">
                         <i data-lucide="file-text" class="h-5 w-5"></i>
                     </div>
-                    <span class="text-[10px] font-bold text-gray-700 text-center">Izin & Cuti</span>
+                    <span class="text-xs font-medium text-gray-700 text-center">Izin & Cuti</span>
                 </a>
                 
                 <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
                     <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl mb-1.5">
                         <i data-lucide="bar-chart-2" class="h-5 w-5"></i>
                     </div>
-                    <span class="text-[10px] font-bold text-gray-700 text-center">Laporan</span>
+                    <span class="text-xs font-medium text-gray-700 text-center">Laporan</span>
                 </a>
 
                 @if(auth()->user()->hasRole('admin'))
@@ -1043,13 +1043,13 @@
                         <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl mb-1.5">
                             <i data-lucide="users" class="h-5 w-5"></i>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-700 text-center">Manajemen User</span>
+                        <span class="text-xs font-medium text-gray-700 text-center">Manajemen User</span>
                     </a>
                     <a href="{{ route('tenant.settings') }}" class="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors">
                         <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl mb-1.5">
                             <i data-lucide="settings" class="h-5 w-5"></i>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-700 text-center">Kustomisasi</span>
+                        <span class="text-xs font-medium text-gray-700 text-center">Kustomisasi</span>
                     </a>
                 @endif
                 
@@ -1057,7 +1057,7 @@
                     <div class="p-2.5 bg-red-100 text-red-600 rounded-xl mb-1.5">
                         <i data-lucide="log-out" class="h-5 w-5"></i>
                     </div>
-                    <span class="text-[10px] font-bold text-red-700 text-center">Logout</span>
+                    <span class="text-xs font-medium text-red-700 text-center">Logout</span>
                 </button>
             </div>
         </div>

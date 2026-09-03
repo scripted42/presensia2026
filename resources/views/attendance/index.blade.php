@@ -9,19 +9,19 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Absensi Hari Ini</h1>
-                <p class="text-gray-600 mt-1">{{ $todayCarbon->format('d F Y') }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ $todayCarbon->format('d F Y') }}</p>
             </div>
             <div class="flex space-x-3">
                 @if(!$attendances || !$attendances->check_in)
-                <a href="{{ route('attendance.check-in') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                <a href="{{ route('attendance.check-in') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                     <i class="fas fa-sign-in-alt mr-2"></i>Absensi Masuk
                 </a>
                 @elseif(!$attendances->check_out)
-                <a href="{{ route('attendance.check-out') }}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
+                <a href="{{ route('attendance.check-out') }}" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
                     <i class="fas fa-sign-out-alt mr-2"></i>Absensi Keluar
                 </a>
                 @else
-                <span class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium">
+                <span class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
                     <i class="fas fa-check mr-2"></i>Absensi Sudah Lengkap
                 </span>
                 @endif
@@ -32,13 +32,13 @@
 
 <!-- Success Message -->
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-sm">
     <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
 </div>
 @endif
 
 @if(session('info'))
-<div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+<div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4 text-sm">
     <i class="fas fa-info-circle mr-2"></i>{{ session('info') }}
 </div>
 @endif
@@ -54,8 +54,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Absensi Masuk</dt>
-                        <dd class="text-lg font-medium text-gray-900">
+                        <dt class="text-sm text-gray-500 font-normal truncate">Absensi Masuk</dt>
+                        <dd class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
                             @if($attendances && $attendances->check_in)
                                 {{ $attendances->check_in->format('H:i:s') }}
                             @else
@@ -77,8 +77,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Absensi Keluar</dt>
-                        <dd class="text-lg font-medium text-gray-900">
+                        <dt class="text-sm text-gray-500 font-normal truncate">Absensi Keluar</dt>
+                        <dd class="text-xl md:text-2xl font-bold text-gray-900 mt-1">
                             @if($attendances && $attendances->check_out)
                                 {{ $attendances->check_out->format('H:i:s') }}
                             @else
@@ -100,14 +100,14 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                     <dl>
-                        <dt class="text-sm font-medium text-gray-500 truncate">Status</dt>
-                        <dd class="text-lg font-medium text-gray-900">
+                        <dt class="text-sm text-gray-500 font-normal truncate">Status</dt>
+                        <dd class="mt-1">
                             @if($attendances)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="badge badge-success badge-sm text-xs font-medium">
                                     {{ $attendances->status_label }}
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span class="badge badge-error badge-sm text-xs font-medium">
                                     Alpha
                                 </span>
                             @endif
@@ -123,42 +123,41 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <a href="{{ route('attendance.check-in') }}" class="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
         <i class="fas fa-sign-in-alt text-green-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-green-900">Absensi Masuk</span>
-        <span class="text-sm text-green-700">Scan QR Code untuk absensi masuk</span>
+        <span class="text-sm font-medium text-green-900">Absensi Masuk</span>
+        <span class="text-xs text-green-700 mt-0.5">Scan QR Code untuk absensi masuk</span>
     </a>
 
     <a href="{{ route('attendance.check-out') }}" class="flex flex-col items-center p-6 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
         <i class="fas fa-sign-out-alt text-red-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-red-900">Absensi Keluar</span>
-        <span class="text-sm text-red-700">Scan QR Code untuk absensi keluar</span>
+        <span class="text-sm font-medium text-red-900">Absensi Keluar</span>
+        <span class="text-xs text-red-700 mt-0.5">Scan QR Code untuk absensi keluar</span>
     </a>
 
     @if(auth()->user()->hasRole(['teacher','admin']))
     <a href="{{ route('attendance.student-scan') }}" class="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
         <i class="fas fa-qrcode text-purple-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-purple-900">Scan Siswa</span>
-        <span class="text-sm text-purple-700">Absensi siswa secara massal</span>
+        <span class="text-sm font-medium text-purple-900">Scan Siswa</span>
+        <span class="text-xs text-purple-700 mt-0.5">Absensi siswa secara massal</span>
     </a>
     @endif
 
     <a href="{{ route('attendance.reports') }}" class="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
         <i class="fas fa-chart-bar text-blue-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-blue-900">Laporan</span>
-        <span class="text-sm text-blue-700">Lihat laporan absensi</span>
+        <span class="text-sm font-medium text-blue-900">Laporan</span>
+        <span class="text-xs text-blue-700 mt-0.5">Lihat laporan absensi</span>
     </a>
 
-    <!-- Leave Request Cards -->
     <a href="{{ route('leave-requests.create') }}" class="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
         <i class="fas fa-calendar-times text-orange-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-orange-900">Izin Pribadi</span>
-        <span class="text-sm text-orange-700">Ajukan izin, cuti, sakit, dinas</span>
+        <span class="text-sm font-medium text-orange-900">Izin Pribadi</span>
+        <span class="text-xs text-orange-700 mt-0.5">Ajukan izin, cuti, sakit, dinas</span>
     </a>
 
     @if(auth()->user()->hasRole(['teacher', 'admin']))
     <a href="{{ route('leave-requests.create', ['user_id' => 'student']) }}" class="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
         <i class="fas fa-user-times text-yellow-600 text-3xl mb-3"></i>
-        <span class="text-lg font-medium text-yellow-900">Izin Siswa</span>
-        <span class="text-sm text-yellow-700">Ajukan izin untuk siswa</span>
+        <span class="text-sm font-medium text-yellow-900">Izin Siswa</span>
+        <span class="text-xs text-yellow-700 mt-0.5">Ajukan izin untuk siswa</span>
     </a>
     @endif
 </div>
@@ -167,7 +166,7 @@
 <div class="mt-8">
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Riwayat Absensi Terakhir</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Riwayat Absensi Terakhir</h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
@@ -181,20 +180,20 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($recent as $r)
                             @php
-                                $colorMap = ['ontime'=>'bg-green-100 text-green-800','late'=>'bg-orange-100 text-orange-800','sick'=>'bg-yellow-100 text-yellow-800','permit'=>'bg-yellow-100 text-yellow-800','duty'=>'bg-yellow-100 text-yellow-800','leave'=>'bg-yellow-100 text-yellow-800','alpha'=>'bg-red-100 text-red-800'];
+                                $colorMap = ['ontime'=>'badge-success','late'=>'badge-warning','sick'=>'badge-neutral','permit'=>'badge-neutral','duty'=>'badge-info','leave'=>'badge-neutral','alpha'=>'badge-error'];
                                 $labelMap = ['ontime'=>'Ontime','late'=>'Terlambat','sick'=>'Sakit','permit'=>'Izin','duty'=>'Dinas','leave'=>'Cuti','alpha'=>'Alpha'];
                             @endphp
                             <tr>
-                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($r->date)->format('d-m-Y') }}</td>
-                                <td class="px-3 py-2">{{ $r->check_in ? \Carbon\Carbon::parse($r->check_in)->format('H:i') : '-' }}</td>
-                                <td class="px-3 py-2">{{ $r->check_out ? \Carbon\Carbon::parse($r->check_out)->format('H:i') : '-' }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-900">{{ \Carbon\Carbon::parse($r->date)->format('d-m-Y') }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-900">{{ $r->check_in ? \Carbon\Carbon::parse($r->check_in)->format('H:i') : '-' }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-900">{{ $r->check_out ? \Carbon\Carbon::parse($r->check_out)->format('H:i') : '-' }}</td>
                                 <td class="px-3 py-2">
-                                    <span class="px-2 py-1 rounded text-xs font-semibold {{ $colorMap[$r->status] ?? 'bg-gray-100 text-gray-800' }}">{{ $labelMap[$r->status] ?? $r->status }}</span>
+                                    <span class="badge {{ $colorMap[$r->status] ?? 'badge-ghost' }} badge-sm text-xs font-medium">{{ $labelMap[$r->status] ?? $r->status }}</span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-3 py-2 text-center text-gray-500">Belum ada data absensi</td>
+                                <td colspan="4" class="px-3 py-2 text-center text-xs text-gray-400">Belum ada data absensi</td>
                             </tr>
                         @endforelse
                     </tbody>

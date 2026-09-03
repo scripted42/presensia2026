@@ -10,7 +10,7 @@
             <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <i data-lucide="smartphone" class="h-8 w-8 text-blue-600"></i>
             </div>
-            <h1 class="text-lg font-extrabold text-gray-900 mb-2">Hanya untuk Perangkat Mobile</h1>
+            <p class="text-lg font-semibold text-gray-900 mb-2">Hanya untuk Perangkat Mobile</p>
             <p class="text-gray-500 text-sm mb-6">Fitur scan QR Code siswa hanya tersedia pada perangkat mobile dengan kamera.</p>
             <a href="{{ route('attendance.index') }}" class="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-2xl hover:bg-blue-700 transition-all font-semibold text-sm">
                 <i data-lucide="arrow-left" class="h-4 w-4"></i> Kembali ke Absensi
@@ -30,7 +30,7 @@
             <a href="{{ route('dashboard') }}" class="cam-back-btn">
                 <i data-lucide="chevron-left" class="h-5 w-5"></i>
             </a>
-            <span class="cam-title">Scan QR Siswa</span>
+            <h1 class="cam-title text-base font-semibold">Scan QR Siswa</h1>
         </div>
 
         {{-- CAMERA VIEWPORT --}}

@@ -10,10 +10,10 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Jadwal Absensi</h1>
-                    <p class="text-gray-600 mt-1">Lihat jadwal khusus dan hari libur</p>
+                    <p class="text-xs text-gray-500 mt-1">Lihat jadwal khusus dan hari libur</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
@@ -24,10 +24,10 @@
     <!-- Today's Schedule Info -->
     <div id="today-schedule" class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Jadwal Hari Ini</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Jadwal Hari Ini</h2>
             <div id="today-info" class="text-center py-4">
                 <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-                <p class="mt-2 text-gray-500">Memuat informasi jadwal...</p>
+                <p class="mt-2 text-xs text-gray-500">Memuat informasi jadwal...</p>
             </div>
         </div>
     </div>
@@ -37,8 +37,8 @@
         <div class="px-4 py-5 sm:p-6">
             <form method="GET" action="{{ route('schedule.index') }}" class="flex items-center gap-4">
                 <div>
-                    <label for="month" class="block text-sm font-medium text-gray-700">Bulan</label>
-                    <select name="month" id="month" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="month" class="block text-sm text-gray-500 font-normal">Bulan</label>
+                    <select name="month" id="month" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         @for($i = 1; $i <= 12; $i++)
                         <option value="{{ $i }}" {{ $month == $i ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create(null, $i, 1)->format('F') }}
@@ -47,15 +47,15 @@
                     </select>
                 </div>
                 <div>
-                    <label for="year" class="block text-sm font-medium text-gray-700">Tahun</label>
-                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
+                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
                         @for($i = now()->year - 1; $i <= now()->year + 1; $i++)
                         <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
                 <div class="mt-6">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <i class="fas fa-filter mr-2"></i>Filter
                     </button>
                 </div>
@@ -67,12 +67,12 @@
     @if($specialSchedules->count() > 0)
     <div class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Jadwal Khusus</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Jadwal Khusus</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($specialSchedules as $schedule)
                 <div class="border rounded-lg p-4 {{ $schedule->is_active ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50' }}">
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-medium text-gray-900">{{ $schedule->name }}</h4>
+                        <p class="text-sm font-medium text-gray-900">{{ $schedule->name }}</p>
                         @if($schedule->is_active)
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                 <i class="fas fa-check-circle mr-1"></i>Aktif
@@ -83,7 +83,7 @@
                             </span>
                         @endif
                     </div>
-                    <div class="text-sm text-gray-600 space-y-1">
+                    <div class="text-xs text-gray-500 space-y-1">
                         <div><i class="fas fa-calendar-day mr-2"></i>{{ ucfirst($schedule->day_of_week) }}</div>
                         <div><i class="fas fa-clock mr-2"></i>Max Check-in: {{ $schedule->max_check_in_time->format('H:i') }}</div>
                         @if($schedule->affected_roles && count($schedule->affected_roles) > 0)
@@ -106,14 +106,14 @@
     @if($dailyOverrides->count() > 0)
     <div class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Jadwal Khusus Tanggal</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Jadwal Khusus Tanggal</h2>
             <div class="space-y-3">
                 @foreach($dailyOverrides as $override)
                 <div class="border rounded-lg p-4 border-blue-200 bg-blue-50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h4 class="font-medium text-gray-900">{{ $override->reason }}</h4>
-                            <div class="text-sm text-gray-600 mt-1">
+                            <p class="text-sm font-medium text-gray-900">{{ $override->reason }}</p>
+                            <div class="text-xs text-gray-500 mt-1">
                                 <span><i class="fas fa-calendar mr-2"></i>{{ \Carbon\Carbon::parse($override->date)->format('d/m/Y') }}</span>
                                 <span class="ml-4"><i class="fas fa-clock mr-2"></i>Max Check-in: {{ $override->max_check_in_time->format('H:i') }}</span>
                             </div>
@@ -133,12 +133,12 @@
     @if($holidays->count() > 0)
     <div class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Hari Libur</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Hari Libur</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($holidays as $holiday)
                 <div class="border rounded-lg p-4 border-red-200 bg-red-50">
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-medium text-gray-900">{{ $holiday->holiday_name }}</h4>
+                        <p class="text-sm font-medium text-gray-900">{{ $holiday->holiday_name }}</p>
                         @if($holiday->is_national_holiday)
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                                 <i class="fas fa-flag mr-1"></i>Nasional
@@ -149,7 +149,7 @@
                             </span>
                         @endif
                     </div>
-                    <div class="text-sm text-gray-600">
+                    <div class="text-xs text-gray-500">
                         <div><i class="fas fa-calendar mr-2"></i>{{ \Carbon\Carbon::parse($holiday->date)->format('d/m/Y') }} ({{ $holiday->day_name }})</div>
                     </div>
                 </div>
@@ -164,8 +164,8 @@
     <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6 text-center">
             <i class="fas fa-calendar-alt text-4xl text-gray-400 mb-4"></i>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Jadwal Khusus</h3>
-            <p class="text-gray-500">Tidak ada jadwal khusus atau hari libur untuk periode ini.</p>
+            <h2 class="text-lg font-semibold text-gray-900 mb-2">Tidak Ada Jadwal Khusus</h2>
+            <p class="text-xs text-gray-500">Tidak ada jadwal khusus atau hari libur untuk periode ini.</p>
         </div>
     </div>
     @endif

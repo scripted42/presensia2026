@@ -10,13 +10,13 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Kelola Jadwal Khusus</h1>
-                    <p class="text-gray-600 mt-1">Atur jadwal khusus seperti upacara Senin, rapat guru, dll</p>
+                    <p class="text-xs text-gray-500 mt-1">Atur jadwal khusus seperti upacara Senin, rapat guru, dll</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('admin.special-schedules.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <a href="{{ route('admin.special-schedules.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <i class="fas fa-plus mr-2"></i>Tambah Jadwal Khusus
                     </a>
-                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>
@@ -31,8 +31,8 @@
                 <i class="fas fa-info-circle text-blue-400"></i>
             </div>
             <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800">Cara Kerja Jadwal Khusus</h3>
-                <div class="mt-2 text-sm text-blue-700">
+                <h3 class="text-sm font-semibold text-blue-800">Cara Kerja Jadwal Khusus</h3>
+                <div class="mt-2 text-xs text-blue-700">
                     <ul class="list-disc list-inside space-y-1">
                         <li><strong>Upacara Senin:</strong> Max check-in 07:30 (bukan 06:30) untuk semua role</li>
                         <li><strong>Rapat Guru:</strong> Max check-in 07:15 hanya untuk guru dan pegawai</li>
@@ -46,7 +46,7 @@
     <!-- Special Schedules List -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Daftar Jadwal Khusus</h3>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Daftar Jadwal Khusus</h2>
             
             @if($specialSchedules->count() > 0)
             <div class="overflow-x-auto">

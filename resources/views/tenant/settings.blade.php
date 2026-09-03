@@ -38,8 +38,8 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Pengaturan Aplikasi</h1>
-                    <p class="text-gray-600 mt-1">Kustomisasi branding dan fitur aplikasi untuk {{ $school->name }}</p>
-    </div>
+                    <p class="text-xs text-gray-500 mt-1">Kustomisasi branding dan fitur aplikasi untuk {{ $school->name }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -64,14 +64,14 @@
     <div id="banner-content" class="tab-content">
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Banner & Layout</h3>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Pengaturan Banner & Layout</h2>
                 <form action="{{ route('tenant.banner.update') }}" method="POST" enctype="multipart/form-data" id="banner-form">
                     @csrf
                     @method('PUT')
                     
                     <!-- Banner Settings -->
                     <div class="mb-8">
-                        <h4 class="text-md font-medium text-gray-900 mb-4">Banner Utama</h4>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Banner Utama</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="banner_image" class="block text-sm font-medium text-gray-700 mb-2">Gambar Banner</label>
@@ -125,7 +125,7 @@
                     
                     <!-- School Photo Settings -->
                     <div class="mb-8">
-                        <h4 class="text-md font-medium text-gray-900 mb-4">Foto Sekolah (Overlay Banner)</h4>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Foto Sekolah (Overlay Banner)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="school_photo" class="block text-sm font-medium text-gray-700 mb-2">Foto Sekolah</label>
@@ -156,7 +156,7 @@
                         
                         <!-- Interactive Photo Position Controls -->
                         <div class="mt-4">
-                            <h5 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h5>
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Posisi Foto (Drag untuk mengatur)</h4>
                             <div class="relative bg-gray-100 rounded-lg p-4" style="height: 240px;">
                                 <div id="photo-position-area" class="relative w-full h-full border-2 border-dashed border-gray-300 rounded overflow-hidden">
                                     <!-- Background layer for photo (controls opacity/scale/position) - now draggable -->
@@ -193,7 +193,7 @@
                     
                     <!-- Topbar Announcement -->
                     <div class="mb-8">
-                        <h4 class="text-md font-medium text-gray-900 mb-4">Pengumuman Topbar</h4>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Pengumuman Topbar</h3>
                         <div class="grid grid-cols-1 gap-6">
                             <div>
                                 <label for="topbar_announcement" class="block text-sm font-medium text-gray-700 mb-2">Teks Pengumuman</label>
@@ -229,7 +229,7 @@
     <div id="colors-content" class="tab-content hidden">
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Warna</h3>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Pengaturan Warna</h2>
                 <form action="{{ route('tenant.settings.update') }}" method="POST">
                     @csrf
                     @method('PUT')

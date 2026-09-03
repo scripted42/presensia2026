@@ -33,9 +33,9 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Absensi Keluar</h1>
-                    <p class="text-gray-600 mt-1">{{ $todayCarbon->format('d F Y') }} - <span id="currentTime">{{ now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}</span></p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $todayCarbon->format('d F Y') }} - <span id="currentTime">{{ now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}</span></p>
                 </div>
-                <a href="{{ route('attendance.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                <a href="{{ route('attendance.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
                     <i class="fas fa-arrow-left mr-2"></i>Kembali
                 </a>
             </div>
@@ -47,21 +47,21 @@
         <!-- Map -->
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-3">Lokasi Absensi</h2>
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">Lokasi Absensi</h2>
                 <div id="map" style="width:100%;min-height:320px;height:50vh;border-radius:12px;overflow:hidden;background:#eef2ff"></div>
             </div>
         </div>
         <!-- Scanner/Status (match map width/height) -->
         <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <h2 class="text-lg font-medium text-gray-900 mb-3">Scan QR</h2>
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">Scan QR</h2>
                 <div id="scanner" class="w-full bg-gray-100 rounded-lg flex items-center justify-center" style="min-height:320px;height:50vh;">
-                    <div class="text-center text-gray-500 text-sm"> Kamera akan aktif saat tombol scan ditekan </div>
+                    <div class="text-center text-gray-500 text-xs"> Kamera akan aktif saat tombol scan ditekan </div>
                 </div>
                 <div class="grid grid-cols-1 gap-2 mt-3">
-                    <button id="startScanner" type="button" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Mulai Scan</button>
+                    <button id="startScanner" type="button" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">Mulai Scan</button>
                 </div>
-                <div class="mt-4 space-y-1 text-sm">
+                <div class="mt-4 space-y-1 text-xs text-gray-500">
                     <div>Lokasi: <span id="locStatus" class="font-medium text-gray-700">-</span></div>
                     <div>Radius: <span id="radStatus" class="font-medium text-gray-700">-</span></div>
                     <div>QR: <span id="qrStatus" class="font-medium text-gray-700">Menunggu...</span></div>
