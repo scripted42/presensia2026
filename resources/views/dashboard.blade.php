@@ -213,24 +213,24 @@
             @endif
         </div>
 
-        <!-- ZONA 1 — Ringkasan (satu baris, tanpa gauge) -->
+        <!-- Ringkasan Performa (daisyUI stats) -->
         @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
         @php
             $formatPercent = function($val) {
                 $num = (float) ($val ?? 0);
                 return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
             };
-            $getSemanticHex = function($p) {
+            $getDaisyColor = function($p) {
                 $val = (float) $p;
-                if ($val >= 80) return '#059669'; // hijau (>= 80%)
-                if ($val >= 50) return '#b45309'; // kuning/amber (50-79%)
-                return '#dc2626'; // merah (< 50%)
+                if ($val >= 80) return 'text-success';
+                if ($val >= 50) return 'text-warning';
+                return 'text-error';
             };
         @endphp
 
         <div class="mb-8">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-500">Zona 1 — ringkasan (satu baris, tanpa gauge)</h3>
+                <h3 class="text-sm font-semibold text-gray-500">Ringkasan Performa</h3>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="openDateBottomSheet()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Filter Tanggal">
                         <i data-lucide="more-horizontal" class="h-5 w-5"></i>
@@ -285,29 +285,29 @@
                 </div>
             </div>
 
-            <!-- Single Flat Row: 4 Columns -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 py-1">
-                <div>
-                    <div class="text-xs font-medium text-gray-500 mb-1">Penggunaan</div>
-                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['usage']['percentage'] ?? 0) }};">
+            <!-- daisyUI Stats Component -->
+            <div class="stats stats-vertical sm:stats-horizontal shadow-sm bg-white border border-gray-100 rounded-2xl w-full">
+                <div class="stat py-4 px-6">
+                    <div class="stat-title text-gray-500 font-medium text-xs">Penggunaan</div>
+                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['usage']['percentage'] ?? 0) }}">
                         {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
                     </div>
                 </div>
-                <div>
-                    <div class="text-xs font-medium text-gray-500 mb-1">KPI absensi</div>
-                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['kpi']['score'] ?? 0) }};">
+                <div class="stat py-4 px-6">
+                    <div class="stat-title text-gray-500 font-medium text-xs">KPI Absensi</div>
+                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['kpi']['score'] ?? 0) }}">
                         {{ $formatPercent($metrics['kpi']['score'] ?? 0) }}
                     </div>
                 </div>
-                <div>
-                    <div class="text-xs font-medium text-gray-500 mb-1">Data pegawai</div>
-                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['completeness']['employees']['percentage'] ?? 0) }};">
+                <div class="stat py-4 px-6">
+                    <div class="stat-title text-gray-500 font-medium text-xs">Data Pegawai</div>
+                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['completeness']['employees']['percentage'] ?? 0) }}">
                         {{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}
                     </div>
                 </div>
-                <div>
-                    <div class="text-xs font-medium text-gray-500 mb-1">Data siswa</div>
-                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['completeness']['students']['percentage'] ?? 0) }};">
+                <div class="stat py-4 px-6">
+                    <div class="stat-title text-gray-500 font-medium text-xs">Data Siswa</div>
+                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['completeness']['students']['percentage'] ?? 0) }}">
                         {{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}
                     </div>
                 </div>
@@ -315,7 +315,7 @@
         </div>
         @endif
 
-        <!-- ZONA 2 — Satu List Terpadu, Ganti 3 Card Terpisah -->
+        <!-- Perlu Ditindaklanjuti (daisyUI tabs + badge) -->
         @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
         @php
             $incompleteList = collect($metrics['incomplete_profiles'] ?? [])->map(function($u) {
@@ -325,7 +325,7 @@
                     'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
                     'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · profil kosong',
                     'badge_text' => ($u->missing_count ?? 0) . ' kosong',
-                    'badge_style' => 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;',
+                    'badge_class' => 'badge-error',
                 ];
             });
 
@@ -341,7 +341,7 @@
                     'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
                     'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · tidak aktif',
                     'badge_text' => $daysDiff . ' hari',
-                    'badge_style' => 'background-color: #fffbeb; color: #b45309; border: 1px solid #fef3c7;',
+                    'badge_class' => 'badge-warning',
                 ];
             });
 
@@ -352,7 +352,7 @@
                     'user_type' => ($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa',
                     'subtitle' => (($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa') . ' · leak absensi (' . (string)$item->date . ')',
                     'badge_text' => 'Tanpa Check Out',
-                    'badge_style' => 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;',
+                    'badge_class' => 'badge-error',
                 ];
             });
 
@@ -371,25 +371,25 @@
         @endphp
 
         <div class="mb-8">
-            <h3 class="text-sm font-semibold text-gray-500 mb-3">Zona 2 — satu list terpadu, ganti 3 card terpisah</h3>
+            <h3 class="text-sm font-semibold text-gray-500 mb-3">Perlu Ditindaklanjuti</h3>
             
             <div class="rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
                 <!-- Header Tabs and Single Export Button -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                    <!-- Tab horizontal -->
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0" id="zona2-tabs">
-                        <button type="button" onclick="switchZona2Tab('all')" id="tab-btn-all" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-bold border-b-2 border-black text-gray-900 transition-all">
+                    <!-- daisyUI tabs -->
+                    <div role="tablist" class="tabs tabs-bordered overflow-x-auto" id="zona2-tabs">
+                        <a role="tab" onclick="switchZona2Tab('all')" id="tab-btn-all" class="tab tab-active font-bold text-xs whitespace-nowrap">
                             Semua ({{ $totalIssuesCount }})
-                        </button>
-                        <button type="button" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                        </a>
+                        <a role="tab" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="tab text-xs whitespace-nowrap">
                             Profil kosong ({{ $incompleteCount }})
-                        </button>
-                        <button type="button" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                        </a>
+                        <a role="tab" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="tab text-xs whitespace-nowrap">
                             Tidak aktif ({{ $nonUserCount }})
-                        </button>
-                        <button type="button" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                        </a>
+                        <a role="tab" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="tab text-xs whitespace-nowrap">
                             Leak absensi ({{ $leakCount }})
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Single Export Button (top right) -->
@@ -401,7 +401,7 @@
                     </div>
                 </div>
 
-                <!-- Tab Content Panels (Flat rows, max 5 rows) -->
+                <!-- Tab Content Panels (Flat rows with daisyUI badges) -->
                 <!-- Tab 'all' -->
                 <div id="zona2-panel-all" class="zona2-panel divide-y divide-gray-100">
                     @forelse($allProblems->take(5) as $row)
@@ -411,7 +411,7 @@
                             <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
                         </div>
                         <div>
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
                                 {{ $row['badge_text'] }}
                             </span>
                         </div>
@@ -430,7 +430,7 @@
                             <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
                         </div>
                         <div>
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
                                 {{ $row['badge_text'] }}
                             </span>
                         </div>
@@ -449,7 +449,7 @@
                             <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
                         </div>
                         <div>
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
                                 {{ $row['badge_text'] }}
                             </span>
                         </div>
@@ -468,7 +468,7 @@
                             <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
                         </div>
                         <div>
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
                                 {{ $row['badge_text'] }}
                             </span>
                         </div>
@@ -488,7 +488,7 @@
             </div>
         </div>
 
-        <!-- Modal Detail 'Lihat Semua' Zona 2 -->
+        <!-- Modal Detail 'Lihat Semua' -->
         <div id="zona2-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-40 flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
                 <div class="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -506,6 +506,23 @@
             </div>
         </div>
         @endif
+
+        <!-- Aktivitas Terbaru (Feed Sederhana 1 Baris = 1 Icon + 1 Kalimat) -->
+        <div class="mb-8">
+            <h3 class="text-sm font-semibold text-gray-500 mb-3">Aktivitas Terbaru</h3>
+            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                <div class="divide-y divide-gray-100">
+                    @forelse($recentActivities as $act)
+                    <div class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                        <i data-lucide="{{ $act['icon'] }}" class="h-4 w-4 {{ $act['color'] }} flex-shrink-0"></i>
+                        <span class="text-sm text-gray-700 font-medium">{{ $act['message'] }}</span>
+                    </div>
+                    @empty
+                    <div class="py-2 text-sm text-gray-400">Belum ada aktivitas hari ini</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
 
         <!-- Charts after Ringkasan Performa (role-based) -->
         
@@ -777,15 +794,13 @@
 
     function switchZona2Tab(tab) {
         currentZona2Tab = tab;
-        // Tab buttons styling
-        document.querySelectorAll('.zona2-tab-btn').forEach(btn => {
-            btn.classList.remove('border-b-2', 'border-black', 'text-gray-900', 'font-bold');
-            btn.classList.add('text-gray-400', 'font-semibold');
+        // daisyUI tab styling
+        document.querySelectorAll('#zona2-tabs .tab').forEach(btn => {
+            btn.classList.remove('tab-active', 'font-bold');
         });
         const activeBtn = document.getElementById('tab-btn-' + tab);
         if (activeBtn) {
-            activeBtn.classList.remove('text-gray-400', 'font-semibold');
-            activeBtn.classList.add('border-b-2', 'border-black', 'text-gray-900', 'font-bold');
+            activeBtn.classList.add('tab-active', 'font-bold');
         }
 
         // Tab panels display
@@ -834,7 +849,7 @@
                         <div class="text-xs text-gray-400 mt-0.5">${item.subtitle}</div>
                     </div>
                     <div>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="${item.badge_style}">
+                        <span class="badge ${item.badge_class} badge-sm font-semibold">
                             ${item.badge_text}
                         </span>
                     </div>

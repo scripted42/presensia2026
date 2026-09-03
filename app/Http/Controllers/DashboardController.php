@@ -254,16 +254,82 @@ class DashboardController extends Controller
     private function getRecentActivities($user)
     {
         $activities = collect();
+        $today = Carbon::today('Asia/Jakarta')->format('Y-m-d');
         
-        // Simplified activities for now
-        $activities->push([
-            'type' => 'welcome',
-            'message' => "Selamat datang di Presensia, {$user->name}!",
-            'time' => now(),
-            'icon' => 'user',
-            'color' => 'blue',
-        ]);
-        
+        // 1. Status Keterlambatan Hari Ini
+        $todayAttendanceCount = Attendance::where('date', $today)
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->count();
+
+        $todayLateCount = Attendance::where('date', $today)
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->where('status', 'late')
+            ->count();
+
+        if ($todayAttendanceCount > 0 && $todayLateCount > 0) {
+            $activities->push([
+                'type' => 'late',
+                'message' => "{$todayLateCount} absensi terlambat hari ini",
+                'icon' => 'clock',
+                'color' => 'text-warning',
+            ]);
+        } else {
+            $activities->push([
+                'type' => 'ontime',
+                'message' => 'Tidak ada absensi terlambat hari ini — semua tepat waktu',
+                'icon' => 'check-circle',
+                'color' => 'text-success',
+            ]);
+        }
+
+        // 2. Siswa / Pegawai Baru Ditambahkan
+        $newStudentsToday = User::where('school_id', $user->school_id)
+            ->where('user_type', 'student')
+            ->whereDate('created_at', $today)
+            ->count();
+
+        if ($newStudentsToday > 0) {
+            $activities->push([
+                'type' => 'new_student',
+                'message' => "{$newStudentsToday} siswa baru ditambahkan hari ini",
+                'icon' => 'user-plus',
+                'color' => 'text-info',
+            ]);
+        } else {
+            $newStudentsRecent = User::where('school_id', $user->school_id)
+                ->where('user_type', 'student')
+                ->where('created_at', '>=', now('Asia/Jakarta')->subDays(7))
+                ->count();
+            if ($newStudentsRecent > 0) {
+                $activities->push([
+                    'type' => 'new_student',
+                    'message' => "{$newStudentsRecent} siswa baru ditambahkan minggu ini",
+                    'icon' => 'user-plus',
+                    'color' => 'text-info',
+                ]);
+            }
+        }
+
+        // 3. Permohonan Izin Menunggu Persetujuan
+        $pendingLeaves = LeaveRequest::where('status', 'pending')
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->count();
+
+        if ($pendingLeaves > 0) {
+            $activities->push([
+                'type' => 'leave',
+                'message' => "{$pendingLeaves} permohonan izin menunggu persetujuan",
+                'icon' => 'file-text',
+                'color' => 'text-warning',
+            ]);
+        }
+
         return $activities;
     }
 
