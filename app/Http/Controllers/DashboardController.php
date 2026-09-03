@@ -623,6 +623,8 @@ class DashboardController extends Controller
             ->where('name', 'not like', '%Admin%')
             ->where('email', 'not like', '%admin%')
             ->where('email', 'not like', '%super%')
+            ->where('name', 'not regexp', '^Siswa [0-9]+$')
+            ->where('email', 'not like', '%@presensia.com')
             ->pluck('id');
 
         $activeIds = Attendance::whereBetween('date', [$startDate, $endDate])
