@@ -75,7 +75,7 @@
         </div>
 
         <!-- Main Dashboard 2-Column Layout (Sejajar mulai dari Statistics Cards) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-stretch">
             <!-- Kolom Kiri (8 Kolom Desktop): Statistics Cards, Ringkasan Performa, Perlu Ditindaklanjuti, Terlambat & Izin -->
             <div class="lg:col-span-8 flex flex-col gap-6">
                 <!-- Statistics Cards -->
@@ -592,8 +592,8 @@
             </div>
 
             <!-- Kolom Kanan: 4 Columns (Absensi Terbaru - Attendance Feed dengan Live Update) -->
-            <div class="lg:col-span-4 flex flex-col lg:sticky lg:top-4">
-                <div class="flex items-center justify-between mb-3 px-1">
+            <div class="lg:col-span-4 flex flex-col h-full">
+                <div class="flex items-center justify-between mb-3 px-1 flex-shrink-0">
                     <h3 class="text-sm font-semibold text-gray-500">Absensi Terbaru</h3>
                     <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60 shadow-xs">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -601,9 +601,9 @@
                     </div>
                 </div>
                 
-                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex flex-col">
-                    <div class="card-body p-4 md:p-5 flex flex-col">
-                        <div id="attendance-feed-list" class="max-h-[920px] xl:max-h-[1050px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 pr-1.5 custom-feed-scrollbar">
+                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex-1 flex flex-col min-h-0">
+                    <div class="card-body p-4 md:p-5 flex-1 flex flex-col min-h-0">
+                        <div id="attendance-feed-list" class="flex-1 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 pr-1.5 custom-feed-scrollbar min-h-0">
                             @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
                                 @foreach($recentAttendanceFeed as $feed)
                                 <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
