@@ -92,7 +92,7 @@
         <div class="block lg:hidden mt-8">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="p-5">
-                    <h3 class="text-sm font-bold text-gray-800 mb-4">Menu Aplikasi</h3>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Menu Aplikasi</h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 quick-actions">
                         @if($user->hasRole('admin'))
                             <!-- Admin Menu -->
@@ -416,11 +416,11 @@
             modalBody.innerHTML = items.map(item => `
                 <div class="flex items-center justify-between py-3">
                     <div>
-                        <div class="font-bold text-gray-900 text-sm">${item.name}</div>
-                        <div class="text-xs text-gray-400 mt-0.5">${item.subtitle}</div>
+                        <p class="text-sm font-medium text-gray-900">${item.name}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${item.subtitle}</p>
                     </div>
                     <div>
-                        <span class="badge ${item.badge_class} badge-sm font-semibold">
+                        <span class="badge ${item.badge_class} badge-sm text-xs font-medium">
                             ${item.badge_text}
                         </span>
                     </div>
@@ -475,7 +475,7 @@
                                     : `<div class="avatar placeholder flex-shrink-0"><div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-blue-100"><span>${feed.initials || 'U'}</span></div></div>`;
 
                                 const locationHtml = feed.location 
-                                    ? `<span>•</span><span class="truncate max-w-[120px]" title="${feed.location}">${feed.location}</span>` 
+                                    ? `<span>•</span><span class="truncate max-w-[110px] text-gray-400" title="${feed.location}">${feed.location}</span>` 
                                     : '';
 
                                 return `
@@ -483,11 +483,11 @@
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         ${avatarHtml}
                                         <div class="min-w-0">
-                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${feed.name}</div>
-                                            <div class="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                                            <p class="text-sm font-medium text-gray-900 leading-tight truncate">${feed.name}</p>
+                                            <div class="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5 flex-wrap">
                                                 <span class="font-medium text-gray-600">${feed.event_type}</span>
                                                 <span>•</span>
-                                                <span class="flex items-center gap-0.5">
+                                                <span class="flex items-center gap-0.5 text-gray-400">
                                                     <i data-lucide="clock" class="h-3 w-3"></i>
                                                     ${feed.time_str}
                                                 </span>
@@ -496,7 +496,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right flex-shrink-0 pl-2">
-                                        <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">${feed.relative_time}</span>
+                                        <span class="text-xs text-gray-400 whitespace-nowrap">${feed.relative_time}</span>
                                     </div>
                                 </div>`;
                             }).join('');
@@ -524,23 +524,23 @@
                             lateContainer.innerHTML = data.late_today.map(late => {
                                 const avatarHtml = late.avatar 
                                     ? `<div class="avatar flex-shrink-0"><div class="w-8 h-8 rounded-full"><img src="${late.avatar}" alt="${late.name}" /></div></div>`
-                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-amber-100"><span>${late.initials}</span></div></div>`;
+                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-amber-100"><span>${late.initials}</span></div></div>`;
 
                                 return `
                                 <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         ${avatarHtml}
                                         <div class="min-w-0">
-                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${late.name}</div>
-                                            <div class="text-[11px] text-gray-400 mt-0.5 truncate">${late.subtitle}</div>
-                                            <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                            <p class="text-sm font-medium text-gray-900 leading-tight truncate">${late.name}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5 truncate">${late.subtitle}</p>
+                                            <div class="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
                                                 <i data-lucide="clock" class="h-3 w-3"></i>
                                                 <span>Masuk pukul ${late.check_in_time}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="text-right flex-shrink-0 pl-2">
-                                        <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
+                                        <span class="badge badge-warning badge-sm text-xs font-medium inline-flex items-center gap-0.5 whitespace-nowrap">
                                             <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
                                             ${late.late_duration}
                                         </span>
@@ -571,23 +571,23 @@
                             leaveContainer.innerHTML = data.on_leave_today.map(leave => {
                                 const avatarHtml = leave.avatar 
                                     ? `<div class="avatar flex-shrink-0"><div class="w-8 h-8 rounded-full"><img src="${leave.avatar}" alt="${leave.name}" /></div></div>`
-                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-purple-100"><span>${leave.initials}</span></div></div>`;
+                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-purple-100"><span>${leave.initials}</span></div></div>`;
 
                                 return `
                                 <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         ${avatarHtml}
                                         <div class="min-w-0">
-                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${leave.name}</div>
-                                            <div class="text-[11px] text-gray-400 mt-0.5 truncate">${leave.subtitle}</div>
-                                            <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                            <p class="text-sm font-medium text-gray-900 leading-tight truncate">${leave.name}</p>
+                                            <p class="text-xs text-gray-500 mt-0.5 truncate">${leave.subtitle}</p>
+                                            <div class="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
                                                 <i data-lucide="calendar" class="h-3 w-3"></i>
                                                 <span>${leave.date_range}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="text-right flex-shrink-0 pl-2">
-                                        <span class="badge ${leave.badge_class} badge-sm font-semibold text-[10px] whitespace-nowrap">
+                                        <span class="badge ${leave.badge_class} badge-sm text-xs font-medium whitespace-nowrap">
                                             ${leave.type_label}
                                         </span>
                                     </div>

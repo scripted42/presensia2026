@@ -20,11 +20,11 @@
                     <div class="p-2 {{ $currentSt['bg'] }} {{ $currentSt['color'] }} rounded-xl">
                         <i data-lucide="calendar-check" class="h-4 w-4"></i>
                     </div>
-                    <span class="badge {{ $currentSt['badge'] }} badge-sm font-semibold">{{ $currentSt['text'] }}</span>
+                    <span class="badge {{ $currentSt['badge'] }} badge-sm text-xs font-medium">{{ $currentSt['text'] }}</span>
                 </div>
                 <div class="mt-2.5">
-                    <div class="text-xs font-semibold text-gray-500">Status Hari Ini</div>
-                    <div class="text-sm font-bold text-gray-900 mt-0.5">
+                    <p class="text-sm text-gray-500 font-normal">Status Hari Ini</p>
+                    <p class="text-sm font-medium text-gray-900 mt-0.5">
                         @if($status === 'completed')
                             {{ substr($todayDetail['check_in'] ?? '', 0, 5) }} - {{ substr($todayDetail['check_out'] ?? '', 0, 5) }}
                         @elseif($status === 'in_only')
@@ -32,7 +32,7 @@
                         @else
                             Belum Check In
                         @endif
-                    </div>
+                    </p>
                 </div>
             </div>
 
@@ -42,11 +42,11 @@
                     <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
                         <i data-lucide="check-circle" class="h-4 w-4"></i>
                     </div>
-                    <div class="text-xl font-bold text-gray-900">{{ $monthSummary['present'] ?? 0 }} <span class="text-xs font-normal text-gray-400">hari</span></div>
+                    <p class="text-xl md:text-2xl font-bold text-gray-900">{{ $monthSummary['present'] ?? 0 }} <span class="text-xs font-normal text-gray-400">hari</span></p>
                 </div>
                 <div class="mt-2.5">
-                    <div class="text-xs font-semibold text-gray-500">Hadir Bulan Ini</div>
-                    <div class="text-[11px] text-gray-400 mt-0.5">Tepat Waktu: {{ $monthSummary['ontime'] ?? 0 }} hari</div>
+                    <p class="text-sm text-gray-500 font-normal">Hadir Bulan Ini</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Tepat Waktu: {{ $monthSummary['ontime'] ?? 0 }} hari</p>
                 </div>
             </div>
 
@@ -56,11 +56,11 @@
                     <div class="p-2 bg-amber-50 text-amber-600 rounded-xl">
                         <i data-lucide="clock" class="h-4 w-4"></i>
                     </div>
-                    <div class="text-xl font-bold text-gray-900">{{ $monthSummary['late'] ?? 0 }} <span class="text-xs font-normal text-gray-400">kali</span></div>
+                    <p class="text-xl md:text-2xl font-bold text-gray-900">{{ $monthSummary['late'] ?? 0 }} <span class="text-xs font-normal text-gray-400">kali</span></p>
                 </div>
                 <div class="mt-2.5">
-                    <div class="text-xs font-semibold text-gray-500">Terlambat</div>
-                    <div class="text-[11px] text-gray-400 mt-0.5">Bulan {{ $monthSummary['month_name'] ?? '' }}</div>
+                    <p class="text-sm text-gray-500 font-normal">Terlambat</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Bulan {{ $monthSummary['month_name'] ?? '' }}</p>
                 </div>
             </div>
 
@@ -70,11 +70,11 @@
                     <div class="p-2 bg-purple-50 text-purple-600 rounded-xl">
                         <i data-lucide="file-text" class="h-4 w-4"></i>
                     </div>
-                    <div class="text-xl font-bold text-gray-900">{{ ($monthSummary['permit'] ?? 0) + ($monthSummary['sick'] ?? 0) }} <span class="text-xs font-normal text-gray-400">hari</span></div>
+                    <p class="text-xl md:text-2xl font-bold text-gray-900">{{ ($monthSummary['permit'] ?? 0) + ($monthSummary['sick'] ?? 0) }} <span class="text-xs font-normal text-gray-400">hari</span></p>
                 </div>
                 <div class="mt-2.5">
-                    <div class="text-xs font-semibold text-gray-500">Izin & Sakit</div>
-                    <div class="text-[11px] text-gray-400 mt-0.5">Izin: {{ $monthSummary['permit'] ?? 0 }} | Sakit: {{ $monthSummary['sick'] ?? 0 }}</div>
+                    <p class="text-sm text-gray-500 font-normal">Izin & Sakit</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Izin: {{ $monthSummary['permit'] ?? 0 }} | Sakit: {{ $monthSummary['sick'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -83,7 +83,7 @@
         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
                 <div>
-                    <h3 class="font-bold text-gray-900 text-base">Presensi Mandiri Hari Ini</h3>
+                    <h2 class="text-lg font-semibold text-gray-900">Presensi Mandiri Hari Ini</h2>
                     <p class="text-xs text-gray-400 mt-0.5">{{ \Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y') }}</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -98,7 +98,7 @@
                             <span>Absen Keluar</span>
                         </a>
                     @else
-                        <span class="badge badge-success gap-1 py-3 px-3 text-xs font-semibold">
+                        <span class="badge badge-success gap-1 py-3 px-3 text-xs font-medium">
                             <i data-lucide="check-circle" class="h-3.5 w-3.5"></i>
                             Presensi Selesai
                         </span>
@@ -113,10 +113,10 @@
                         <i data-lucide="sunrise" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <div class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Jam Masuk</div>
-                        <div class="text-base font-bold text-gray-900">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Jam Masuk</p>
+                        <p class="text-base font-bold text-gray-900">
                             {{ $todayDetail['check_in'] ? substr($todayDetail['check_in'], 0, 5) . ' WIB' : '—' }}
-                        </div>
+                        </p>
                     </div>
                 </div>
 
@@ -125,10 +125,10 @@
                         <i data-lucide="sunset" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <div class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Jam Keluar</div>
-                        <div class="text-base font-bold text-gray-900">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Jam Keluar</p>
+                        <p class="text-base font-bold text-gray-900">
                             {{ $todayDetail['check_out'] ? substr($todayDetail['check_out'], 0, 5) . ' WIB' : '—' }}
-                        </div>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -139,7 +139,7 @@
         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
             <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div>
-                    <h3 class="font-bold text-gray-900 text-base">Kelas yang Saya Ampu</h3>
+                    <h2 class="text-lg font-semibold text-gray-900">Kelas yang Saya Ampu</h2>
                     <p class="text-xs text-gray-400 mt-0.5">Kelola dan scan kehadiran siswa di kelas</p>
                 </div>
                 <a href="{{ route('attendance.student-scan') }}" class="btn btn-outline btn-primary btn-sm rounded-xl font-semibold gap-1.5">
@@ -155,8 +155,8 @@
                             <i data-lucide="book-open" class="h-4 w-4"></i>
                         </div>
                         <div>
-                            <div class="text-sm font-bold text-gray-900">{{ $cls->name }}</div>
-                            <div class="text-xs text-gray-400">{{ $cls->students_count ?? 0 }} Siswa terdaftar</div>
+                            <p class="text-sm font-medium text-gray-900">{{ $cls->name }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $cls->students_count ?? 0 }} Siswa terdaftar</p>
                         </div>
                     </div>
                     <a href="{{ route('attendance.student-scan') }}" class="text-xs font-semibold text-blue-600 hover:text-blue-800">
@@ -172,10 +172,10 @@
         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
             <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div>
-                    <h3 class="font-bold text-gray-900 text-base">Tugas Administrasi Tata Usaha</h3>
+                    <h2 class="text-lg font-semibold text-gray-900">Tugas Administrasi Tata Usaha</h2>
                     <p class="text-xs text-gray-400 mt-0.5">Kelola verifikasi izin dan akses master data sekolah</p>
                 </div>
-                <a href="{{ route('leave-requests.index') }}" class="badge badge-warning gap-1 py-3 px-3 text-xs font-bold text-gray-800">
+                <a href="{{ route('leave-requests.index') }}" class="badge badge-warning gap-1 py-3 px-3 text-xs font-medium text-gray-800">
                     <i data-lucide="inbox" class="h-3.5 w-3.5"></i>
                     {{ $pendingLeaveCount ?? 0 }} Izin Pending
                 </a>
@@ -186,8 +186,8 @@
                         <i data-lucide="file-check" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-gray-900">Verifikasi Izin</div>
-                        <div class="text-[11px] text-gray-400">Proses permohonan</div>
+                        <p class="text-sm font-medium text-gray-900">Verifikasi Izin</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Proses permohonan</p>
                     </div>
                 </a>
 
@@ -196,8 +196,8 @@
                         <i data-lucide="graduation-cap" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-gray-900">Data Siswa</div>
-                        <div class="text-[11px] text-gray-400">Kelola master siswa</div>
+                        <p class="text-sm font-medium text-gray-900">Data Siswa</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Kelola master siswa</p>
                     </div>
                 </a>
 
@@ -206,8 +206,8 @@
                         <i data-lucide="users" class="h-5 w-5"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-gray-900">Data Pegawai</div>
-                        <div class="text-[11px] text-gray-400">Kelola master staf/guru</div>
+                        <p class="text-sm font-medium text-gray-900">Data Pegawai</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Kelola master staf/guru</p>
                     </div>
                 </a>
             </div>
@@ -218,7 +218,7 @@
         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl p-5 md:p-6">
             <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div>
-                    <h3 class="font-bold text-gray-900 text-base">Pengajuan Izin Saya</h3>
+                    <h2 class="text-lg font-semibold text-gray-900">Pengajuan Izin Saya</h2>
                     <p class="text-xs text-gray-400 mt-0.5">Status permohonan izin/cuti yang Anda ajukan</p>
                 </div>
                 <a href="{{ route('leave-requests.create') }}" class="btn btn-outline btn-sm rounded-xl font-semibold gap-1">
@@ -242,12 +242,12 @@
                 @endphp
                 <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 px-1 rounded-xl transition-colors">
                     <div>
-                        <div class="text-xs font-bold text-gray-900">
+                        <p class="text-sm font-medium text-gray-900">
                             {{ ucfirst($leave->type) }} · {{ \Carbon\Carbon::parse($leave->start_date)->format('d M') }} - {{ \Carbon\Carbon::parse($leave->end_date)->format('d M Y') }}
-                        </div>
-                        <div class="text-[11px] text-gray-400 mt-0.5 truncate max-w-sm">{{ $leave->reason ?? 'Tidak ada keterangan' }}</div>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-0.5 truncate max-w-sm">{{ $leave->reason ?? 'Tidak ada keterangan' }}</p>
                     </div>
-                    <span class="badge {{ $leaveBadge }} badge-sm font-semibold text-[10px]">{{ $leaveStatusText }}</span>
+                    <span class="badge {{ $leaveBadge }} badge-sm text-xs font-medium">{{ $leaveStatusText }}</span>
                 </div>
                 @empty
                 <div class="py-8 text-center text-xs text-gray-400">Belum ada pengajuan izin/cuti terbaru.</div>
@@ -259,8 +259,8 @@
     <!-- Kolom Kanan (4 Kolom Desktop): Riwayat Absensi Saya (Privat 100% data sendiri) -->
     <div class="lg:col-span-4 flex flex-col h-full">
         <div class="flex items-center justify-between mb-3 px-1 flex-shrink-0">
-            <h3 class="text-sm font-semibold text-gray-500">Riwayat Absensi Saya</h3>
-            <span class="text-[11px] text-gray-400">14 hari terakhir</span>
+            <h2 class="text-lg font-semibold text-gray-900">Riwayat Absensi Saya</h2>
+            <span class="text-xs text-gray-400">14 hari terakhir</span>
         </div>
 
         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex-1 flex flex-col min-h-0">
@@ -280,14 +280,14 @@
                     @endphp
                     <div class="py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold text-gray-900">
+                            <p class="text-sm font-medium text-gray-900">
                                 {{ \Carbon\Carbon::parse($att->date)->translatedFormat('l, d M Y') }}
-                            </span>
-                            <span class="badge {{ $attBadge['badge'] }} badge-xs font-semibold text-[9px]">
+                            </p>
+                            <span class="badge {{ $attBadge['badge'] }} badge-xs text-xs font-medium">
                                 {{ $attBadge['label'] }}
                             </span>
                         </div>
-                        <div class="flex items-center gap-3 text-[11px] text-gray-500 mt-1">
+                        <div class="flex items-center gap-3 text-xs text-gray-500 mt-1">
                             <span class="flex items-center gap-1">
                                 <i data-lucide="log-in" class="h-3 w-3 text-blue-500"></i>
                                 <span>{{ $att->check_in ? $att->check_in->format('H:i') : '—' }}</span>
