@@ -315,213 +315,336 @@
         </div>
         @endif
 
-        <!-- Perlu Ditindaklanjuti (daisyUI tabs + badge) -->
-        @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
-        @php
-            $incompleteList = collect($metrics['incomplete_profiles'] ?? [])->map(function($u) {
-                return [
-                    'category' => 'incomplete',
-                    'name' => $u->name,
-                    'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
-                    'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · profil kosong',
-                    'badge_text' => ($u->missing_count ?? 0) . ' kosong',
-                    'badge_class' => 'badge-error',
-                ];
-            });
+        <!-- Main Layout: Kolom Kiri (Perlu Ditindaklanjuti + Terlambat & Izin) & Kolom Kanan (Absensi Terbaru - Attendance Feed) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+            <!-- Kolom Kiri (8 Kolom Desktop) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- Section: Perlu Ditindaklanjuti (daisyUI tabs + badge) -->
+                @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
+                @php
+                    $incompleteList = collect($metrics['incomplete_profiles'] ?? [])->map(function($u) {
+                        return [
+                            'category' => 'incomplete',
+                            'name' => $u->name,
+                            'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
+                            'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · profil kosong',
+                            'badge_text' => ($u->missing_count ?? 0) . ' kosong',
+                            'badge_class' => 'badge-error',
+                        ];
+                    });
 
-            $daysDiff = 7;
-            if (!empty($startDate) && !empty($endDate)) {
-                $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)) + 1);
-            }
+                    $daysDiff = 7;
+                    if (!empty($startDate) && !empty($endDate)) {
+                        $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)) + 1);
+                    }
 
-            $nonUserList = collect($metrics['non_users'] ?? [])->map(function($u) use ($daysDiff) {
-                return [
-                    'category' => 'non_user',
-                    'name' => $u->name,
-                    'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
-                    'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · tidak aktif',
-                    'badge_text' => $daysDiff . ' hari',
-                    'badge_class' => 'badge-warning',
-                ];
-            });
+                    $nonUserList = collect($metrics['non_users'] ?? [])->map(function($u) use ($daysDiff) {
+                        return [
+                            'category' => 'non_user',
+                            'name' => $u->name,
+                            'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
+                            'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · tidak aktif',
+                            'badge_text' => $daysDiff . ' hari',
+                            'badge_class' => 'badge-warning',
+                        ];
+                    });
 
-            $leakList = collect($metrics['leak']['samples'] ?? [])->map(function($item) {
-                return [
-                    'category' => 'leak',
-                    'name' => $item->user->name ?? 'User',
-                    'user_type' => ($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa',
-                    'subtitle' => (($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa') . ' · leak absensi (' . (string)$item->date . ')',
-                    'badge_text' => 'Tanpa Check Out',
-                    'badge_class' => 'badge-error',
-                ];
-            });
+                    $leakList = collect($metrics['leak']['samples'] ?? [])->map(function($item) {
+                        return [
+                            'category' => 'leak',
+                            'name' => $item->user->name ?? 'User',
+                            'user_type' => ($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa',
+                            'subtitle' => (($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa') . ' · leak absensi (' . (string)$item->date . ')',
+                            'badge_text' => 'Tanpa Check Out',
+                            'badge_class' => 'badge-error',
+                        ];
+                    });
 
-            $allProblems = collect();
-            $maxCount = max($incompleteList->count(), $nonUserList->count(), $leakList->count());
-            for ($i = 0; $i < $maxCount; $i++) {
-                if ($incompleteList->has($i)) $allProblems->push($incompleteList->get($i));
-                if ($nonUserList->has($i)) $allProblems->push($nonUserList->get($i));
-                if ($leakList->has($i)) $allProblems->push($leakList->get($i));
-            }
+                    $allProblems = collect();
+                    $maxCount = max($incompleteList->count(), $nonUserList->count(), $leakList->count());
+                    for ($i = 0; $i < $maxCount; $i++) {
+                        if ($incompleteList->has($i)) $allProblems->push($incompleteList->get($i));
+                        if ($nonUserList->has($i)) $allProblems->push($nonUserList->get($i));
+                        if ($leakList->has($i)) $allProblems->push($leakList->get($i));
+                    }
 
-            $totalIssuesCount = $allProblems->count();
-            $incompleteCount = $incompleteList->count();
-            $nonUserCount = $nonUserList->count();
-            $leakCount = $leakList->count();
-        @endphp
+                    $totalIssuesCount = $allProblems->count();
+                    $incompleteCount = $incompleteList->count();
+                    $nonUserCount = $nonUserList->count();
+                    $leakCount = $leakList->count();
+                @endphp
 
-        <div class="mb-8">
-            <h3 class="text-sm font-semibold text-gray-500 mb-3">Perlu Ditindaklanjuti</h3>
-            
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
-                <!-- Header Tabs and Single Export Button -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                    <!-- daisyUI tabs -->
-                    <div role="tablist" class="tabs tabs-bordered overflow-x-auto" id="zona2-tabs">
-                        <a role="tab" onclick="switchZona2Tab('all')" id="tab-btn-all" class="tab tab-active font-bold text-xs whitespace-nowrap">
-                            Semua ({{ $totalIssuesCount }})
-                        </a>
-                        <a role="tab" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="tab text-xs whitespace-nowrap">
-                            Profil kosong ({{ $incompleteCount }})
-                        </a>
-                        <a role="tab" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="tab text-xs whitespace-nowrap">
-                            Tidak aktif ({{ $nonUserCount }})
-                        </a>
-                        <a role="tab" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="tab text-xs whitespace-nowrap">
-                            Leak absensi ({{ $leakCount }})
-                        </a>
-                    </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-500 mb-3">Perlu Ditindaklanjuti</h3>
+                    
+                    <div class="rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
+                        <!-- Header Tabs and Single Export Button -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                            <!-- daisyUI tabs -->
+                            <div role="tablist" class="tabs tabs-bordered overflow-x-auto" id="zona2-tabs">
+                                <a role="tab" onclick="switchZona2Tab('all')" id="tab-btn-all" class="tab tab-active font-bold text-xs whitespace-nowrap">
+                                    Semua ({{ $totalIssuesCount }})
+                                </a>
+                                <a role="tab" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="tab text-xs whitespace-nowrap">
+                                    Profil kosong ({{ $incompleteCount }})
+                                </a>
+                                <a role="tab" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="tab text-xs whitespace-nowrap">
+                                    Tidak aktif ({{ $nonUserCount }})
+                                </a>
+                                <a role="tab" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="tab text-xs whitespace-nowrap">
+                                    Leak absensi ({{ $leakCount }})
+                                </a>
+                            </div>
 
-                    <!-- Single Export Button (top right) -->
-                    <div class="flex items-center self-end sm:self-auto">
-                        <a id="zona2-export-btn" href="{{ route('dashboard.export', ['type' => 'all', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 transition-colors">
-                            <i data-lucide="download" class="h-3.5 w-3.5 text-gray-500"></i>
-                            <span>Export</span>
-                        </a>
+                            <!-- Single Export Button (top right) -->
+                            <div class="flex items-center self-end sm:self-auto">
+                                <a id="zona2-export-btn" href="{{ route('dashboard.export', ['type' => 'all', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 transition-colors">
+                                    <i data-lucide="download" class="h-3.5 w-3.5 text-gray-500"></i>
+                                    <span>Export</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content Panels (Flat rows with daisyUI badges) -->
+                        <!-- Tab 'all' -->
+                        <div id="zona2-panel-all" class="zona2-panel divide-y divide-gray-100">
+                            @forelse($allProblems->take(5) as $row)
+                            <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                                <div>
+                                    <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                                </div>
+                                <div>
+                                    <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
+                                        {{ $row['badge_text'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="py-8 text-center text-sm text-gray-400">Tidak ada masalah profil, keaktifan, atau kebocoran absensi.</div>
+                            @endforelse
+                        </div>
+
+                        <!-- Tab 'incomplete' -->
+                        <div id="zona2-panel-incomplete" class="zona2-panel divide-y divide-gray-100 hidden">
+                            @forelse($incompleteList->take(5) as $row)
+                            <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                                <div>
+                                    <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                                </div>
+                                <div>
+                                    <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
+                                        {{ $row['badge_text'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua data profil sudah lengkap 100%.</div>
+                            @endforelse
+                        </div>
+
+                        <!-- Tab 'non_user' -->
+                        <div id="zona2-panel-non_user" class="zona2-panel divide-y divide-gray-100 hidden">
+                            @forelse($nonUserList->take(5) as $row)
+                            <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                                <div>
+                                    <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                                </div>
+                                <div>
+                                    <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
+                                        {{ $row['badge_text'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua user aktif menggunakan absensi.</div>
+                            @endforelse
+                        </div>
+
+                        <!-- Tab 'leak' -->
+                        <div id="zona2-panel-leak" class="zona2-panel divide-y divide-gray-100 hidden">
+                            @forelse($leakList->take(5) as $row)
+                            <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                                <div>
+                                    <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                                </div>
+                                <div>
+                                    <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
+                                        {{ $row['badge_text'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="py-8 text-center text-sm text-emerald-600 font-medium">Tidak ada kebocoran absensi (seluruh user telah check out).</div>
+                            @endforelse
+                        </div>
+
+                        <!-- Footer 'Lihat semua N item' button -->
+                        <div class="pt-4 border-t border-gray-100 text-center">
+                            <button type="button" onclick="openZona2Modal()" id="zona2-view-all-btn" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center gap-1">
+                                <span id="zona2-view-all-text">Lihat semua {{ $totalIssuesCount }} item</span>
+                                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tab Content Panels (Flat rows with daisyUI badges) -->
-                <!-- Tab 'all' -->
-                <div id="zona2-panel-all" class="zona2-panel divide-y divide-gray-100">
-                    @forelse($allProblems->take(5) as $row)
-                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
-                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                <!-- Modal Detail 'Lihat Semua' -->
+                <div id="zona2-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-40 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+                        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-900 text-base" id="zona2-modal-title">Daftar Lengkap (Semua)</h3>
+                            <button type="button" onclick="closeZona2Modal()" class="text-gray-400 hover:text-gray-600 p-1">
+                                <i data-lucide="x" class="h-5 w-5"></i>
+                            </button>
                         </div>
-                        <div>
-                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
-                                {{ $row['badge_text'] }}
-                            </span>
+                        <div class="py-3 flex-1 overflow-y-auto divide-y divide-gray-100" id="zona2-modal-body">
+                            <!-- Populated dynamically by JS -->
                         </div>
-                    </div>
-                    @empty
-                    <div class="py-8 text-center text-sm text-gray-400">Tidak ada masalah profil, keaktifan, atau kebocoran absensi.</div>
-                    @endforelse
-                </div>
-
-                <!-- Tab 'incomplete' -->
-                <div id="zona2-panel-incomplete" class="zona2-panel divide-y divide-gray-100 hidden">
-                    @forelse($incompleteList->take(5) as $row)
-                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
-                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
-                        </div>
-                        <div>
-                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
-                                {{ $row['badge_text'] }}
-                            </span>
+                        <div class="pt-3 border-t border-gray-100 flex justify-end">
+                            <button type="button" onclick="closeZona2Modal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-colors">Tutup</button>
                         </div>
                     </div>
-                    @empty
-                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua data profil sudah lengkap 100%.</div>
-                    @endforelse
                 </div>
+                @endif
 
-                <!-- Tab 'non_user' -->
-                <div id="zona2-panel-non_user" class="zona2-panel divide-y divide-gray-100 hidden">
-                    @forelse($nonUserList->take(5) as $row)
-                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
-                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                <!-- Section: Terlambat Hari Ini & Sedang Izin/Cuti (2 Kolom Berdampingan) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Terlambat Hari Ini -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="text-sm font-semibold text-gray-500">Terlambat Hari Ini</h3>
+                            @if(isset($lateToday) && $lateToday->isNotEmpty())
+                            <span class="badge badge-warning badge-sm font-semibold">{{ $lateToday->count() }}</span>
+                            @endif
                         </div>
-                        <div>
-                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
-                                {{ $row['badge_text'] }}
-                            </span>
+
+                        <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
+                            <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
+                                @if(isset($lateToday) && $lateToday->isNotEmpty())
+                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
+                                    @foreach($lateToday as $late)
+                                    <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            @if(!empty($late['avatar']))
+                                            <div class="avatar flex-shrink-0">
+                                                <div class="w-8 h-8 rounded-full">
+                                                    <img src="{{ $late['avatar'] }}" alt="{{ $late['name'] }}" />
+                                                </div>
+                                            </div>
+                                            @else
+                                            <div class="avatar placeholder flex-shrink-0">
+                                                <div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-amber-100">
+                                                    <span>{{ $late['initials'] }}</span>
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $late['name'] }}</div>
+                                                <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $late['subtitle'] }}</div>
+                                                <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                    <i data-lucide="clock" class="h-3 w-3"></i>
+                                                    <span>Masuk pukul {{ $late['check_in_time'] }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-right flex-shrink-0 pl-2">
+                                            <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
+                                                <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
+                                                {{ $late['late_duration'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @else
+                                <div class="py-12 text-center text-xs text-emerald-600 font-medium flex-1 flex flex-col items-center justify-center gap-1.5">
+                                    <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
+                                    <span>Tidak ada yang terlambat hari ini</span>
+                                </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    @empty
-                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua user aktif menggunakan absensi.</div>
-                    @endforelse
-                </div>
 
-                <!-- Tab 'leak' -->
-                <div id="zona2-panel-leak" class="zona2-panel divide-y divide-gray-100 hidden">
-                    @forelse($leakList->take(5) as $row)
-                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
-                        <div>
-                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
-                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                    <!-- Sedang Izin/Cuti -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <h3 class="text-sm font-semibold text-gray-500">Sedang Izin/Cuti</h3>
+                            @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
+                            <span class="badge badge-neutral badge-sm font-semibold">{{ $onLeaveToday->count() }}</span>
+                            @endif
                         </div>
-                        <div>
-                            <span class="badge {{ $row['badge_class'] }} badge-sm font-semibold">
-                                {{ $row['badge_text'] }}
-                            </span>
+
+                        <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
+                            <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
+                                @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
+                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
+                                    @foreach($onLeaveToday as $leave)
+                                    <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            @if(!empty($leave['avatar']))
+                                            <div class="avatar flex-shrink-0">
+                                                <div class="w-8 h-8 rounded-full">
+                                                    <img src="{{ $leave['avatar'] }}" alt="{{ $leave['name'] }}" />
+                                                </div>
+                                            </div>
+                                            @else
+                                            <div class="avatar placeholder flex-shrink-0">
+                                                <div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-purple-100">
+                                                    <span>{{ $leave['initials'] }}</span>
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $leave['name'] }}</div>
+                                                <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $leave['subtitle'] }}</div>
+                                                <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                    <i data-lucide="calendar" class="h-3 w-3"></i>
+                                                    <span>{{ $leave['date_range'] }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-right flex-shrink-0 pl-2">
+                                            <span class="badge {{ $leave['badge_class'] }} badge-sm font-semibold text-[10px] whitespace-nowrap">
+                                                {{ $leave['type_label'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @else
+                                <div class="py-12 text-center text-xs text-gray-400 flex-1 flex flex-col items-center justify-center gap-1.5">
+                                    <i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i>
+                                    <span>Tidak ada yang sedang izin/cuti hari ini</span>
+                                </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    @empty
-                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Tidak ada kebocoran absensi (seluruh user telah check out).</div>
-                    @endforelse
-                </div>
-
-                <!-- Footer 'Lihat semua N item' button -->
-                <div class="pt-4 border-t border-gray-100 text-center">
-                    <button type="button" onclick="openZona2Modal()" id="zona2-view-all-btn" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center gap-1">
-                        <span id="zona2-view-all-text">Lihat semua {{ $totalIssuesCount }} item</span>
-                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Modal Detail 'Lihat Semua' -->
-        <div id="zona2-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-40 flex items-center justify-center p-4">
-            <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
-                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-                    <h3 class="font-bold text-gray-900 text-base" id="zona2-modal-title">Daftar Lengkap (Semua)</h3>
-                    <button type="button" onclick="closeZona2Modal()" class="text-gray-400 hover:text-gray-600 p-1">
-                        <i data-lucide="x" class="h-5 w-5"></i>
-                    </button>
-                </div>
-                <div class="py-3 flex-1 overflow-y-auto divide-y divide-gray-100" id="zona2-modal-body">
-                    <!-- Populated dynamically by JS -->
-                </div>
-                <div class="pt-3 border-t border-gray-100 flex justify-end">
-                    <button type="button" onclick="closeZona2Modal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-colors">Tutup</button>
-                </div>
-            </div>
-        </div>
-        @endif
-
-        <!-- 3 Kolom Sejajar: Absensi Terbaru, Terlambat Hari Ini, Sedang Izin/Cuti -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-            <!-- Kolom 1: Absensi Terbaru (Real-time feed) -->
-            <div class="lg:col-span-1 flex flex-col">
+            <!-- Kolom Kanan: 4 Columns (Absensi Terbaru - Persis seperti Attendance Feed di Gambar) -->
+            <div class="lg:col-span-4 flex flex-col">
                 <div class="flex items-center justify-between mb-3 px-1">
                     <h3 class="text-sm font-semibold text-gray-500">Absensi Terbaru</h3>
                     <span class="text-[11px] text-gray-400 font-medium">Real-time feed</span>
                 </div>
                 
-                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
-                    <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
+                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex flex-col">
+                    <div class="card-body p-4 md:p-5 flex flex-col">
                         @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
-                        <div class="max-h-96 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
+                        <div class="max-h-[640px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1">
                             @foreach($recentAttendanceFeed as $feed)
-                            <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                            <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
                                 <div class="flex items-center gap-2.5 min-w-0">
                                     @if(!empty($feed['avatar']))
                                     <div class="avatar flex-shrink-0">
@@ -531,7 +654,7 @@
                                     </div>
                                     @else
                                     <div class="avatar placeholder flex-shrink-0">
-                                        <div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-blue-100">
+                                        <div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-blue-100">
                                             <span>{{ $feed['initials'] }}</span>
                                         </div>
                                     </div>
@@ -548,7 +671,7 @@
                                             </span>
                                             @if(!empty($feed['location']))
                                             <span>•</span>
-                                            <span class="truncate max-w-[110px]" title="{{ $feed['location'] }}">
+                                            <span class="truncate max-w-[120px]" title="{{ $feed['location'] }}">
                                                 {{ $feed['location'] }}
                                             </span>
                                             @endif
@@ -563,125 +686,8 @@
                             @endforeach
                         </div>
                         @else
-                        <div class="py-12 text-center text-xs text-gray-400 flex-1 flex items-center justify-center">
+                        <div class="py-12 text-center text-xs text-gray-400 flex items-center justify-center">
                             Belum ada data absensi terbaru hari ini
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kolom 2: Terlambat Hari Ini -->
-            <div class="lg:col-span-1 flex flex-col">
-                <div class="flex items-center justify-between mb-3 px-1">
-                    <h3 class="text-sm font-semibold text-gray-500">Terlambat Hari Ini</h3>
-                    @if(isset($lateToday) && $lateToday->isNotEmpty())
-                    <span class="badge badge-warning badge-sm font-semibold">{{ $lateToday->count() }}</span>
-                    @endif
-                </div>
-
-                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
-                    <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
-                        @if(isset($lateToday) && $lateToday->isNotEmpty())
-                        <div class="max-h-96 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
-                            @foreach($lateToday as $late)
-                            <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    @if(!empty($late['avatar']))
-                                    <div class="avatar flex-shrink-0">
-                                        <div class="w-9 h-9 rounded-full">
-                                            <img src="{{ $late['avatar'] }}" alt="{{ $late['name'] }}" />
-                                        </div>
-                                    </div>
-                                    @else
-                                    <div class="avatar placeholder flex-shrink-0">
-                                        <div class="bg-amber-50 text-amber-600 rounded-full w-9 h-9 text-xs font-bold flex items-center justify-center border border-amber-100">
-                                            <span>{{ $late['initials'] }}</span>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $late['name'] }}</div>
-                                        <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $late['subtitle'] }}</div>
-                                        <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                                            <i data-lucide="clock" class="h-3 w-3"></i>
-                                            <span>Masuk pukul {{ $late['check_in_time'] }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-right flex-shrink-0 pl-2">
-                                    <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
-                                        <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
-                                        {{ $late['late_duration'] }}
-                                    </span>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                        @else
-                        <div class="py-12 text-center text-xs text-emerald-600 font-medium flex-1 flex flex-col items-center justify-center gap-1.5">
-                            <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
-                            <span>Tidak ada yang terlambat hari ini</span>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kolom 3: Sedang Izin/Cuti -->
-            <div class="lg:col-span-1 flex flex-col">
-                <div class="flex items-center justify-between mb-3 px-1">
-                    <h3 class="text-sm font-semibold text-gray-500">Sedang Izin/Cuti</h3>
-                    @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
-                    <span class="badge badge-neutral badge-sm font-semibold">{{ $onLeaveToday->count() }}</span>
-                    @endif
-                </div>
-
-                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
-                    <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
-                        @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
-                        <div class="max-h-96 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
-                            @foreach($onLeaveToday as $leave)
-                            <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    @if(!empty($leave['avatar']))
-                                    <div class="avatar flex-shrink-0">
-                                        <div class="w-9 h-9 rounded-full">
-                                            <img src="{{ $leave['avatar'] }}" alt="{{ $leave['name'] }}" />
-                                        </div>
-                                    </div>
-                                    @else
-                                    <div class="avatar placeholder flex-shrink-0">
-                                        <div class="bg-purple-50 text-purple-600 rounded-full w-9 h-9 text-xs font-bold flex items-center justify-center border border-purple-100">
-                                            <span>{{ $leave['initials'] }}</span>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $leave['name'] }}</div>
-                                        <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $leave['subtitle'] }}</div>
-                                        <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                                            <i data-lucide="calendar" class="h-3 w-3"></i>
-                                            <span>{{ $leave['date_range'] }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-right flex-shrink-0 pl-2">
-                                    <span class="badge {{ $leave['badge_class'] }} badge-sm font-semibold text-[10px] whitespace-nowrap">
-                                        {{ $leave['type_label'] }}
-                                    </span>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                        @else
-                        <div class="py-12 text-center text-xs text-gray-400 flex-1 flex flex-col items-center justify-center gap-1.5">
-                            <i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i>
-                            <span>Tidak ada yang sedang izin/cuti hari ini</span>
                         </div>
                         @endif
                     </div>
