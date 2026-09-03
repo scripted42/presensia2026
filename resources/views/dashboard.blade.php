@@ -603,7 +603,7 @@
                 
                 <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex flex-col">
                     <div class="card-body p-4 md:p-5 flex flex-col">
-                        <div id="attendance-feed-list" class="max-h-[820px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1">
+                        <div id="attendance-feed-list" class="max-h-[920px] xl:max-h-[1050px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 pr-1.5 custom-feed-scrollbar">
                             @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
                                 @foreach($recentAttendanceFeed as $feed)
                                 <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
@@ -862,9 +862,21 @@
 .att-connector.half{ background:linear-gradient(90deg,#10b981 0%,#e5e7eb 50%); }
 .att-connector.done{ background:#10b981; }
 
-/* Ensure quick action ‘Laporan’ tile not plain white in all themes */
-.quick-actions .qa-orange{ background-color: #fff7ed; }
-.quick-actions .qa-orange:hover{ background-color:#ffedd5; }
+/* Custom sleek scrollbar for attendance feed */
+.custom-feed-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+.custom-feed-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 9999px;
+}
+.custom-feed-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+.custom-feed-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
 </style>
 <script>
     // add loaded class to custom banner image

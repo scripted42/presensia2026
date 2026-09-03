@@ -509,7 +509,7 @@ class DashboardController extends Controller
 
         $attendances = $query->orderBy('updated_at', 'desc')
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(50)
             ->get();
 
         return $attendances->map(function($att) {
