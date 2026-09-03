@@ -142,6 +142,108 @@
         .rail-tooltip{position:absolute;left:56px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#111827;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .12s ease}
         .rail-item{position:relative}
         .rail-item:hover .rail-tooltip{opacity:1}
+
+        /* ============================================================
+           DESKTOP LAYOUT OPTIMIZATION — memanfaatkan lebar layar penuh
+           Hanya berlaku untuk breakpoint desktop (≥1024px)
+           Mobile/PWA TIDAK terpengaruh (semua di bawah @media min-width)
+           ============================================================ */
+
+        /* Container konten utama: hapus max-width sempit, gunakan lebar penuh */
+        @media (min-width: 1024px) {
+            .desktop-content-wrapper {
+                width: 100%;
+                max-width: 100%;
+                padding-left: 1.5rem;   /* 24px */
+                padding-right: 1.5rem;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+
+        /* Layar ekstra lebar (≥1440px): padding sedikit lebih besar untuk breathing room */
+        @media (min-width: 1440px) {
+            .desktop-content-wrapper {
+                padding-left: 2rem;   /* 32px */
+                padding-right: 2rem;
+            }
+        }
+
+        /* Override max-w-7xl yang ada di dalam halaman konten super-admin, dll */
+        @media (min-width: 1024px) {
+            .desktop-content-wrapper .max-w-7xl {
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        /* Grid cards dashboard: lebih banyak kolom di layar lebar */
+        @media (min-width: 1280px) {
+            .desktop-stats-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1536px) {
+            .desktop-stats-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        /* Tabel: kolom proporsional & sticky header untuk scroll nyaman */
+        @media (min-width: 1024px) {
+            .desktop-table thead th {
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                background: #F9FAFB;
+            }
+            .desktop-table {
+                width: 100%;
+            }
+            /* Auto-apply ke semua tabel min-w-full di dalam content wrapper */
+            .desktop-content-wrapper table.min-w-full {
+                width: 100%;
+                table-layout: auto;
+            }
+            .desktop-content-wrapper .overflow-x-auto {
+                overflow-x: visible; /* tabel bisa pakai lebar penuh tanpa scroll horizontal */
+            }
+        }
+
+        /* Form grid: lebih banyak kolom input di desktop lebar */
+        @media (min-width: 1280px) {
+            .desktop-form-grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .desktop-form-grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        /* Empty state: proporsional di layar lebar */
+        @media (min-width: 1024px) {
+            .desktop-empty-state {
+                padding: 4rem 2rem;
+            }
+            .desktop-empty-state .empty-icon {
+                font-size: 4rem;
+            }
+            .desktop-empty-state .empty-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Card hover effect */
+        .card-hover {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
     </style>
     @stack('styles')
 </head>
@@ -390,6 +492,17 @@
                             </div>
                         </div>
                     @endif
+
+                    <!-- 7. AKUN (Semua Role) -->
+                    <div class="space-y-1 pt-3 border-t border-gray-100">
+                        <div class="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Akun
+                        </div>
+                        <a href="{{ route('profile.password') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('profile.password') ? 'text-blue-900 font-semibold' : 'text-gray-600 hover:text-gray-900' }}">
+                            <i class="sb-icon fas fa-key"></i>
+                            Ganti Password
+                        </a>
+                    </div>
                 </nav>
             </div>
         </div>
@@ -441,6 +554,10 @@
                     <span class="rail-tooltip">Izin & Cuti</span>
                 </a>
                 @endif
+                <a href="{{ route('profile.password') }}" class="rail-item text-gray-500 hover:text-gray-800" title="Ganti Password" aria-label="Ganti Password">
+                    <i class="fas fa-key"></i>
+                    <span class="rail-tooltip">Ganti Password</span>
+                </a>
             </div>
         </div>
 
@@ -494,8 +611,15 @@
                             <div class="text-xs text-gray-400 font-medium">{{ auth()->user()->roles->first()->display_name ?? auth()->user()->roles->first()->name ?? 'No Role' }}</div>
                         </div>
                         
-                        <!-- Clickable Avatar on Mobile -->
-                        <img onclick="if(window.innerWidth < 768) openMenuBottomSheet();" class="h-8 w-8 rounded-full border border-gray-100 cursor-pointer" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
+                        <!-- Clickable Avatar on Mobile / Link Profile -->
+                        <a href="{{ route('profile.password') }}" title="Ganti Password">
+                            <img class="h-8 w-8 rounded-full border border-gray-100 cursor-pointer hover:ring-2 hover:ring-blue-400 transition" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=3B82F6&color=fff" alt="{{ auth()->user()->name }}">
+                        </a>
+                        
+                        <!-- Ganti Password icon button -->
+                        <a href="{{ route('profile.password') }}" class="p-2 text-gray-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition rounded-lg hover:bg-gray-100" title="Ganti Password" aria-label="Ganti Password">
+                            <i class="fas fa-key text-sm"></i>
+                        </a>
                         
                         <!-- Logout button minimal (Desktop only) -->
                         <form method="POST" action="{{ route('logout') }}" id="logout-form" class="hidden md:block">
@@ -520,8 +644,9 @@
 
             <!-- Page content -->
             <main id="main-content" class="flex-1 relative overflow-y-auto focus:outline-none" tabindex="-1">
-                <div class="py-6">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                <div class="py-4 md:py-6">
+                    <!-- Mobile: padding standar. Desktop (≥1024px): lebar penuh via .desktop-content-wrapper -->
+                    <div class="px-4 sm:px-6 desktop-content-wrapper">
                         @yield('content')
                     </div>
                 </div>
@@ -541,6 +666,16 @@
             if (btn) btn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
             try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch(e) {}
         }
+        const sidebarGroups = [
+            'group-super-admin',
+            'group-absensi',
+            'group-jadwal',
+            'group-izin',
+            'group-siswa',
+            'group-manajemen-data',
+            'group-settings'
+        ];
+
         function toggleSidebarGroup(id){
             const key = 'sbgrp:' + id;
             const el = document.getElementById(id);
@@ -550,18 +685,46 @@
             if (chev) chev.textContent = hidden ? '▸' : '▾';
             try { localStorage.setItem(key, hidden ? '0' : '1'); } catch(e) {}
         }
+        window.toggleSidebarGroup = toggleSidebarGroup;
+
+        function initSidebarGroups() {
+            try {
+                sidebarGroups.forEach(id => {
+                    const el = document.getElementById(id);
+                    const chev = document.getElementById('chev-' + id);
+                    if (!el) return;
+
+                    // Cek apakah grup berisi link halaman yang sedang aktif
+                    const hasActiveChild = el.querySelector('.text-blue-900, [aria-current="page"]') !== null;
+                    const storedVal = localStorage.getItem('sbgrp:' + id);
+
+                    let shouldBeOpen = false;
+                    if (storedVal !== null) {
+                        shouldBeOpen = (storedVal === '1');
+                    } else {
+                        // Default: HANYA grup yang berisi halaman aktif yang expanded
+                        shouldBeOpen = hasActiveChild;
+                    }
+
+                    if (shouldBeOpen) {
+                        el.classList.remove('hidden');
+                        if (chev) chev.textContent = '▾';
+                    } else {
+                        el.classList.add('hidden');
+                        if (chev) chev.textContent = '▸';
+                    }
+                });
+            } catch(e) {}
+        }
+
         (function(){
             try{
                 const collapsed = localStorage.getItem('desktopSidebarCollapsed') === '1';
                 if (collapsed) { document.body.classList.add('desktop-sidebar-collapsed'); const btn=document.getElementById('desktop-collapse-btn'); if(btn) btn.setAttribute('aria-pressed','true'); }
-                // restore groups
-                ['group-super-admin','group-manajemen-data','group-absensi','group-izin','group-settings'].forEach(id=>{
-                    const val = localStorage.getItem('sbgrp:' + id);
-                    const el = document.getElementById(id); const chev = document.getElementById('chev-' + id);
-                    if (el && val === '0') { el.classList.add('hidden'); if (chev) chev.textContent = '▸'; }
-                });
             }catch(e){}
         })();
+
+        document.addEventListener('DOMContentLoaded', initSidebarGroups);
     </script>
     
     <script>
