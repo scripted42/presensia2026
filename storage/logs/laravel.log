@@ -21565,3 +21565,32 @@ Did you mean one of these?
 [2026-09-03 22:16:54] local.INFO: Logout completed, redirecting to login  
 [2026-09-03 22:49:59] local.INFO: Logout attempt for user: tu@presensia.com  
 [2026-09-03 22:49:59] local.INFO: Logout completed, redirecting to login  
+[2026-09-04 00:06:53] local.INFO: Logout attempt for user: tu@presensia.com  
+[2026-09-04 00:06:53] local.INFO: Logout completed, redirecting to login  
+[2026-09-04 00:09:11] local.INFO: Logout attempt for user: guru@presensia.com  
+[2026-09-04 00:09:11] local.INFO: Logout completed, redirecting to login  
+[2026-09-04 00:48:06] local.ERROR: stream_get_contents(): Read of 8192 bytes failed with errno=22 Invalid argument {"exception":"[object] (ErrorException(code: 0): stream_get_contents(): Read of 8192 bytes failed with errno=22 Invalid argument at F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\process\\Pipes\\WindowsPipes.php:146)
+[stacktrace]
+#0 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\HandleExceptions.php(258): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(8, 'stream_get_cont...', 'F:\\\\Project Apli...', 146)
+#1 [internal function]: Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}(8, 'stream_get_cont...', 'F:\\\\Project Apli...', 146)
+#2 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\process\\Pipes\\WindowsPipes.php(146): stream_get_contents(Resource id #690, -1, 275184)
+#3 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\process\\Process.php(1406): Symfony\\Component\\Process\\Pipes\\WindowsPipes->readAndWrite(false, false)
+#4 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\process\\Process.php(1331): Symfony\\Component\\Process\\Process->readPipes(false, false)
+#5 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\process\\Process.php(865): Symfony\\Component\\Process\\Process->updateStatus(false)
+#6 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\ServeCommand.php(137): Symfony\\Component\\Process\\Process->isRunning()
+#7 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Illuminate\\Foundation\\Console\\ServeCommand->handle()
+#8 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(43): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#9 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#10 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#11 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(836): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#12 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#13 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\console\\Command\\Command.php(318): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#15 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\console\\Application.php(1110): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\console\\Application.php(359): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\ServeCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 F:\\Project Aplikasi\\Presensia\\vendor\\symfony\\console\\Application.php(194): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 F:\\Project Aplikasi\\Presensia\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1235): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#20 F:\\Project Aplikasi\\Presensia\\artisan(13): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#21 {main}
+"} 

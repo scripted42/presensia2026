@@ -1,4 +1,4 @@
-<!-- Main Dashboard 2-Column Layout (Sejajar mulai dari Statistics Cards) -->
+﻿<!-- Main Dashboard 2-Column Layout (Sejajar mulai dari Statistics Cards) -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-stretch">
     <!-- Kolom Kiri (8 Kolom Desktop): Statistics Cards, Ringkasan Performa, Perlu Ditindaklanjuti, Terlambat & Izin -->
     <div class="lg:col-span-8 flex flex-col gap-6">
@@ -176,32 +176,222 @@
                 </div>
             </div>
 
-            <!-- daisyUI Stats Component -->
-            <div class="stats stats-vertical sm:stats-horizontal shadow-sm bg-white border border-gray-100 rounded-2xl w-full">
-                <div class="stat py-4 px-6">
-                    <div class="stat-title text-gray-500 font-medium text-xs">Penggunaan</div>
-                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['usage']['percentage'] ?? 0) }}">
-                        {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
+            <!-- Ringkasan Performa: 4 stat cards dengan tooltip hover -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+
+                {{-- ========== KARTU 1: PENGGUNAAN ========== --}}
+                @php
+                    $usagePct      = $metrics['usage']['percentage'] ?? 0;
+                    $activeUsers   = $metrics['usage']['active_users'] ?? 0;
+                    $totalUsers    = $metrics['usage']['total_users'] ?? 0;
+                    $activeEmp     = $metrics['usage']['breakdown']['employee']['active'] ?? 0;
+                    $totalEmp      = $metrics['usage']['breakdown']['employee']['total'] ?? 0;
+                    $activeStudent = $metrics['usage']['breakdown']['student']['active'] ?? 0;
+                    $totalStudent  = $metrics['usage']['breakdown']['student']['total'] ?? 0;
+                    $filterLabel   = ($metrics['role_filter'] ?? 'all') === 'employee' ? 'Pegawai' : (($metrics['role_filter'] ?? 'all') === 'student' ? 'Siswa' : 'Semua');
+                @endphp
+                <div class="perf-stat-card group relative bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Penggunaan</span>
+                        <div class="perf-tooltip-trigger flex-shrink-0 w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center text-blue-400 hover:bg-blue-100 transition-colors">
+                            <i data-lucide="info" class="h-3 w-3"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold {{ $getDaisyColor($usagePct) }} leading-none mb-1">
+                        {{ $formatPercent($usagePct) }}
+                    </div>
+                    <div class="text-[11px] text-gray-400">{{ $activeUsers }} dari {{ $totalUsers }} pengguna absen</div>
+
+                    <!-- Tooltip Popup -->
+                    <div class="perf-tooltip-popup w-72 bg-gray-900 text-white rounded-xl shadow-2xl p-4 text-xs leading-relaxed">
+                        <div class="font-bold text-blue-300 mb-2 flex items-center gap-1.5">
+                            <i data-lucide="bar-chart-2" class="h-3.5 w-3.5"></i>
+                            Tingkat Penggunaan Sistem
+                        </div>
+                        <div class="text-gray-300 mb-2">
+                            Persentase pengguna yang <strong class="text-white">tercatat absen minimal sekali</strong> dalam periode yang dipilih, dibandingkan total pengguna aktif.
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-2.5 mb-2">
+                            <div class="font-mono text-[10px] text-yellow-300">
+                                {{ $activeUsers }} pengguna absen ÷ {{ $totalUsers }} total = <strong>{{ $formatPercent($usagePct) }}</strong>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                            <div class="bg-gray-800 rounded-lg p-2">
+                                <div class="text-gray-400 mb-0.5">Pegawai</div>
+                                <div class="font-bold text-white">{{ $activeEmp }} / {{ $totalEmp }}</div>
+                            </div>
+                            <div class="bg-gray-800 rounded-lg p-2">
+                                <div class="text-gray-400 mb-0.5">Siswa</div>
+                                <div class="font-bold text-white">{{ $activeStudent }} / {{ $totalStudent }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-[10px] text-gray-400">Filter aktif: <span class="text-blue-300 font-semibold">{{ $filterLabel }}</span> · Hari libur dikecualikan</div>
+                        <!-- Arrow -->
+                        <div class="tooltip-arrow"></div>
                     </div>
                 </div>
-                <div class="stat py-4 px-6">
-                    <div class="stat-title text-gray-500 font-medium text-xs">KPI Absensi</div>
-                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['kpi']['score'] ?? 0) }}">
-                        {{ $formatPercent($metrics['kpi']['score'] ?? 0) }}
+
+                {{-- ========== KARTU 2: KPI ABSENSI ========== --}}
+                @php
+                    $kpiScore        = $metrics['kpi']['score'] ?? 0;
+                    $ontimeRate      = $metrics['kpi']['ontime_rate'] ?? 0;
+                    $coverageRate    = $metrics['kpi']['coverage_rate'] ?? 0;
+                    $completRate     = $metrics['kpi']['completeness_rate'] ?? 0;
+                    $checkoutRate    = $metrics['kpi']['checkout_consistency'] ?? 0;
+                    $workingDays     = $metrics['kpi']['working_days'] ?? 0;
+                    $holidaysCount   = $metrics['kpi']['holidays_count'] ?? 0;
+                @endphp
+                <div class="perf-stat-card group relative bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">KPI Absensi</span>
+                        <div class="perf-tooltip-trigger flex-shrink-0 w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-400 hover:bg-emerald-100 transition-colors">
+                            <i data-lucide="info" class="h-3 w-3"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold {{ $getDaisyColor($kpiScore) }} leading-none mb-1">
+                        {{ $formatPercent($kpiScore) }}
+                    </div>
+                    <div class="text-[11px] text-gray-400">Skor gabungan 4 indikator kunci</div>
+
+                    <!-- Tooltip Popup -->
+                    <div class="perf-tooltip-popup w-80 bg-gray-900 text-white rounded-xl shadow-2xl p-4 text-xs leading-relaxed">
+                        <div class="font-bold text-emerald-300 mb-2 flex items-center gap-1.5">
+                            <i data-lucide="activity" class="h-3.5 w-3.5"></i>
+                            Indeks KPI Absensi
+                        </div>
+                        <div class="text-gray-300 mb-2.5">
+                            Skor komposit berbobot dari <strong class="text-white">4 indikator kinerja</strong> kehadiran di sekolah:
+                        </div>
+                        <div class="space-y-1.5 mb-3">
+                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-2.5 py-1.5">
+                                <span class="text-gray-300">Tepat Waktu <span class="text-gray-500">(bobot 40%)</span></span>
+                                <span class="font-bold text-white">{{ $formatPercent($ontimeRate) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-2.5 py-1.5">
+                                <span class="text-gray-300">Cakupan Absen <span class="text-gray-500">(bobot 30%)</span></span>
+                                <span class="font-bold text-white">{{ $formatPercent($coverageRate) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-2.5 py-1.5">
+                                <span class="text-gray-300">Kelengkapan Data <span class="text-gray-500">(bobot 20%)</span></span>
+                                <span class="font-bold text-white">{{ $formatPercent($completRate) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-2.5 py-1.5">
+                                <span class="text-gray-300">Check-Out Konsisten <span class="text-gray-500">(bobot 10%)</span></span>
+                                <span class="font-bold text-white">{{ $formatPercent($checkoutRate) }}</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-2 text-[10px] text-gray-400">
+                            Periode: <span class="text-blue-300">{{ $workingDays }} hari kerja</span> · <span class="text-yellow-300">{{ $holidaysCount }} hari libur dikecualikan</span>
+                        </div>
+                        <div class="mt-1.5 text-[10px] text-gray-500">≥80% Baik · 50–79% Perlu Perhatian · &lt;50% Kritis</div>
+                        <div class="tooltip-arrow"></div>
                     </div>
                 </div>
-                <div class="stat py-4 px-6">
-                    <div class="stat-title text-gray-500 font-medium text-xs">Data Pegawai</div>
-                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['completeness']['employees']['percentage'] ?? 0) }}">
-                        {{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}
+
+                {{-- ========== KARTU 3: DATA PEGAWAI ========== --}}
+                @php
+                    $empPct      = $metrics['completeness']['employees']['percentage'] ?? 0;
+                    $empComplete = $metrics['completeness']['employees']['complete'] ?? 0;
+                    $empTotal    = $metrics['completeness']['employees']['total'] ?? 0;
+                    $empMissing  = $empTotal - $empComplete;
+                @endphp
+                <div class="perf-stat-card group relative bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Data Pegawai</span>
+                        <div class="perf-tooltip-trigger flex-shrink-0 w-5 h-5 rounded-full bg-violet-50 flex items-center justify-center text-violet-400 hover:bg-violet-100 transition-colors">
+                            <i data-lucide="info" class="h-3 w-3"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold {{ $getDaisyColor($empPct) }} leading-none mb-1">
+                        {{ $formatPercent($empPct) }}
+                    </div>
+                    <div class="text-[11px] text-gray-400">{{ $empComplete }} dari {{ $empTotal }} profil lengkap</div>
+
+                    <!-- Tooltip Popup -->
+                    <div class="perf-tooltip-popup w-72 bg-gray-900 text-white rounded-xl shadow-2xl p-4 text-xs leading-relaxed">
+                        <div class="font-bold text-violet-300 mb-2 flex items-center gap-1.5">
+                            <i data-lucide="users" class="h-3.5 w-3.5"></i>
+                            Kelengkapan Data Pegawai
+                        </div>
+                        <div class="text-gray-300 mb-2.5">
+                            Proporsi <strong class="text-white">field profil yang telah diisi</strong> dari seluruh field wajib pegawai (NIK, NUPTK, nomor rekening, NPWP, dll.).
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-2.5 mb-2">
+                            <div class="font-mono text-[10px] text-yellow-300">
+                                Field terisi ÷ (Field wajib × {{ $empTotal }} pegawai) = <strong>{{ $formatPercent($empPct) }}</strong>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 text-[10px] mb-2">
+                            <div class="bg-gray-800 rounded-lg p-2 text-center">
+                                <div class="text-2xl font-bold text-emerald-400">{{ $empComplete }}</div>
+                                <div class="text-gray-400 mt-0.5">Profil Lengkap</div>
+                            </div>
+                            <div class="bg-gray-800 rounded-lg p-2 text-center">
+                                <div class="text-2xl font-bold text-red-400">{{ $empMissing }}</div>
+                                <div class="text-gray-400 mt-0.5">Perlu Dilengkapi</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-500">Cek tab "Profil Tidak Lengkap" di Perlu Ditindaklanjuti ↓</div>
+                        <div class="tooltip-arrow"></div>
                     </div>
                 </div>
-                <div class="stat py-4 px-6">
-                    <div class="stat-title text-gray-500 font-medium text-xs">Data Siswa</div>
-                    <div class="stat-value text-2xl font-bold {{ $getDaisyColor($metrics['completeness']['students']['percentage'] ?? 0) }}">
-                        {{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}
+
+                {{-- ========== KARTU 4: DATA SISWA ========== --}}
+                @php
+                    $stuPct      = $metrics['completeness']['students']['percentage'] ?? 0;
+                    $stuComplete = $metrics['completeness']['students']['complete'] ?? 0;
+                    $stuTotal    = $metrics['completeness']['students']['total'] ?? 0;
+                    $stuMissing  = $stuTotal - $stuComplete;
+                @endphp
+                <div class="perf-stat-card group relative bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Data Siswa</span>
+                        <div class="perf-tooltip-trigger flex-shrink-0 w-5 h-5 rounded-full bg-amber-50 flex items-center justify-center text-amber-400 hover:bg-amber-100 transition-colors">
+                            <i data-lucide="info" class="h-3 w-3"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold {{ $getDaisyColor($stuPct) }} leading-none mb-1">
+                        {{ $formatPercent($stuPct) }}
+                    </div>
+                    <div class="text-[11px] text-gray-400">{{ $stuComplete }} dari {{ $stuTotal }} profil lengkap</div>
+
+                    <!-- Tooltip Popup -->
+                    <div class="perf-tooltip-popup w-72 bg-gray-900 text-white rounded-xl shadow-2xl p-4 text-xs leading-relaxed">
+                        <div class="font-bold text-amber-300 mb-2 flex items-center gap-1.5">
+                            <i data-lucide="graduation-cap" class="h-3.5 w-3.5"></i>
+                            Kelengkapan Data Siswa
+                        </div>
+                        <div class="text-gray-300 mb-2.5">
+                            Proporsi <strong class="text-white">field profil yang telah diisi</strong> dari seluruh field wajib siswa (NIS, NISN, No. KK, No. Akte Lahir, golongan darah, dll.).
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-2.5 mb-2">
+                            <div class="font-mono text-[10px] text-yellow-300">
+                                Field terisi ÷ (Field wajib × {{ $stuTotal }} siswa) = <strong>{{ $formatPercent($stuPct) }}</strong>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 text-[10px] mb-2">
+                            <div class="bg-gray-800 rounded-lg p-2 text-center">
+                                <div class="text-2xl font-bold text-emerald-400">{{ $stuComplete }}</div>
+                                <div class="text-gray-400 mt-0.5">Profil Lengkap</div>
+                            </div>
+                            <div class="bg-gray-800 rounded-lg p-2 text-center">
+                                <div class="text-2xl font-bold text-red-400">{{ $stuMissing }}</div>
+                                <div class="text-gray-400 mt-0.5">Perlu Dilengkapi</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-500">Cek tab "Profil Tidak Lengkap" di Perlu Ditindaklanjuti ↓</div>
+                        <div class="tooltip-arrow"></div>
                     </div>
                 </div>
+
+            </div>
+            <!-- Legenda warna -->
+            <div class="flex items-center gap-4 mt-2.5 px-1">
+                <span class="flex items-center gap-1 text-[10px] text-gray-400"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>≥80% Baik</span>
+                <span class="flex items-center gap-1 text-[10px] text-gray-400"><span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span>50–79% Perhatian</span>
+                <span class="flex items-center gap-1 text-[10px] text-gray-400"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>&lt;50% Kritis</span>
+                <span class="ml-auto text-[10px] text-gray-400 italic">Arahkan kursor ke kartu untuk detail</span>
             </div>
         </div>
         @endif
@@ -580,3 +770,113 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+/* ============================================================
+   Ringkasan Performa – Stat Cards dengan Rich Tooltip Hover
+   Position:fixed digunakan agar tidak ter-clip oleh overflow:hidden
+   ============================================================ */
+.perf-stat-card {
+    overflow: visible;
+    position: relative;
+}
+
+/* Tooltip versi fixed-position (dikendalikan via JS) */
+.perf-tooltip-popup {
+    position: fixed;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+}
+.perf-tooltip-popup.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Indikator teks warna sesuai kondisi */
+.text-success  { color: #10b981; }
+.text-warning  { color: #f59e0b; }
+.text-error    { color: #ef4444; }
+
+/* Arrow tooltip */
+.perf-tooltip-popup .tooltip-arrow {
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px;
+    height: 12px;
+    background: #111827;
+    transform: rotate(45deg);
+    border-radius: 2px;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+/**
+ * Tooltip dengan posisi fixed – tidak ter-clip oleh overflow:hidden parent.
+ * Tooltip di-append ke body saat hover, lalu ditempatkan berdasarkan koordinat kartu.
+ */
+(function initPerfTooltips() {
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.perf-stat-card');
+        let activeTooltip = null;
+
+        cards.forEach(card => {
+            const tooltip = card.querySelector('.perf-tooltip-popup');
+            if (!tooltip) return;
+
+            // Pindahkan tooltip ke body agar tidak kena overflow clip
+            document.body.appendChild(tooltip);
+
+            card.addEventListener('mouseenter', function () {
+                // Sembunyikan tooltip aktif sebelumnya
+                if (activeTooltip && activeTooltip !== tooltip) {
+                    activeTooltip.classList.remove('is-visible');
+                }
+                activeTooltip = tooltip;
+
+                // Hitung posisi berdasarkan kartu
+                const rect = card.getBoundingClientRect();
+                const tooltipWidth = tooltip.offsetWidth || 288;
+                const viewportWidth = window.innerWidth;
+                const scrollY = window.scrollY || window.pageYOffset;
+
+                // Posisi vertikal: tepat di bawah kartu + 8px gap
+                tooltip.style.top = (rect.bottom + scrollY + 8) + 'px';
+
+                // Posisi horizontal: align ke kiri kartu, tapi jangan keluar layar
+                let leftPos = rect.left;
+                if (leftPos + tooltipWidth > viewportWidth - 16) {
+                    leftPos = rect.right - tooltipWidth;
+                }
+                if (leftPos < 16) leftPos = 16;
+                tooltip.style.left = leftPos + 'px';
+
+                // Sesuaikan posisi arrow
+                const arrow = tooltip.querySelector('.tooltip-arrow');
+                if (arrow) {
+                    const arrowLeft = Math.max(12, rect.left + rect.width / 2 - leftPos - 6);
+                    arrow.style.left = arrowLeft + 'px';
+                    arrow.style.right = 'auto';
+                }
+
+                tooltip.classList.add('is-visible');
+            });
+
+            card.addEventListener('mouseleave', function () {
+                tooltip.classList.remove('is-visible');
+                if (activeTooltip === tooltip) activeTooltip = null;
+            });
+        });
+    });
+})();
+</script>
+@endpush
+
