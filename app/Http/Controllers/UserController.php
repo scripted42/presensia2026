@@ -291,10 +291,17 @@ class UserController extends Controller
             $created = 0; $duplicates = 0; $errors = 0; $errorDetails = [];
             foreach ($rows as $row) {
                 try {
+                    // Determine final email and password
+                    $defaultEmail = $type === 'student' 
+                        ? (strtolower(trim($row['nis'])) . '.' . auth()->user()->school_id . '@siswa.local') 
+                        : (strtolower(trim($row['nik'])) . '.' . auth()->user()->school_id . '@pegawai.local');
+                    $finalEmail = !empty($row['email']) ? $row['email'] : $defaultEmail;
+                    $finalPassword = !empty($row['password']) ? $row['password'] : ($type === 'student' ? $row['nis'] : $row['nik']);
+
                     // recheck duplicate by email and nik/nis
                     $existsQuery = User::where('school_id', auth()->user()->school_id)
-                        ->where(function($q) use ($row, $type){
-                            $q->where('email', $row['email']);
+                        ->where(function($q) use ($row, $type, $finalEmail){
+                            $q->where('email', $finalEmail);
                             if ($type === 'employee' && !empty($row['nik'])) $q->orWhere('nik', $row['nik']);
                             if ($type === 'student' && !empty($row['nis'])) $q->orWhere('nis', $row['nis']);
                         });
@@ -303,8 +310,8 @@ class UserController extends Controller
                     $user = User::create([
                         'school_id' => auth()->user()->school_id,
                         'name' => $row['name'],
-                        'email' => $row['email'],
-                        'password' => Hash::make($row['password'] ?: 'password'),
+                        'email' => $finalEmail,
+                        'password' => Hash::make($finalPassword ?: 'password'),
                         'phone' => $row['phone'] ?? null,
                         'address' => $row['address'] ?? null,
                         'birth_date' => $row['birth_date'] ?? null,
@@ -371,10 +378,9 @@ class UserController extends Controller
         if (!$header) { return redirect()->back()->withErrors(['file' => 'Header CSV tidak ditemukan.']); }
         $header = array_map(fn($h) => strtolower(trim($h)), $header);
 
-        // Role dibuat opsional; birth_place opsional untuk menghindari kekeliruan umum
-        $requiredEmployee = ['name','email','password','nik','phone','address','birth_date','gender'];
-        // pastikan tidak meminta 'nik' untuk siswa
-        $requiredStudent  = ['name','email','password','nis','nisn','phone','address','birth_date','gender'];
+        // Role, email, password, birth_place opsional
+        $requiredEmployee = ['name','nik','phone','address','birth_date','gender'];
+        $requiredStudent  = ['name','nis','nisn','phone','address','birth_date','gender'];
         $required = $type === 'employee' ? $requiredEmployee : $requiredStudent;
         $missing = array_diff($required, $header);
         if (!empty($missing)) {
@@ -405,10 +411,14 @@ class UserController extends Controller
 
         while (($data = fgetcsv($handle)) !== false) {
             $line++;
+            if (count($data) !== count($header)) {
+                continue;
+            }
             $row = array_combine($header, $data);
             // normalize
             $row['name'] = trim($row['name'] ?? '');
-            $row['email'] = strtolower(trim($row['email'] ?? ''));
+            $originalEmail = trim($row['email'] ?? '');
+            $row['email'] = strtolower($originalEmail);
             $row['password'] = trim($row['password'] ?? '');
             $row['gender'] = strtoupper(trim($row['gender'] ?? ''));
             $rawBirthDate = trim($row['birth_date'] ?? '');
@@ -422,17 +432,35 @@ class UserController extends Controller
             // optional extended fields
             if ($type === 'employee') {
                 $row['nuptk'] = trim($row['nuptk'] ?? '');
+                $row['nik'] = trim($row['nik'] ?? '');
+                if ($row['password'] === '') {
+                    $row['password'] = $row['nik']; // Default password = NIK
+                }
+                if ($row['email'] === '') {
+                    $row['email'] = strtolower($row['nik']) . '.' . auth()->user()->school_id . '@pegawai.local';
+                }
+                $key = ($row['nik'] !== '' ? $row['nik'] : $row['email']);
             } else {
                 $row['kk_number'] = trim($row['kk_number'] ?? '');
                 $row['kip_number'] = trim($row['kip_number'] ?? '');
+                $row['nis'] = trim($row['nis'] ?? '');
+                if ($row['password'] === '') {
+                    $row['password'] = $row['nis']; // Default password = NIS
+                }
+                if ($row['email'] === '') {
+                    $row['email'] = strtolower($row['nis']) . '.' . auth()->user()->school_id . '@siswa.local';
+                }
+                $key = ($row['nis'] !== '' ? $row['nis'] : $row['email']);
             }
-            if ($type === 'employee') { $key = $row['email'].'|'.($row['nik'] ?? ''); }
-            else { $key = $row['email'].'|'.($row['nis'] ?? ''); }
 
             $issues = [];
             if ($row['name'] === '') $issues[] = 'Nama kosong';
-            if (!filter_var($row['email'], FILTER_VALIDATE_EMAIL)) $issues[] = 'Email tidak valid';
-            if ($row['password'] === '' || strlen($row['password']) < 6) $issues[] = 'Password minimal 6 karakter';
+            if ($originalEmail !== '' && !filter_var($row['email'], FILTER_VALIDATE_EMAIL)) {
+                $issues[] = 'Email tidak valid';
+            }
+            if ($row['password'] === '' || strlen($row['password']) < 4) {
+                $issues[] = 'Password minimal 4 karakter (atau pastikan NIS/NIK terisi)';
+            }
             if (!in_array($row['gender'], ['L','P'])) $issues[] = 'Gender harus L/P';
             if (($row['birth_date'] ?? null) === null) {
                 if ($rawBirthDate !== '' && preg_match('/[A-Za-z]/', $rawBirthDate)) {
@@ -451,9 +479,9 @@ class UserController extends Controller
             // DB duplicate check
             $exists = User::where('school_id', auth()->user()->school_id)
                 ->where(function($q) use ($row, $type){
-                    $q->where('email', $row['email']);
-                    if ($type === 'employee' && !empty($row['nik'])) $q->orWhere('nik', $row['nik']);
-                    if ($type === 'student' && !empty($row['nis'])) $q->orWhere('nis', $row['nis']);
+                    if ($type === 'employee' && !empty($row['nik'])) $q->where('nik', $row['nik']);
+                    if ($type === 'student' && !empty($row['nis'])) $q->where('nis', $row['nis']);
+                    $q->orWhere('email', $row['email']);
                 })->exists();
             if ($exists) { $issues[] = 'Sudah ada di database'; $dbDuplicates++; }
 
@@ -492,10 +520,10 @@ class UserController extends Controller
         $type = $request->get('type', 'employee');
         if ($type === 'employee') {
             $headers = ['name','email','password','nik','phone','address','birth_place','birth_date','gender','role','nuptk'];
-            $sample  = ['Budi Santoso','budi@example.com','Password123','3173xxxxxxxxxxxx','08123456789','Jl. Merdeka 1, Jakarta','Jakarta','31-08-1990','L','teacher','123456789012'];
+            $sample  = ['Budi Santoso','','','3173xxxxxxxxxxxx','08123456789','Jl. Merdeka 1, Jakarta','Jakarta','31-08-1990','L','teacher','123456789012'];
         } else {
             $headers = ['name','email','password','nis','nisn','phone','address','birth_place','birth_date','gender','role','kk_number','kip_number'];
-            $sample  = ['Siti Aminah','siti@example.com','Password123','12001','3200xxxxxxxxxx','08129876543','Jl. Kenanga 2, Bandung','Bandung','15-07-2008','P','student','3173xxxxxxxxxxxx','KIP123456789'];
+            $sample  = ['Siti Aminah','','','12001','3200xxxxxxxxxx','08129876543','Jl. Kenanga 2, Bandung','Bandung','15-07-2008','P','student','3173xxxxxxxxxxxx','KIP123456789'];
         }
 
         // Gunakan fputcsv agar kolom yang mengandung koma otomatis di-quote

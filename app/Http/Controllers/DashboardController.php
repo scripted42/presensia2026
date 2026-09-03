@@ -77,11 +77,29 @@ class DashboardController extends Controller
                 'role_filter' => $roleFilter ?? 'all',
             ];
         }
-        // 3 Panel Aktivitas Dashboard
-        $lateToday = $this->getLateToday($user);
-        $lateUserIds = $lateToday->pluck('user_id')->toArray();
-        $onLeaveToday = $this->getOnLeaveToday($user);
-        $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+        $isManagerial = $user->hasRole(['admin', 'headmaster', 'bk', 'kesiswaan']);
+        $isStudent = $user->user_type === 'student' || $user->hasRole('student');
+
+        // 3 Panel Aktivitas Dashboard (HANYA untuk manajerial)
+        $lateToday = collect();
+        $onLeaveToday = collect();
+        $recentAttendanceFeed = collect();
+
+        if ($isManagerial) {
+            $lateToday = $this->getLateToday($user);
+            $lateUserIds = $lateToday->pluck('user_id')->toArray();
+            $onLeaveToday = $this->getOnLeaveToday($user);
+            $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+        }
+
+        // Data Personal untuk Pegawai & Siswa
+        $todayDetail = $this->getTodayAttendanceDetail($user, $today);
+        $monthSummary = $this->getUserMonthlyAttendanceSummary($user);
+        $personalHistory = Attendance::where('user_id', $user->id)->orderBy('date', 'desc')->take(14)->get();
+        $personalLeaves = LeaveRequest::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(5)->get();
+        $studentClass = $isStudent ? $user->studentClasses()->first() : null;
+        $taughtClasses = (!$isStudent && $user->hasRole('teacher')) ? $user->taughtClasses()->withCount('students')->get() : collect();
+        $pendingLeaveCount = LeaveRequest::where('school_id', $user->school_id)->where('status', 'pending')->count();
 
         // Get recent activities
         $recentActivities = $this->getRecentActivities($user);
@@ -91,18 +109,24 @@ class DashboardController extends Controller
         
         return view('dashboard', compact(
             'user', 'school', 'stats', 'recentActivities', 'attendanceChart', 'metrics',
-            'startDate', 'endDate', 'lateToday', 'onLeaveToday', 'recentAttendanceFeed'
+            'startDate', 'endDate', 'lateToday', 'onLeaveToday', 'recentAttendanceFeed',
+            'isManagerial', 'isStudent', 'todayDetail', 'monthSummary', 'personalHistory',
+            'personalLeaves', 'studentClass', 'taughtClasses', 'pendingLeaveCount'
         ));
     }
 
     /**
-     * Endpoint for live real-time attendance feed polling (no page refresh).
+     * Endpoint for live real-time attendance feed polling (HANYA untuk role manajerial).
      */
     public function liveFeed(Request $request)
     {
         $user = Auth::user();
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        if (!$user->hasRole(['admin', 'headmaster', 'bk', 'kesiswaan'])) {
+            return response()->json(['status' => 'restricted', 'feed' => []]);
         }
 
         $lateToday = $this->getLateToday($user);
@@ -279,6 +303,36 @@ class DashboardController extends Controller
             'status' => $status,
             'check_in' => $in,
             'check_out' => $out,
+        ];
+    }
+
+    /**
+     * Rekap statistik kehadiran pribadi pengguna bulan ini.
+     */
+    private function getUserMonthlyAttendanceSummary($user): array
+    {
+        $startOfMonth = Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
+        $endOfMonth = Carbon::now('Asia/Jakarta')->endOfMonth()->format('Y-m-d');
+
+        $records = Attendance::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->get();
+
+        $ontime = $records->where('status', 'ontime')->count();
+        $late = $records->where('status', 'late')->count();
+        $sick = $records->where('status', 'sick')->count();
+        $permit = $records->whereIn('status', ['permit', 'duty', 'leave'])->count();
+        $alpha = $records->where('status', 'alpha')->count();
+        $totalPresent = $ontime + $late;
+
+        return [
+            'present' => $totalPresent,
+            'ontime' => $ontime,
+            'late' => $late,
+            'sick' => $sick,
+            'permit' => $permit,
+            'alpha' => $alpha,
+            'month_name' => Carbon::now('Asia/Jakarta')->translatedFormat('F Y'),
         ];
     }
 

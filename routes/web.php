@@ -74,7 +74,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
 });
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Loading screen route (protected)
 Route::middleware('auth')->group(function () {

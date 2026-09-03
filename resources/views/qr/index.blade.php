@@ -7,12 +7,19 @@
         <div class="px-4 py-5 sm:p-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">QR Code Management</h1>
-                <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa (format: NIS|Nama).</p>
+                <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa untuk kartu pelajar (format: <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-blue-700 font-semibold">NIS|Nama</code>).</p>
             </div>
-            <div class="flex space-x-2">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="{{ route('qr.excel', ['q' => $query ?? '']) }}" 
+                   class="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-150 text-sm"
+                   title="Download daftar siswa, kelas, dan nama file QR dalam format Excel untuk vendor cetak">
+                    <i class="fas fa-file-excel mr-2 text-emerald-200"></i>
+                    Download Excel (.xlsx)
+                </a>
                 <a href="{{ route('qr.zip') }}" 
-                   class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fas fa-download mr-2"></i>
+                   class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 text-sm"
+                   title="Download seluruh file PNG QR Code (dilengkapi file Excel di dalamnya)">
+                    <i class="fas fa-file-archive mr-2 text-blue-200"></i>
                     Download Massal (.zip)
                 </a>
             </div>
@@ -46,7 +53,7 @@
                         <td class="px-3 py-2 text-sm text-gray-900 font-medium">{{ $s->nis ?? '-' }}</td>
                         <td class="px-3 py-2 text-sm text-gray-900">{{ $s->name }}</td>
                         <td class="px-3 py-2 text-sm">
-                            <button onclick="showQRPreview('{{ $s->nis ?? 'NIS' }}', '{{ $s->name }}', '{{ route('qr.download', $s) }}')" 
+                            <button onclick="showQRPreview('{{ $s->nis ?? 'NIS' }}', '{{ addslashes($s->name) }}', '{{ route('qr.view', $s) }}', '{{ route('qr.download', $s) }}')" 
                                     class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-200 transition-colors">
                                 <i class="fas fa-eye mr-1"></i>View
                             </button>
@@ -122,7 +129,7 @@
 let currentQRData = '';
 let currentDownloadUrl = '';
 
-function showQRPreview(nis, name, downloadUrl) {
+function showQRPreview(nis, name, viewUrl, downloadUrl) {
     const qrData = nis + '|' + name;
     
     // Update modal content
@@ -130,41 +137,8 @@ function showQRPreview(nis, name, downloadUrl) {
     document.getElementById('modalName').textContent = name;
     document.getElementById('qrData').textContent = qrData;
     
-    // Generate QR code using Zxing-js
-    try {
-        const qrCode = new ZXing.QRCodeWriter();
-        const bitMatrix = qrCode.encode(qrData, ZXing.BarcodeFormat.QR_CODE, 200, 200);
-        
-        // Create canvas and draw QR code
-        const canvas = document.createElement('canvas');
-        canvas.width = 200;
-        canvas.height = 200;
-        const ctx = canvas.getContext('2d');
-        
-        // Fill white background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 200, 200);
-        
-        // Draw QR code
-        ctx.fillStyle = '#000000';
-        for (let x = 0; x < 200; x++) {
-            for (let y = 0; y < 200; y++) {
-                if (bitMatrix.get(x, y)) {
-                    ctx.fillRect(x, y, 1, 1);
-                }
-            }
-        }
-        
-        // Convert canvas to data URL
-        const qrUrl = canvas.toDataURL('image/png');
-        document.getElementById('qrPreview').src = qrUrl;
-        
-    } catch (error) {
-        console.error('QR generation failed:', error);
-        // Fallback to external service
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
-        document.getElementById('qrPreview').src = qrUrl;
-    }
+    // Langsung ambil gambar PNG asli dari server agar 100% identik dengan file download
+    document.getElementById('qrPreview').src = viewUrl;
     
     // Store for download
     currentQRData = qrData;

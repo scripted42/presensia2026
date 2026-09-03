@@ -207,18 +207,20 @@
                     <form method="POST" action="{{ route('login') }}" class="space-y-5">
                         @csrf
                         <div>
-                            <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Email Address</label>
+                            <label for="login" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIS / NIK</label>
                             <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                value="{{ old('email') }}"
-                                class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all @error('email') border-red-500 @enderror"
-                                placeholder="name@school.sch.id"
+                                type="text" 
+                                id="login" 
+                                name="login" 
+                                value="{{ old('login', old('email')) }}"
+                                class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all @error('login') border-red-500 @elseerror('email') border-red-500 @enderror"
+                                placeholder="NIS siswa, NIK pegawai, atau Email"
                                 required 
                                 autofocus
                             >
-                            @error('email')
+                            @error('login')
+                                <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
+                            @elseerror('email')
                                 <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p>
                             @enderror
                         </div>

@@ -16,19 +16,29 @@ class MobileAuthController extends Controller
      */
     public function login(Request $request)
     {
+        $loginIdentifier = trim((string) ($request->input('login', $request->input('email', ''))));
+        $request->merge(['login' => $loginIdentifier]);
+
         $request->validate([
-            'email' => 'required|email',
+            'login' => 'required|string',
             'password' => 'required|string',
+        ], [
+            'login.required' => 'NIS, NIK, atau Email wajib diisi.',
+            'password.required' => 'Password wajib diisi.'
         ]);
 
-        $user = User::where('email', $request->email)
+        $user = User::where(function ($query) use ($loginIdentifier) {
+                $query->where('nis', $loginIdentifier)
+                      ->orWhere('nik', $loginIdentifier)
+                      ->orWhere('email', $loginIdentifier);
+            })
             ->where('is_active', true)
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau password salah'
+                'message' => 'NIS/NIK atau password salah'
             ], 401);
         }
 

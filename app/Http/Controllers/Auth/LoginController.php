@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -21,9 +23,9 @@ class LoginController extends Controller
 
         // Ensure captcha shows after threshold even on fresh GET
         $ipAddress = (string) $request->ip();
-        $emailLower = strtolower((string) ($request->old('email') ?? $request->session()->get('login_email_lower', '')));
-        if ($emailLower !== '') {
-            $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $emailLower);
+        $identityLower = strtolower(trim((string) ($request->old('login') ?? $request->old('email') ?? $request->session()->get('login_identity_lower', ''))));
+        if ($identityLower !== '') {
+            $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $identityLower);
             $attempts = (int) Cache::get($attemptKey, 0);
             if ($attempts >= 3) {
                 if (!$request->session()->has('captcha_question')) {
@@ -42,10 +44,17 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+        $loginInput = trim((string) ($request->input('login') ?? $request->input('email', '')));
+        $request->merge(['login' => $loginInput]);
+
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'login' => 'required|string',
             'password' => 'required|string|min:6',
             'captcha' => 'nullable|string'
+        ], [
+            'login.required' => 'NIS, NIK, atau Email wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.'
         ]);
 
         if ($validator->fails()) {
@@ -54,19 +63,18 @@ class LoginController extends Controller
                 ->withInput($request->except('password'));
         }
 
-        $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
         $ipAddress = (string) $request->ip();
-        $emailLower = strtolower((string) $request->input('email'));
-        $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $emailLower);
-        $banKey = 'login:ban:' . sha1($ipAddress . '|' . $emailLower);
+        $identityLower = strtolower($loginInput);
+        $attemptKey = 'login:attempts:' . sha1($ipAddress . '|' . $identityLower);
+        $banKey = 'login:ban:' . sha1($ipAddress . '|' . $identityLower);
         $attempts = (int) Cache::get($attemptKey, 0);
 
         // Check temporary ban (30 minutes)
         if (Cache::has($banKey)) {
             return redirect()->back()
-                ->withErrors(['email' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.'])
+                ->withErrors(['login' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.'])
                 ->withInput($request->except('password'))
                 ->with('captcha_required', true)
                 ->with('captcha_question', session('captcha_question'));
@@ -87,21 +95,28 @@ class LoginController extends Controller
             }
         }
 
-        if (Auth::attempt($credentials, $remember)) {
+        // Find user by NIS, NIK, or Email
+        $user = User::where(function ($query) use ($loginInput) {
+            $query->where('nis', $loginInput)
+                  ->orWhere('nik', $loginInput)
+                  ->orWhere('email', $loginInput);
+        })->first();
+
+        if ($user && Hash::check($request->password, $user->password)) {
+            // Check if user is active
+            if (!$user->is_active) {
+                return redirect()->back()
+                    ->withErrors(['login' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'])
+                    ->withInput($request->except('password'));
+            }
+
+            Auth::login($user, $remember);
             $request->session()->regenerate();
 
             // Reset attempts and captcha on success
             Cache::forget($attemptKey);
             Cache::forget($banKey);
-            $request->session()->forget(['captcha_required', 'captcha_question', 'captcha_answer']);
-            
-            // Check if user is active
-            if (!Auth::user()->is_active) {
-                Auth::logout();
-                return redirect()->back()
-                    ->withErrors(['email' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'])
-                    ->withInput($request->except('password'));
-            }
+            $request->session()->forget(['captcha_required', 'captcha_question', 'captcha_answer', 'login_identity_lower']);
 
             // Redirect super admin ke dashboard SaaS
             $superEmail = config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'));
@@ -128,11 +143,11 @@ class LoginController extends Controller
             Cache::put($banKey, true, now()->addMinutes(30));
         }
 
-        // Remember last email to evaluate attempts on GET
-        $request->session()->put('login_email_lower', $emailLower);
+        // Remember last identity to evaluate attempts on GET
+        $request->session()->put('login_identity_lower', $identityLower);
 
         return redirect()->back()
-            ->withErrors(['email' => 'Email atau password salah.'])
+            ->withErrors(['login' => 'NIS, NIK, atau password salah.'])
             ->withInput($request->except('password'))
             ->with('captcha_required', $attempts >= 3)
             ->with('captcha_question', session('captcha_question'));
