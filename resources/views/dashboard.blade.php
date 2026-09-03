@@ -303,139 +303,100 @@
                             $num = (float) ($val ?? 0);
                             return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
                         };
-                        $statusColorText = function($p) {
-                            $val = (float) $p;
-                            if ($val >= 80) return 'text-emerald-600';
-                            if ($val >= 50) return 'text-amber-600';
-                            return 'text-rose-600';
+                        $getCardStyle = function($percentage) {
+                            $p = (float) ($percentage ?? 0);
+                            if ($p >= 80) {
+                                return [
+                                    'bg' => 'bg-emerald-50/90 border-emerald-200/80',
+                                    'label' => 'text-emerald-800',
+                                    'number' => 'text-emerald-950',
+                                    'context' => 'text-emerald-700',
+                                    'icon' => 'text-emerald-600',
+                                    'status' => 'success',
+                                ];
+                            } elseif ($p >= 50) {
+                                return [
+                                    'bg' => 'bg-amber-50/90 border-amber-200/90',
+                                    'label' => 'text-amber-800',
+                                    'number' => 'text-amber-950',
+                                    'context' => 'text-amber-700',
+                                    'icon' => 'text-amber-600',
+                                    'status' => 'warning',
+                                ];
+                            } else {
+                                return [
+                                    'bg' => 'bg-rose-50/90 border-rose-200/80',
+                                    'label' => 'text-rose-800',
+                                    'number' => 'text-rose-950',
+                                    'context' => 'text-rose-700',
+                                    'icon' => 'text-rose-600',
+                                    'status' => 'danger',
+                                ];
+                            }
                         };
+                        $cUsage = $getCardStyle($metrics['usage']['percentage'] ?? 0);
+                        $cKpi = $getCardStyle($metrics['kpi']['score'] ?? 0);
+                        $cEmp = $getCardStyle($metrics['completeness']['employees']['percentage'] ?? 0);
+                        $cStu = $getCardStyle($metrics['completeness']['students']['percentage'] ?? 0);
                     @endphp
                     
-                    <!-- Penggunaan Absensi Card -->
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm font-semibold text-gray-500">Penggunaan Absensi</div>
-                                <i data-lucide="user-check" class="text-blue-600 h-5 w-5"></i>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Card 1: Penggunaan -->
+                        <div class="p-4 rounded-2xl border {{ $cUsage['bg'] }} transition-all flex flex-col justify-between shadow-xs">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="{{ $cUsage['status'] === 'danger' ? 'alert-triangle' : 'user-check' }}" class="h-4 w-4 {{ $cUsage['icon'] }}"></i>
+                                <span class="text-xs font-semibold {{ $cUsage['label'] }}">Penggunaan</span>
                             </div>
-                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['usage']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}</div>
-                            <div id="gauge-usage" class="mt-4" style="height:160px;"></div>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-gray-50 text-center">
-                            <div class="text-xs text-gray-400 font-medium mb-3">{{ $metrics['usage']['active_users'] ?? 0 }} / {{ $metrics['usage']['total_users'] ?? 0 }} user aktif</div>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="p-2 bg-gray-50 rounded-xl">
-                                    <div class="text-gray-400 font-medium mb-0.5">Pegawai</div>
-                                    <div class="font-bold text-gray-800">{{ $metrics['usage']['breakdown']['employee']['percentage'] ?? 0 }}%</div>
-                                </div>
-                                <div class="p-2 bg-gray-50 rounded-xl">
-                                    <div class="text-gray-400 font-medium mb-0.5">Siswa</div>
-                                    <div class="font-bold text-gray-800">{{ $metrics['usage']['breakdown']['student']['percentage'] ?? 0 }}%</div>
-                                </div>
+                            <div class="text-2xl font-semibold {{ $cUsage['number'] }} mb-1">
+                                {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
+                            </div>
+                            <div class="text-xs font-medium {{ $cUsage['context'] }}">
+                                {{ $metrics['usage']['active_users'] ?? 0 }}/{{ $metrics['usage']['total_users'] ?? 0 }} user aktif
                             </div>
                         </div>
-                    </div>
 
-                    <!-- KPI Absensi Card -->
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm font-semibold text-gray-500 relative group cursor-help">
-                                    KPI Absensi
-                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 w-80 text-center shadow-lg">
-                                        <div class="text-xs text-gray-300">
-                                            🟢 Baik (≥80%) • 🟡 Sedang (60-79%) • 🔴 Perlu Perhatian (<60%)
-                                        </div>
-                                    </div>
-                                </div>
-                                <i data-lucide="gauge" class="text-emerald-600 h-5 w-5"></i>
+                        <!-- Card 2: KPI Absensi -->
+                        <div class="p-4 rounded-2xl border {{ $cKpi['bg'] }} transition-all flex flex-col justify-between shadow-xs">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="clock" class="h-4 w-4 {{ $cKpi['icon'] }}"></i>
+                                <span class="text-xs font-semibold {{ $cKpi['label'] }}">KPI absensi</span>
                             </div>
-                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['kpi']['score'] ?? 0) }}">{{ $formatPercent($metrics['kpi']['score'] ?? 0) }}</div>
-                            <div id="gauge-kpi" class="mt-4" style="height:160px;"></div>
+                            <div class="text-2xl font-semibold {{ $cKpi['number'] }} mb-1">
+                                {{ $formatPercent($metrics['kpi']['score'] ?? 0) }}
+                            </div>
+                            <div class="text-xs font-medium {{ $cKpi['context'] }}">
+                                {{ $metrics['kpi']['ontime_rate'] ?? 0 }}% tepat waktu
+                            </div>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-50">
-                            <!-- Mini Horizontal Progress Bars for Sub-metrics -->
-                            <div class="space-y-3">
-                                <div>
-                                    <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                                        <span class="text-gray-500">Tepat Waktu</span>
-                                        <span class="{{ ($metrics['kpi']['ontime_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['ontime_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $metrics['kpi']['ontime_rate'] ?? 0 }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                        <div class="h-1.5 rounded-full {{ ($metrics['kpi']['ontime_rate'] ?? 0) >= 80 ? 'bg-green-500' : (($metrics['kpi']['ontime_rate'] ?? 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ $metrics['kpi']['ontime_rate'] ?? 0 }}%"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                                        <span class="text-gray-500">Keaktifan User</span>
-                                        <span class="{{ ($metrics['kpi']['coverage_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['coverage_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $metrics['kpi']['coverage_rate'] ?? 0 }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                        <div class="h-1.5 rounded-full {{ ($metrics['kpi']['coverage_rate'] ?? 0) >= 80 ? 'bg-green-500' : (($metrics['kpi']['coverage_rate'] ?? 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ $metrics['kpi']['coverage_rate'] ?? 0 }}%"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                                        <span class="text-gray-500">Kelengkapan Data</span>
-                                        <span class="{{ ($metrics['kpi']['completeness_rate'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['completeness_rate'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $metrics['kpi']['completeness_rate'] ?? 0 }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                        <div class="h-1.5 rounded-full {{ ($metrics['kpi']['completeness_rate'] ?? 0) >= 80 ? 'bg-green-500' : (($metrics['kpi']['completeness_rate'] ?? 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ $metrics['kpi']['completeness_rate'] ?? 0 }}%"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                                        <span class="text-gray-500">Konsistensi Absensi</span>
-                                        <span class="{{ ($metrics['kpi']['checkout_consistency'] ?? 0) >= 80 ? 'text-green-600' : (($metrics['kpi']['checkout_consistency'] ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $metrics['kpi']['checkout_consistency'] ?? 0 }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                        <div class="h-1.5 rounded-full {{ ($metrics['kpi']['checkout_consistency'] ?? 0) >= 80 ? 'bg-green-500' : (($metrics['kpi']['checkout_consistency'] ?? 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}" style="width: {{ $metrics['kpi']['checkout_consistency'] ?? 0 }}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            @if(isset($metrics['kpi']['working_days']) && isset($metrics['kpi']['holidays_count']))
-                            <div class="mt-4 text-[10px] text-gray-400 font-medium">
-                                <i class="fas fa-calendar-alt mr-1"></i>{{ $metrics['kpi']['working_days'] }} hari kerja
-                                @if($metrics['kpi']['holidays_count'] > 0)
-                                    <span class="text-red-500 ml-2">
-                                        <i class="fas fa-calendar-times mr-1"></i>{{ $metrics['kpi']['holidays_count'] }} hari libur
-                                    </span>
-                                @endif
-                            </div>
-                            @endif
-                        </div>
-                    </div>
 
-                    <!-- Kelengkapan Data Pegawai Card -->
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Pegawai</div>
-                                <i data-lucide="contact" class="text-indigo-600 h-5 w-5"></i>
+                        <!-- Card 3: Data Pegawai -->
+                        <div class="p-4 rounded-2xl border {{ $cEmp['bg'] }} transition-all flex flex-col justify-between shadow-xs">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="{{ $cEmp['status'] === 'success' ? 'user-check' : 'user-x' }}" class="h-4 w-4 {{ $cEmp['icon'] }}"></i>
+                                <span class="text-xs font-semibold {{ $cEmp['label'] }}">Data pegawai</span>
                             </div>
-                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['completeness']['employees']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}</div>
-                            <div id="gauge-emp" class="mt-4" style="height:160px;"></div>
+                            <div class="text-2xl font-semibold {{ $cEmp['number'] }} mb-1">
+                                {{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}
+                            </div>
+                            <div class="text-xs font-medium {{ $cEmp['context'] }}">
+                                {{ $metrics['completeness']['employees']['complete'] ?? 0 }}/{{ $metrics['completeness']['employees']['total'] ?? 0 }} lengkap
+                            </div>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-50 text-center">
-                            <div class="text-xs text-gray-400 font-medium">{{ $metrics['completeness']['employees']['complete'] ?? 0 }} / {{ $metrics['completeness']['employees']['total'] ?? 0 }} lengkap</div>
-                        </div>
-                    </div>
 
-                    <!-- Kelengkapan Data Siswa Card -->
-                    <div class="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Siswa</div>
-                                <i data-lucide="graduation-cap" class="text-rose-600 h-5 w-5"></i>
+                        <!-- Card 4: Data Siswa -->
+                        <div class="p-4 rounded-2xl border {{ $cStu['bg'] }} transition-all flex flex-col justify-between shadow-xs">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="users" class="h-4 w-4 {{ $cStu['icon'] }}"></i>
+                                <span class="text-xs font-semibold {{ $cStu['label'] }}">Data siswa</span>
                             </div>
-                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['completeness']['students']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}</div>
-                            <div id="gauge-stu" class="mt-4" style="height:160px;"></div>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-gray-50 text-center">
-                            <div class="text-xs text-gray-400 font-medium">{{ $metrics['completeness']['students']['complete'] ?? 0 }} / {{ $metrics['completeness']['students']['total'] ?? 0 }} lengkap</div>
+                            <div class="text-2xl font-semibold {{ $cStu['number'] }} mb-1">
+                                {{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}
+                            </div>
+                            <div class="text-xs font-medium {{ $cStu['context'] }}">
+                                {{ $metrics['completeness']['students']['complete'] ?? 0 }}/{{ $metrics['completeness']['students']['total'] ?? 0 }} lengkap
+                            </div>
                         </div>
                     </div>
-                </div>
                 </div>
 
                 <!-- Late Attendance KPI -->
@@ -898,10 +859,6 @@
         const target = document.querySelector(el);
         if (target) new ApexCharts(target, options).render();
     }
-    renderGauge('#gauge-usage', gauges.usage);
-    renderGauge('#gauge-kpi', gauges.kpi);
-    renderGauge('#gauge-emp', gauges.emp);
-    renderGauge('#gauge-stu', gauges.stu);
     
     // Render late attendance gauge with inverted colors (higher is worse)
     if (document.querySelector('#gauge-late')) {
