@@ -301,12 +301,13 @@
 
                     <!-- 1. ABSENSI (Priority 1 - Most Used) -->
                     @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actAbsensi = request()->routeIs('attendance.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-absensi')">
                                 <span>📋 Absensi</span>
-                                <span id="chev-group-absensi">▾</span>
+                                <span id="chev-group-absensi">{{ $actAbsensi ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-absensi" class="mt-1 space-y-1">
+                            <div id="group-absensi" class="mt-1 space-y-1 {{ $actAbsensi ? '' : 'hidden' }}">
                             
                             <a href="{{ route('attendance.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.index') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.index') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-list-check"></i>
@@ -349,12 +350,13 @@
 
                     <!-- 2. JADWAL & INFORMASI (Priority 2 - Schedule & Info) -->
                     @if(strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actJadwal = request()->routeIs('schedule.*') || request()->routeIs('admin.holidays.*') || request()->routeIs('admin.special-schedules.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-jadwal')">
                                 <span>📅 Jadwal & Info</span>
-                                <span id="chev-group-jadwal">▾</span>
+                                <span id="chev-group-jadwal">{{ $actJadwal ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-jadwal" class="mt-1 space-y-1">
+                            <div id="group-jadwal" class="mt-1 space-y-1 {{ $actJadwal ? '' : 'hidden' }}">
                             
                             <a href="{{ route('schedule.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('schedule.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('schedule.*') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-calendar-check"></i>
@@ -378,12 +380,13 @@
 
                     <!-- 3. IZIN & CUTI (Priority 3 - Leave Management) -->
                     @if(auth()->user()->hasRole(['teacher', 'tu', 'bk', 'kesiswaan', 'admin', 'headmaster']) && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actIzin = request()->routeIs('leave-requests.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-izin')">
                                 <span>📝 Izin & Cuti</span>
-                                <span id="chev-group-izin">▾</span>
+                                <span id="chev-group-izin">{{ $actIzin ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-izin" class="mt-1 space-y-1">
+                            <div id="group-izin" class="mt-1 space-y-1 {{ $actIzin ? '' : 'hidden' }}">
                             
                             @php($pendingApprovals = (auth()->user()->hasRole('headmaster') ? \App\Models\LeaveRequest::where('status','pending')->where('school_id', auth()->user()->school_id)->count() : 0))
                             <a href="{{ route('leave-requests.index') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('leave-requests.*') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('leave-requests.*') ? 'page' : 'false' }}">
@@ -403,12 +406,13 @@
 
                     <!-- 4. MENU SISWA (Student Only) -->
                     @if(auth()->user()->hasRole('student') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actSiswa = request()->routeIs('attendance.reports') || request()->routeIs('leave-requests.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-siswa')">
                                 <span>🎓 Menu Siswa</span>
-                                <span id="chev-group-siswa">▾</span>
+                                <span id="chev-group-siswa">{{ $actSiswa ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-siswa" class="mt-1 space-y-1">
+                            <div id="group-siswa" class="mt-1 space-y-1 {{ $actSiswa ? '' : 'hidden' }}">
                             
                             <a href="{{ route('attendance.reports') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('attendance.reports') ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('attendance.reports') ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-chart-bar"></i>
@@ -425,12 +429,13 @@
 
                     <!-- 5. MANAJEMEN DATA (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actData = request()->routeIs('users.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-manajemen-data')">
                                 <span>👥 Manajemen Data</span>
-                                <span id="chev-group-manajemen-data">▾</span>
+                                <span id="chev-group-manajemen-data">{{ $actData ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-manajemen-data" class="mt-1 space-y-1">
+                            <div id="group-manajemen-data" class="mt-1 space-y-1 {{ $actData ? '' : 'hidden' }}">
                             
                             <a href="{{ route('users.index', ['type' => 'employee']) }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('users.*') && request('type') == 'employee' ? 'text-blue-900' : '' }}" aria-current="{{ request()->routeIs('users.*') && request('type') == 'employee' ? 'page' : 'false' }}">
                                 <i class="sb-icon fas fa-user-tie"></i>
@@ -457,12 +462,13 @@
 
                     <!-- 6. PENGATURAN (Admin Only) -->
                     @if(auth()->user()->hasRole('admin') && strtolower(auth()->user()->email) !== strtolower(config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'))))
+                        @php($actSettings = request()->routeIs('settings.*') || request()->routeIs('qr.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') || request()->routeIs('tenant.*'))
                         <div class="space-y-1">
                             <button type="button" class="w-full text-left px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center justify-between hover:text-gray-700" onclick="toggleSidebarGroup('group-settings')">
                                 <span>⚙️ Pengaturan</span>
-                                <span id="chev-group-settings">▾</span>
+                                <span id="chev-group-settings">{{ $actSettings ? '▾' : '▸' }}</span>
                             </button>
-                            <div id="group-settings" class="mt-1 space-y-1">
+                            <div id="group-settings" class="mt-1 space-y-1 {{ $actSettings ? '' : 'hidden' }}">
                             
                             <a href="{{ route('settings.attendance') }}" class="group flex items-center text-sm font-medium rounded-md {{ request()->routeIs('settings.*') ? 'text-blue-900' : '' }}">
                                 <i class="sb-icon fas fa-sliders-h"></i>
