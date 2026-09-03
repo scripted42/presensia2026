@@ -343,15 +343,25 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Card 1: Penggunaan -->
                         <div class="p-4 rounded-2xl border {{ $cUsage['bg'] }} transition-all flex flex-col justify-between shadow-xs">
-                            <div class="flex items-center gap-2 mb-2">
-                                <i data-lucide="{{ $cUsage['status'] === 'danger' ? 'alert-triangle' : 'user-check' }}" class="h-4 w-4 {{ $cUsage['icon'] }}"></i>
-                                <span class="text-xs font-semibold {{ $cUsage['label'] }}">Penggunaan</span>
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i data-lucide="{{ $cUsage['status'] === 'danger' ? 'alert-triangle' : 'user-check' }}" class="h-4 w-4 {{ $cUsage['icon'] }}"></i>
+                                    <span class="text-xs font-semibold {{ $cUsage['label'] }}">Penggunaan</span>
+                                </div>
+                                <div class="text-2xl font-semibold {{ $cUsage['number'] }} mb-1">
+                                    {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
+                                </div>
                             </div>
-                            <div class="text-2xl font-semibold {{ $cUsage['number'] }} mb-1">
-                                {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
-                            </div>
-                            <div class="text-xs font-medium {{ $cUsage['context'] }}">
-                                {{ $metrics['usage']['active_users'] ?? 0 }}/{{ $metrics['usage']['total_users'] ?? 0 }} user aktif
+                            <div class="mt-1">
+                                <div class="text-xs font-medium {{ $cUsage['context'] }}">
+                                    {{ $metrics['usage']['active_users'] ?? 0 }}/{{ $metrics['usage']['total_users'] ?? 0 }} user aktif
+                                </div>
+                                @if(($metrics['usage']['active_users'] ?? 0) === 0)
+                                    <div class="text-[10px] text-rose-700 font-semibold mt-0.5 flex items-center gap-1">
+                                        <i data-lucide="info" class="h-3 w-3 inline"></i>
+                                        <span>Belum ada aktivitas absensi</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -451,10 +461,7 @@
                                     </div>
                                 </div>
                                 @empty
-                                <div class="text-center py-8 text-gray-400 text-sm">
-                                    <i data-lucide="check-circle" class="text-green-500 h-8 w-8 mx-auto mb-2"></i>
-                                    <p>Tidak ada absensi terlambat</p>
-                                </div>
+                                <x-empty-state icon="check-circle" iconColor="text-emerald-500" title="Tidak ada absensi terlambat" subtitle="Semua kehadiran hadir tepat waktu sesuai jadwal." />
                                 @endforelse
                             </div>
                         </div>
@@ -527,10 +534,7 @@
                                 </div>
                             </div>
                             @empty
-                            <div class="text-center py-12 text-gray-400 text-xs">
-                                <i data-lucide="smile" class="h-8 w-8 text-gray-300 mx-auto mb-2"></i>
-                                <p>Tidak ada kebocoran absensi</p>
-                            </div>
+                            <x-empty-state icon="smile" iconColor="text-emerald-500" title="Tidak ada kebocoran absensi" subtitle="Semua user yang check-in telah menyelesaikan check-out." />
                             @endforelse
                         </div>
                     </div>
@@ -568,10 +572,7 @@
                                 </div>
                             </div>
                             @empty
-                            <div class="text-center py-12 text-gray-400 text-xs">
-                                <i data-lucide="award" class="h-8 w-8 text-green-500 mx-auto mb-2"></i>
-                                <p>Semua profil sudah lengkap</p>
-                            </div>
+                            <x-empty-state icon="award" iconColor="text-emerald-500" title="Semua profil sudah lengkap" subtitle="Seluruh data profil pegawai dan siswa telah terisi 100%." />
                             @endforelse
                         </div>
                     </div>
@@ -604,10 +605,7 @@
                                 </div>
                             </div>
                             @empty
-                            <div class="text-center py-12 text-gray-400 text-xs">
-                                <i data-lucide="users" class="h-8 w-8 text-green-500 mx-auto mb-2"></i>
-                                <p>Semua user aktif menggunakan</p>
-                            </div>
+                            <x-empty-state icon="users" iconColor="text-emerald-500" title="Semua user aktif menggunakan" subtitle="Seluruh user tercatat melakukan absensi pada periode ini." />
                             @endforelse
                         </div>
                     </div>
