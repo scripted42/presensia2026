@@ -16,6 +16,7 @@ use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\SpecialScheduleController;
+use App\Http\Controllers\ProfileController;
 
 // Public routes
 Route::get('/', function () {
@@ -85,6 +86,11 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
+    Route::get('/dashboard/live-feed', [DashboardController::class, 'liveFeed'])->name('dashboard.live-feed');
+    
+    // Profile & Password routes (accessible by all authenticated users)
+    Route::get('/profile/password', [ProfileController::class, 'showChangePassword'])->name('profile.password');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     
     // User management (Admin, TU only)
             Route::middleware(['role:admin|tu'])->group(function () {
@@ -182,8 +188,10 @@ Route::middleware(['auth', 'school.isolation'])->group(function () {
     // QR Code Management (Admin & TU)
     Route::middleware(['role:admin|tu'])->group(function () {
         Route::get('/qr', [\App\Http\Controllers\QrManagementController::class, 'index'])->name('qr.index');
+        Route::get('/qr/view/{user}', [\App\Http\Controllers\QrManagementController::class, 'viewQr'])->name('qr.view');
         Route::get('/qr/download/{user}', [\App\Http\Controllers\QrManagementController::class, 'download'])->name('qr.download');
         Route::get('/qr/download-zip', [\App\Http\Controllers\QrManagementController::class, 'downloadZip'])->name('qr.zip');
+        Route::get('/qr/export-excel', [\App\Http\Controllers\QrManagementController::class, 'exportExcel'])->name('qr.excel');
     });
     
     // Leave Request routes

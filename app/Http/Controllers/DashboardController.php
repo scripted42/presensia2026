@@ -96,6 +96,32 @@ class DashboardController extends Controller
     }
 
     /**
+     * Endpoint for live real-time attendance feed polling (no page refresh).
+     */
+    public function liveFeed(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $lateToday = $this->getLateToday($user);
+        $lateUserIds = $lateToday->pluck('user_id')->filter()->unique()->values()->all();
+        $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+        $onLeaveToday = $this->getOnLeaveToday($user);
+
+        return response()->json([
+            'status' => 'success',
+            'feed' => $recentAttendanceFeed,
+            'late_today' => $lateToday,
+            'late_count' => $lateToday->count(),
+            'on_leave_today' => $onLeaveToday,
+            'on_leave_count' => $onLeaveToday->count(),
+            'timestamp' => now()->timestamp,
+        ]);
+    }
+
+    /**
      * Get dashboard statistics based on user role.
      */
     private function getDashboardStats($user, $today)

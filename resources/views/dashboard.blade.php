@@ -74,144 +74,111 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="flex flex-col gap-4 mb-8 md:grid md:grid-cols-2 lg:grid-cols-4 desktop-stats-grid">
-            @if(isset($stats['total_employees']))
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-blue-50 rounded-2xl">
-                        <i data-lucide="users" class="h-6 w-6 text-blue-600"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Pegawai</div>
-                        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total_employees'] }}</div>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            @if(isset($stats['total_students']))
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-green-50 rounded-2xl">
-                        <i data-lucide="graduation-cap" class="h-6 w-6 text-green-600"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Siswa</div>
-                        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total_students'] }}</div>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            @if(isset($stats['today_attendance']))
-            @php
-                $isManager = $user->hasRole('admin') || $user->hasRole('headmaster');
-                $detail = $stats['today_attendance_detail'] ?? null;
-                $completed = ($detail && ($detail['status'] ?? '') === 'completed' && !$isManager);
-            @endphp
-            @php
-                $status = $detail['status'] ?? 'none';
-                $styles = [
-                    'none' => ['wrap' => 'bg-white', 'badge' => 'bg-gray-100 text-gray-700', 'icon' => 'text-gray-500', 'bgIcon' => 'bg-gray-50'],
-                    'in_only' => ['wrap' => 'bg-white', 'badge' => 'bg-yellow-100 text-yellow-800', 'icon' => 'text-yellow-600', 'bgIcon' => 'bg-yellow-50'],
-                    'completed' => ['wrap' => 'bg-green-50', 'badge' => 'bg-green-100 text-green-800', 'icon' => 'text-green-600', 'bgIcon' => 'bg-green-100'],
-                ];
-                $st = $styles[$status] ?? $styles['none'];
-            @endphp
-            <div class="rounded-2xl border {{ $completed ? 'border-green-200' : 'border-gray-100' }} {{ $st['wrap'] }} p-5 shadow-sm card-hover">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 {{ $st['bgIcon'] }} rounded-2xl">
-                            <i data-lucide="calendar-check" class="h-6 w-6 {{ $st['icon'] }}"></i>
+        <!-- Main Dashboard 2-Column Layout (Sejajar mulai dari Statistics Cards) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+            <!-- Kolom Kiri (8 Kolom Desktop): Statistics Cards, Ringkasan Performa, Perlu Ditindaklanjuti, Terlambat & Izin -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 desktop-stats-grid">
+                    @if(isset($stats['total_employees']))
+                    <div class="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                <i data-lucide="users" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-xl font-bold text-gray-900">{{ $stats['total_employees'] }}</div>
                         </div>
-                        <div>
-                            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Absensi Hari Ini</div>
+                        <div class="text-xs font-semibold text-gray-500 mt-2.5">Total Pegawai</div>
+                    </div>
+                    @endif
+
+                    @if(isset($stats['total_students']))
+                    <div class="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 bg-green-50 text-green-600 rounded-xl">
+                                <i data-lucide="graduation-cap" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-xl font-bold text-gray-900">{{ $stats['total_students'] }}</div>
+                        </div>
+                        <div class="text-xs font-semibold text-gray-500 mt-2.5">Total Siswa</div>
+                    </div>
+                    @endif
+
+                    @if(isset($stats['today_attendance']))
+                    @php
+                        $isManager = $user->hasRole('admin') || $user->hasRole('headmaster');
+                        $detail = $stats['today_attendance_detail'] ?? null;
+                        $completed = ($detail && ($detail['status'] ?? '') === 'completed' && !$isManager);
+                        $status = $detail['status'] ?? 'none';
+                        $styles = [
+                            'none' => ['wrap' => 'bg-white', 'badge' => 'bg-gray-100 text-gray-700', 'icon' => 'text-gray-500', 'bgIcon' => 'bg-gray-50'],
+                            'in_only' => ['wrap' => 'bg-white', 'badge' => 'bg-yellow-100 text-yellow-800', 'icon' => 'text-yellow-600', 'bgIcon' => 'bg-yellow-50'],
+                            'completed' => ['wrap' => 'bg-green-50', 'badge' => 'bg-green-100 text-green-800', 'icon' => 'text-green-600', 'bgIcon' => 'bg-green-100'],
+                        ];
+                        $st = $styles[$status] ?? $styles['none'];
+                    @endphp
+                    <div class="rounded-2xl border {{ $completed ? 'border-green-200' : 'border-gray-100' }} {{ $st['wrap'] }} p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 {{ $st['bgIcon'] }} {{ $st['icon'] }} rounded-xl">
+                                <i data-lucide="calendar-check" class="h-4 w-4"></i>
+                            </div>
+                            @if($isManager)
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-gray-900 leading-tight">{{ $stats['today_attendance_percent'] ?? 0 }}%</div>
+                                    <div class="text-[10px] font-medium text-gray-400 mt-0.5">{{ $stats['today_attendance'] ?? 0 }}/{{ $stats['today_total_users'] ?? 0 }}</div>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="mt-2.5">
+                            <div class="text-xs font-semibold text-gray-500">Absensi Hari Ini</div>
                             @if(!$isManager)
-                                <span class="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold {{ $st['badge'] }}">
-                                    @if($status==='none') Belum Absen @elseif($status==='in_only') Proses Absensi @else Absensi Completed @endif
+                                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $st['badge'] }}">
+                                    @if($status==='none') Belum Absen @elseif($status==='in_only') Proses Absensi @else Absensi Selesai @endif
                                 </span>
                             @endif
                         </div>
                     </div>
-                    @if($isManager)
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-gray-900">{{ $stats['today_attendance_percent'] ?? 0 }}%</div>
-                            <div class="text-[10px] font-medium text-gray-400 mt-1">{{ $stats['today_attendance'] ?? 0 }} / {{ $stats['today_total_users'] ?? 0 }}</div>
+                    @endif
+
+                    @if(isset($stats['my_students']))
+                    <div class="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 bg-teal-50 text-teal-600 rounded-xl">
+                                <i data-lucide="graduation-cap" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-xl font-bold text-gray-900">{{ $stats['my_students'] }}</div>
                         </div>
-                    @endif
-                </div>
-                @if(!$isManager)
-                @php
-                    $inVal = $detail['check_in'] ?? '--:--:--';
-                    $outVal = $detail['check_out'] ?? '--:--:--';
-                    $step1Done = $status!=='none';
-                    $step2Done = $status==='completed';
-                @endphp
-                <div class="mt-4 att-stepper bg-gray-50/50 p-3 rounded-xl border border-gray-100">
-                    <div class="att-step {{ $step1Done ? 'done' : '' }}">
-                        <div class="dot"></div>
-                        <div class="label">Masuk</div>
-                        <div class="time">{{ $inVal }}</div>
-                    </div>
-                    @if($user->user_type !== 'student')
-                    <div class="att-connector {{ $step2Done ? 'done' : ($step1Done ? 'half' : '') }}"></div>
-                    <div class="att-step {{ $step2Done ? 'done' : '' }}">
-                        <div class="dot"></div>
-                        <div class="label">Keluar</div>
-                        <div class="time">{{ $outVal }}</div>
+                        <div class="text-xs font-semibold text-gray-500 mt-2.5">Siswa Saya</div>
                     </div>
                     @endif
-                </div>
-                @endif
-            </div>
-            @endif
 
-            @if(isset($stats['my_students']))
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-teal-50 rounded-2xl">
-                        <i data-lucide="graduation-cap" class="h-6 w-6 text-teal-600"></i>
+                    @if(isset($stats['pending_leaves']))
+                    <div class="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 bg-yellow-50 text-yellow-600 rounded-xl">
+                                <i data-lucide="clock" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xl font-bold text-gray-900 leading-tight">{{ $stats['pending_leaves_percent'] ?? 0 }}%</div>
+                                <div class="text-[10px] font-medium text-gray-400 mt-0.5">{{ $stats['pending_leaves'] ?? 0 }}/{{ $stats['pending_leaves_total'] ?? 0 }}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs font-semibold text-gray-500 mt-2.5">Izin Pending</div>
                     </div>
-                    <div>
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Siswa Saya</div>
-                        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['my_students'] }}</div>
-                    </div>
-                </div>
-            </div>
-            @endif
+                    @endif
 
-            @if(isset($stats['pending_leaves']))
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-yellow-50 rounded-2xl">
-                        <i data-lucide="clock" class="h-6 w-6 text-yellow-600"></i>
+                    @if(isset($stats['approved_leaves']))
+                    <div class="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between card-hover">
+                        <div class="flex items-center justify-between">
+                            <div class="p-2 bg-green-50 text-green-600 rounded-xl">
+                                <i data-lucide="check-circle" class="h-4 w-4"></i>
+                            </div>
+                            <div class="text-xl font-bold text-gray-900">{{ $stats['approved_leaves'] }}</div>
+                        </div>
+                        <div class="text-xs font-semibold text-gray-500 mt-2.5">Izin Disetujui</div>
                     </div>
-                    <div>
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Izin Pending</div>
-                        <div class="text-[10px] font-medium text-gray-400 mt-1">{{ $stats['pending_leaves'] ?? 0 }} / {{ $stats['pending_leaves_total'] ?? 0 }} permohonan</div>
-                    </div>
+                    @endif
                 </div>
-                <div class="text-right">
-                    <div class="text-2xl font-bold text-gray-900">{{ $stats['pending_leaves_percent'] ?? 0 }}%</div>
-                </div>
-            </div>
-            @endif
-
-            @if(isset($stats['approved_leaves']))
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between card-hover">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-green-50 rounded-2xl">
-                        <i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Izin Disetujui</div>
-                        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['approved_leaves'] }}</div>
-                    </div>
-                </div>
-            </div>
-            @endif
-        </div>
 
         <!-- Ringkasan Performa (daisyUI stats) -->
         @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
@@ -315,12 +282,8 @@
         </div>
         @endif
 
-        <!-- Main Layout: Kolom Kiri (Perlu Ditindaklanjuti + Terlambat & Izin) & Kolom Kanan (Absensi Terbaru - Attendance Feed) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-            <!-- Kolom Kiri (8 Kolom Desktop) -->
-            <div class="lg:col-span-8 flex flex-col gap-6">
-                <!-- Section: Perlu Ditindaklanjuti (daisyUI tabs + badge) -->
-                @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
+        <!-- Section: Perlu Ditindaklanjuti (daisyUI tabs + badge) -->
+        @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
                 @php
                     $incompleteList = collect($metrics['incomplete_profiles'] ?? [])->map(function($u) {
                         return [
@@ -517,57 +480,55 @@
                     <div class="flex flex-col">
                         <div class="flex items-center justify-between mb-3 px-1">
                             <h3 class="text-sm font-semibold text-gray-500">Terlambat Hari Ini</h3>
-                            @if(isset($lateToday) && $lateToday->isNotEmpty())
-                            <span class="badge badge-warning badge-sm font-semibold">{{ $lateToday->count() }}</span>
-                            @endif
+                            <span id="late-today-badge" class="badge badge-warning badge-sm font-semibold {{ (isset($lateToday) && $lateToday->isNotEmpty()) ? '' : 'hidden' }}">{{ isset($lateToday) ? $lateToday->count() : 0 }}</span>
                         </div>
 
                         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
                             <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
-                                @if(isset($lateToday) && $lateToday->isNotEmpty())
-                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
-                                    @foreach($lateToday as $late)
-                                    <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
-                                        <div class="flex items-center gap-2.5 min-w-0">
-                                            @if(!empty($late['avatar']))
-                                            <div class="avatar flex-shrink-0">
-                                                <div class="w-8 h-8 rounded-full">
-                                                    <img src="{{ $late['avatar'] }}" alt="{{ $late['name'] }}" />
+                                <div id="late-today-list" class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
+                                    @if(isset($lateToday) && $lateToday->isNotEmpty())
+                                        @foreach($lateToday as $late)
+                                        <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                @if(!empty($late['avatar']))
+                                                <div class="avatar flex-shrink-0">
+                                                    <div class="w-8 h-8 rounded-full">
+                                                        <img src="{{ $late['avatar'] }}" alt="{{ $late['name'] }}" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            @else
-                                            <div class="avatar placeholder flex-shrink-0">
-                                                <div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-amber-100">
-                                                    <span>{{ $late['initials'] }}</span>
+                                                @else
+                                                <div class="avatar placeholder flex-shrink-0">
+                                                    <div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-amber-100">
+                                                        <span>{{ $late['initials'] }}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            @endif
+                                                @endif
 
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $late['name'] }}</div>
-                                                <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $late['subtitle'] }}</div>
-                                                <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                                                    <i data-lucide="clock" class="h-3 w-3"></i>
-                                                    <span>Masuk pukul {{ $late['check_in_time'] }}</span>
+                                                <div class="min-w-0">
+                                                    <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $late['name'] }}</div>
+                                                    <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $late['subtitle'] }}</div>
+                                                    <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                        <i data-lucide="clock" class="h-3 w-3"></i>
+                                                        <span>Masuk pukul {{ $late['check_in_time'] }}</span>
+                                                    </div>
                                                 </div>
+                                            </div>
+
+                                            <div class="text-right flex-shrink-0 pl-2">
+                                                <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
+                                                    <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
+                                                    {{ $late['late_duration'] }}
+                                                </span>
                                             </div>
                                         </div>
-
-                                        <div class="text-right flex-shrink-0 pl-2">
-                                            <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
-                                                <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
-                                                {{ $late['late_duration'] }}
-                                            </span>
+                                        @endforeach
+                                    @else
+                                        <div class="py-12 text-center text-xs text-emerald-600 font-medium flex-1 flex flex-col items-center justify-center gap-1.5">
+                                            <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
+                                            <span>Tidak ada yang terlambat hari ini</span>
                                         </div>
-                                    </div>
-                                    @endforeach
+                                    @endif
                                 </div>
-                                @else
-                                <div class="py-12 text-center text-xs text-emerald-600 font-medium flex-1 flex flex-col items-center justify-center gap-1.5">
-                                    <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
-                                    <span>Tidak ada yang terlambat hari ini</span>
-                                </div>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -576,120 +537,121 @@
                     <div class="flex flex-col">
                         <div class="flex items-center justify-between mb-3 px-1">
                             <h3 class="text-sm font-semibold text-gray-500">Sedang Izin/Cuti</h3>
-                            @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
-                            <span class="badge badge-neutral badge-sm font-semibold">{{ $onLeaveToday->count() }}</span>
-                            @endif
+                            <span id="on-leave-badge" class="badge badge-neutral badge-sm font-semibold {{ (isset($onLeaveToday) && $onLeaveToday->isNotEmpty()) ? '' : 'hidden' }}">{{ isset($onLeaveToday) ? $onLeaveToday->count() : 0 }}</span>
                         </div>
 
                         <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full flex flex-col">
                             <div class="card-body p-4 md:p-5 flex-1 flex flex-col justify-between">
-                                @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
-                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
-                                    @foreach($onLeaveToday as $leave)
-                                    <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
-                                        <div class="flex items-center gap-2.5 min-w-0">
-                                            @if(!empty($leave['avatar']))
-                                            <div class="avatar flex-shrink-0">
-                                                <div class="w-8 h-8 rounded-full">
-                                                    <img src="{{ $leave['avatar'] }}" alt="{{ $leave['name'] }}" />
+                                <div id="on-leave-list" class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-1 px-1 flex-1">
+                                    @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
+                                        @foreach($onLeaveToday as $leave)
+                                        <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                @if(!empty($leave['avatar']))
+                                                <div class="avatar flex-shrink-0">
+                                                    <div class="w-8 h-8 rounded-full">
+                                                        <img src="{{ $leave['avatar'] }}" alt="{{ $leave['name'] }}" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            @else
-                                            <div class="avatar placeholder flex-shrink-0">
-                                                <div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-purple-100">
-                                                    <span>{{ $leave['initials'] }}</span>
+                                                @else
+                                                <div class="avatar placeholder flex-shrink-0">
+                                                    <div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-purple-100">
+                                                        <span>{{ $leave['initials'] }}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            @endif
+                                                @endif
 
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $leave['name'] }}</div>
-                                                <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $leave['subtitle'] }}</div>
-                                                <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                                                    <i data-lucide="calendar" class="h-3 w-3"></i>
-                                                    <span>{{ $leave['date_range'] }}</span>
+                                                <div class="min-w-0">
+                                                    <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $leave['name'] }}</div>
+                                                    <div class="text-[11px] text-gray-400 mt-0.5 truncate">{{ $leave['subtitle'] }}</div>
+                                                    <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                        <i data-lucide="calendar" class="h-3 w-3"></i>
+                                                        <span>{{ $leave['date_range'] }}</span>
+                                                    </div>
                                                 </div>
+                                            </div>
+
+                                            <div class="text-right flex-shrink-0 pl-2">
+                                                <span class="badge {{ $leave['badge_class'] }} badge-sm font-semibold text-[10px] whitespace-nowrap">
+                                                    {{ $leave['type_label'] }}
+                                                </span>
                                             </div>
                                         </div>
-
-                                        <div class="text-right flex-shrink-0 pl-2">
-                                            <span class="badge {{ $leave['badge_class'] }} badge-sm font-semibold text-[10px] whitespace-nowrap">
-                                                {{ $leave['type_label'] }}
-                                            </span>
+                                        @endforeach
+                                    @else
+                                        <div class="py-12 text-center text-xs text-gray-400 flex-1 flex flex-col items-center justify-center gap-1.5">
+                                            <i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i>
+                                            <span>Tidak ada yang sedang izin/cuti hari ini</span>
                                         </div>
-                                    </div>
-                                    @endforeach
+                                    @endif
                                 </div>
-                                @else
-                                <div class="py-12 text-center text-xs text-gray-400 flex-1 flex flex-col items-center justify-center gap-1.5">
-                                    <i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i>
-                                    <span>Tidak ada yang sedang izin/cuti hari ini</span>
-                                </div>
-                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Kolom Kanan: 4 Columns (Absensi Terbaru - Persis seperti Attendance Feed di Gambar) -->
-            <div class="lg:col-span-4 flex flex-col">
+            <!-- Kolom Kanan: 4 Columns (Absensi Terbaru - Attendance Feed dengan Live Update) -->
+            <div class="lg:col-span-4 flex flex-col lg:sticky lg:top-4">
                 <div class="flex items-center justify-between mb-3 px-1">
                     <h3 class="text-sm font-semibold text-gray-500">Absensi Terbaru</h3>
-                    <span class="text-[11px] text-gray-400 font-medium">Real-time feed</span>
+                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60 shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[11px] text-emerald-700 font-semibold tracking-tight">Live update</span>
+                    </div>
                 </div>
                 
                 <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl flex flex-col">
                     <div class="card-body p-4 md:p-5 flex flex-col">
-                        @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
-                        <div class="max-h-[640px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1">
-                            @foreach($recentAttendanceFeed as $feed)
-                            <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    @if(!empty($feed['avatar']))
-                                    <div class="avatar flex-shrink-0">
-                                        <div class="w-8 h-8 rounded-full">
-                                            <img src="{{ $feed['avatar'] }}" alt="{{ $feed['name'] }}" />
+                        <div id="attendance-feed-list" class="max-h-[820px] overflow-y-auto divide-y divide-gray-100 -mx-1 px-1">
+                            @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
+                                @foreach($recentAttendanceFeed as $feed)
+                                <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        @if(!empty($feed['avatar']))
+                                        <div class="avatar flex-shrink-0">
+                                            <div class="w-8 h-8 rounded-full">
+                                                <img src="{{ $feed['avatar'] }}" alt="{{ $feed['name'] }}" />
+                                            </div>
                                         </div>
-                                    </div>
-                                    @else
-                                    <div class="avatar placeholder flex-shrink-0">
-                                        <div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-blue-100">
-                                            <span>{{ $feed['initials'] }}</span>
+                                        @else
+                                        <div class="avatar placeholder flex-shrink-0">
+                                            <div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-blue-100">
+                                                <span>{{ $feed['initials'] }}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    @endif
+                                        @endif
 
-                                    <div class="min-w-0">
-                                        <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $feed['name'] }}</div>
-                                        <div class="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 flex-wrap">
-                                            <span class="font-medium text-gray-600">{{ $feed['event_type'] }}</span>
-                                            <span>•</span>
-                                            <span class="flex items-center gap-0.5">
-                                                <i data-lucide="clock" class="h-3 w-3"></i>
-                                                {{ $feed['time_str'] }}
-                                            </span>
-                                            @if(!empty($feed['location']))
-                                            <span>•</span>
-                                            <span class="truncate max-w-[120px]" title="{{ $feed['location'] }}">
-                                                {{ $feed['location'] }}
-                                            </span>
-                                            @endif
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">{{ $feed['name'] }}</div>
+                                            <div class="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                                                <span class="font-medium text-gray-600">{{ $feed['event_type'] }}</span>
+                                                <span>•</span>
+                                                <span class="flex items-center gap-0.5">
+                                                    <i data-lucide="clock" class="h-3 w-3"></i>
+                                                    {{ $feed['time_str'] }}
+                                                </span>
+                                                @if(!empty($feed['location']))
+                                                <span>•</span>
+                                                <span class="truncate max-w-[120px]" title="{{ $feed['location'] }}">
+                                                    {{ $feed['location'] }}
+                                                </span>
+                                                @endif
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div class="text-right flex-shrink-0 pl-2">
+                                        <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{ $feed['relative_time'] }}</span>
                                     </div>
                                 </div>
-
-                                <div class="text-right flex-shrink-0 pl-2">
-                                    <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{ $feed['relative_time'] }}</span>
+                                @endforeach
+                            @else
+                                <div class="py-12 text-center text-xs text-gray-400 flex items-center justify-center">
+                                    Belum ada data absensi terbaru hari ini
                                 </div>
-                            </div>
-                            @endforeach
+                            @endif
                         </div>
-                        @else
-                        <div class="py-12 text-center text-xs text-gray-400 flex items-center justify-center">
-                            Belum ada data absensi terbaru hari ini
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -1036,5 +998,177 @@
         if (modal) modal.classList.add('hidden');
     }
     @endif
+
+    // Live update for Attendance Feed, Late Today, and On Leave (no page refresh)
+    (function initLiveAttendanceFeed() {
+        let isPolling = false;
+        let lastFeedJson = '';
+        let lastLateJson = '';
+        let lastLeaveJson = '';
+
+        function pollFeed() {
+            if (isPolling) return;
+            isPolling = true;
+
+            fetch('{{ route("dashboard.live-feed") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Live feed response error');
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // 1. Update Attendance Feed
+                    const feedContainer = document.getElementById('attendance-feed-list');
+                    const newFeedJson = JSON.stringify(data.feed || []);
+                    if (feedContainer && newFeedJson !== lastFeedJson) {
+                        lastFeedJson = newFeedJson;
+                        if (!data.feed || data.feed.length === 0) {
+                            feedContainer.innerHTML = '<div class="py-12 text-center text-xs text-gray-400 flex items-center justify-center">Belum ada data absensi terbaru hari ini</div>';
+                        } else {
+                            feedContainer.innerHTML = data.feed.map(feed => {
+                                const avatarHtml = feed.avatar 
+                                    ? `<div class="avatar flex-shrink-0"><div class="w-8 h-8 rounded-full"><img src="${feed.avatar}" alt="${feed.name}" /></div></div>`
+                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-blue-50 text-blue-600 rounded-full w-8 h-8 text-xs font-bold flex items-center justify-center border border-blue-100"><span>${feed.initials || 'U'}</span></div></div>`;
+
+                                const locationHtml = feed.location 
+                                    ? `<span>•</span><span class="truncate max-w-[120px]" title="${feed.location}">${feed.location}</span>` 
+                                    : '';
+
+                                return `
+                                <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        ${avatarHtml}
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${feed.name}</div>
+                                            <div class="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                                                <span class="font-medium text-gray-600">${feed.event_type}</span>
+                                                <span>•</span>
+                                                <span class="flex items-center gap-0.5">
+                                                    <i data-lucide="clock" class="h-3 w-3"></i>
+                                                    ${feed.time_str}
+                                                </span>
+                                                ${locationHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0 pl-2">
+                                        <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">${feed.relative_time}</span>
+                                    </div>
+                                </div>`;
+                            }).join('');
+                            if (window.lucide) lucide.createIcons({ root: feedContainer });
+                        }
+                    }
+
+                    // 2. Update Late Today
+                    const lateContainer = document.getElementById('late-today-list');
+                    const lateBadge = document.getElementById('late-today-badge');
+                    const newLateJson = JSON.stringify(data.late_today || []);
+                    if (lateBadge) {
+                        lateBadge.innerText = data.late_count || 0;
+                        if ((data.late_count || 0) > 0) {
+                            lateBadge.classList.remove('hidden');
+                        } else {
+                            lateBadge.classList.add('hidden');
+                        }
+                    }
+                    if (lateContainer && newLateJson !== lastLateJson) {
+                        lastLateJson = newLateJson;
+                        if (!data.late_today || data.late_today.length === 0) {
+                            lateContainer.innerHTML = '<div class="py-12 text-center text-xs text-emerald-600 font-medium flex-1 flex flex-col items-center justify-center gap-1.5"><i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i><span>Tidak ada yang terlambat hari ini</span></div>';
+                        } else {
+                            lateContainer.innerHTML = data.late_today.map(late => {
+                                const avatarHtml = late.avatar 
+                                    ? `<div class="avatar flex-shrink-0"><div class="w-8 h-8 rounded-full"><img src="${late.avatar}" alt="${late.name}" /></div></div>`
+                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-amber-50 text-amber-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-amber-100"><span>${late.initials}</span></div></div>`;
+
+                                return `
+                                <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        ${avatarHtml}
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${late.name}</div>
+                                            <div class="text-[11px] text-gray-400 mt-0.5 truncate">${late.subtitle}</div>
+                                            <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                <i data-lucide="clock" class="h-3 w-3"></i>
+                                                <span>Masuk pukul ${late.check_in_time}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0 pl-2">
+                                        <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-0.5 text-[10px] whitespace-nowrap">
+                                            <i data-lucide="hourglass" class="h-2.5 w-2.5"></i>
+                                            ${late.late_duration}
+                                        </span>
+                                    </div>
+                                </div>`;
+                            }).join('');
+                        }
+                        if (window.lucide) lucide.createIcons({ root: lateContainer });
+                    }
+
+                    // 3. Update On Leave Today
+                    const leaveContainer = document.getElementById('on-leave-list');
+                    const leaveBadge = document.getElementById('on-leave-badge');
+                    const newLeaveJson = JSON.stringify(data.on_leave_today || []);
+                    if (leaveBadge) {
+                        leaveBadge.innerText = data.on_leave_count || 0;
+                        if ((data.on_leave_count || 0) > 0) {
+                            leaveBadge.classList.remove('hidden');
+                        } else {
+                            leaveBadge.classList.add('hidden');
+                        }
+                    }
+                    if (leaveContainer && newLeaveJson !== lastLeaveJson) {
+                        lastLeaveJson = newLeaveJson;
+                        if (!data.on_leave_today || data.on_leave_today.length === 0) {
+                            leaveContainer.innerHTML = '<div class="py-12 text-center text-xs text-gray-400 flex-1 flex flex-col items-center justify-center gap-1.5"><i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i><span>Tidak ada yang sedang izin/cuti hari ini</span></div>';
+                        } else {
+                            leaveContainer.innerHTML = data.on_leave_today.map(leave => {
+                                const avatarHtml = leave.avatar 
+                                    ? `<div class="avatar flex-shrink-0"><div class="w-8 h-8 rounded-full"><img src="${leave.avatar}" alt="${leave.name}" /></div></div>`
+                                    : `<div class="avatar placeholder flex-shrink-0"><div class="bg-purple-50 text-purple-600 rounded-full w-8 h-8 text-[11px] font-bold flex items-center justify-center border border-purple-100"><span>${leave.initials}</span></div></div>`;
+
+                                return `
+                                <div class="flex items-center justify-between py-2.5 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        ${avatarHtml}
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-gray-900 leading-tight truncate">${leave.name}</div>
+                                            <div class="text-[11px] text-gray-400 mt-0.5 truncate">${leave.subtitle}</div>
+                                            <div class="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                                                <i data-lucide="calendar" class="h-3 w-3"></i>
+                                                <span>${leave.date_range}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0 pl-2">
+                                        <span class="badge ${leave.badge_class} badge-sm font-semibold text-[10px] whitespace-nowrap">
+                                            ${leave.type_label}
+                                        </span>
+                                    </div>
+                                </div>`;
+                            }).join('');
+                        }
+                        if (window.lucide) lucide.createIcons({ root: leaveContainer });
+                    }
+                }
+            })
+            .catch(err => {
+                console.debug('Polling live attendance feed:', err);
+            })
+            .finally(() => {
+                isPolling = false;
+            });
+        }
+
+        // Poll every 4 seconds without page reload
+        setInterval(pollFeed, 4000);
+    })();
 </script>
 @endpush
