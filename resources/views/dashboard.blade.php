@@ -507,19 +507,185 @@
         </div>
         @endif
 
-        <!-- Aktivitas Terbaru (Feed Sederhana 1 Baris = 1 Icon + 1 Kalimat) -->
-        <div class="mb-8">
-            <h3 class="text-sm font-semibold text-gray-500 mb-3">Aktivitas Terbaru</h3>
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                <div class="divide-y divide-gray-100">
-                    @forelse($recentActivities as $act)
-                    <div class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                        <i data-lucide="{{ $act['icon'] }}" class="h-4 w-4 {{ $act['color'] }} flex-shrink-0"></i>
-                        <span class="text-sm text-gray-700 font-medium">{{ $act['message'] }}</span>
+        <!-- PANEL 1: Absensi Terbaru (Real-time feed) -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-500">Absensi Terbaru</h3>
+                <span class="text-xs text-gray-400 font-medium">Real-time feed</span>
+            </div>
+            
+            <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl">
+                <div class="card-body p-5 md:p-6">
+                    @if(isset($recentAttendanceFeed) && $recentAttendanceFeed->isNotEmpty())
+                    <div class="max-h-80 overflow-y-auto divide-y divide-gray-100 -mx-2 px-2">
+                        @foreach($recentAttendanceFeed as $feed)
+                        <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                            <div class="flex items-center gap-3 min-w-0">
+                                @if(!empty($feed['avatar']))
+                                <div class="avatar flex-shrink-0">
+                                    <div class="w-9 h-9 rounded-full">
+                                        <img src="{{ $feed['avatar'] }}" alt="{{ $feed['name'] }}" />
+                                    </div>
+                                </div>
+                                @else
+                                <div class="avatar placeholder flex-shrink-0">
+                                    <div class="bg-blue-50 text-blue-600 rounded-full w-9 h-9 text-xs font-bold flex items-center justify-center border border-blue-100">
+                                        <span>{{ $feed['initials'] }}</span>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <div class="min-w-0">
+                                    <div class="text-sm font-bold text-gray-900 leading-tight truncate">{{ $feed['name'] }}</div>
+                                    <div class="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5 flex-wrap">
+                                        <span class="font-medium text-gray-600">{{ $feed['event_type'] }}</span>
+                                        <span>•</span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="clock" class="h-3 w-3"></i>
+                                            {{ $feed['time_str'] }}
+                                        </span>
+                                        @if(!empty($feed['location']))
+                                        <span>•</span>
+                                        <span class="flex items-center gap-1 text-gray-400 truncate max-w-[150px] sm:max-w-[200px]" title="{{ $feed['location'] }}">
+                                            <i data-lucide="map-pin" class="h-3 w-3 flex-shrink-0"></i>
+                                            {{ $feed['location'] }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-right flex-shrink-0 pl-3">
+                                <span class="text-xs font-medium text-gray-400 whitespace-nowrap">{{ $feed['relative_time'] }}</span>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
-                    @empty
-                    <div class="py-2 text-sm text-gray-400">Belum ada aktivitas hari ini</div>
-                    @endforelse
+                    @else
+                    <div class="py-8 text-center text-sm text-gray-400">
+                        Belum ada data absensi terbaru hari ini
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL 2 & 3: Terlambat Hari Ini & Sedang Izin/Cuti (2 Kolom Desktop, 1 Kolom Mobile) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Panel 2: Terlambat Hari Ini -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-500">Terlambat Hari Ini</h3>
+                    @if(isset($lateToday) && $lateToday->isNotEmpty())
+                    <span class="badge badge-warning badge-sm font-semibold">{{ $lateToday->count() }}</span>
+                    @endif
+                </div>
+
+                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full">
+                    <div class="card-body p-5 md:p-6">
+                        @if(isset($lateToday) && $lateToday->isNotEmpty())
+                        <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-2 px-2">
+                            @foreach($lateToday as $late)
+                            <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    @if(!empty($late['avatar']))
+                                    <div class="avatar flex-shrink-0">
+                                        <div class="w-9 h-9 rounded-full">
+                                            <img src="{{ $late['avatar'] }}" alt="{{ $late['name'] }}" />
+                                        </div>
+                                    </div>
+                                    @else
+                                    <div class="avatar placeholder flex-shrink-0">
+                                        <div class="bg-amber-50 text-amber-600 rounded-full w-9 h-9 text-xs font-bold flex items-center justify-center border border-amber-100">
+                                            <span>{{ $late['initials'] }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-bold text-gray-900 leading-tight truncate">{{ $late['name'] }}</div>
+                                        <div class="text-xs text-gray-400 mt-0.5 truncate">{{ $late['subtitle'] }}</div>
+                                        <div class="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                                            <i data-lucide="clock" class="h-3 w-3"></i>
+                                            <span>Masuk pukul {{ $late['check_in_time'] }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-right flex-shrink-0 pl-3">
+                                    <span class="badge badge-warning badge-sm font-semibold inline-flex items-center gap-1 whitespace-nowrap">
+                                        <i data-lucide="hourglass" class="h-3 w-3"></i>
+                                        {{ $late['late_duration'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="py-8 text-center text-sm text-emerald-600 font-medium flex flex-col items-center justify-center gap-1.5">
+                            <i data-lucide="check-circle" class="h-5 w-5 text-emerald-500"></i>
+                            <span>Tidak ada yang terlambat hari ini</span>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Sedang Izin/Cuti -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-500">Sedang Izin/Cuti</h3>
+                    @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
+                    <span class="badge badge-neutral badge-sm font-semibold">{{ $onLeaveToday->count() }}</span>
+                    @endif
+                </div>
+
+                <div class="card bg-white border border-gray-100 shadow-sm rounded-2xl h-full">
+                    <div class="card-body p-5 md:p-6">
+                        @if(isset($onLeaveToday) && $onLeaveToday->isNotEmpty())
+                        <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 -mx-2 px-2">
+                            @foreach($onLeaveToday as $leave)
+                            <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    @if(!empty($leave['avatar']))
+                                    <div class="avatar flex-shrink-0">
+                                        <div class="w-9 h-9 rounded-full">
+                                            <img src="{{ $leave['avatar'] }}" alt="{{ $leave['name'] }}" />
+                                        </div>
+                                    </div>
+                                    @else
+                                    <div class="avatar placeholder flex-shrink-0">
+                                        <div class="bg-purple-50 text-purple-600 rounded-full w-9 h-9 text-xs font-bold flex items-center justify-center border border-purple-100">
+                                            <span>{{ $leave['initials'] }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-bold text-gray-900 leading-tight truncate">{{ $leave['name'] }}</div>
+                                        <div class="text-xs text-gray-400 mt-0.5 truncate">{{ $leave['subtitle'] }}</div>
+                                        <div class="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                                            <i data-lucide="calendar" class="h-3 w-3"></i>
+                                            <span>{{ $leave['date_range'] }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-right flex-shrink-0 pl-3">
+                                    <span class="badge {{ $leave['badge_class'] }} badge-sm font-semibold whitespace-nowrap">
+                                        {{ $leave['type_label'] }}
+                                    </span>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="py-8 text-center text-sm text-gray-400 flex flex-col items-center justify-center gap-1.5">
+                            <i data-lucide="user-check" class="h-5 w-5 text-gray-300"></i>
+                            <span>Tidak ada yang sedang izin/cuti hari ini</span>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

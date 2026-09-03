@@ -77,14 +77,22 @@ class DashboardController extends Controller
                 'role_filter' => $roleFilter ?? 'all',
             ];
         }
-        
+        // 3 Panel Aktivitas Dashboard
+        $lateToday = $this->getLateToday($user);
+        $lateUserIds = $lateToday->pluck('user_id')->toArray();
+        $onLeaveToday = $this->getOnLeaveToday($user);
+        $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+
         // Get recent activities
         $recentActivities = $this->getRecentActivities($user);
         
         // Get attendance chart data
         $attendanceChart = $this->getAttendanceChartData($user, $today);
         
-        return view('dashboard', compact('user', 'school', 'stats', 'recentActivities', 'attendanceChart', 'metrics', 'startDate', 'endDate'));
+        return view('dashboard', compact(
+            'user', 'school', 'stats', 'recentActivities', 'attendanceChart', 'metrics',
+            'startDate', 'endDate', 'lateToday', 'onLeaveToday', 'recentAttendanceFeed'
+        ));
     }
 
     /**
@@ -331,6 +339,170 @@ class DashboardController extends Controller
         }
 
         return $activities;
+    }
+
+    /**
+     * Dapatkan daftar pengguna yang terlambat hari ini.
+     */
+    private function getLateToday($user): \Illuminate\Support\Collection
+    {
+        $today = Carbon::today('Asia/Jakarta')->format('Y-m-d');
+        $setting = \App\Models\AttendanceSetting::where('school_id', $user->school_id)->first();
+        $defaultMaxTime = $setting?->check_in_time ? Carbon::parse($setting->check_in_time)->format('H:i') : '07:00';
+
+        $todayAttendances = Attendance::with(['user.roles', 'user.studentClasses'])
+            ->where('date', $today)
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            })
+            ->whereNotNull('check_in')
+            ->get();
+
+        $lateList = collect();
+
+        foreach ($todayAttendances as $att) {
+            if (!$att->user) continue;
+
+            $targetMaxTime = $defaultMaxTime;
+            if ($att->user->user_type === 'employee') {
+                if ($att->user->hasRole('teacher') && !empty($setting?->teacher_max_time)) {
+                    $targetMaxTime = Carbon::parse($setting->teacher_max_time)->format('H:i');
+                } elseif (!empty($setting?->other_roles_max_time)) {
+                    $targetMaxTime = Carbon::parse($setting->other_roles_max_time)->format('H:i');
+                }
+            } elseif ($att->user->user_type === 'student') {
+                if (!empty($setting?->student_max_time)) {
+                    $targetMaxTime = Carbon::parse($setting->student_max_time)->format('H:i');
+                }
+            }
+
+            $checkInCarbon = Carbon::parse($att->check_in);
+            $limitCarbon = Carbon::parse($att->date->format('Y-m-d') . ' ' . $targetMaxTime);
+
+            if ($checkInCarbon->gt($limitCarbon) || $att->status === 'late') {
+                $diffMinutes = max(1, $limitCarbon->diffInMinutes($checkInCarbon, false));
+                $hours = floor($diffMinutes / 60);
+                $mins = $diffMinutes % 60;
+                $lateDuration = $hours > 0 ? "{$hours}j {$mins}m" : "{$mins}m";
+
+                $sub = '';
+                if ($att->user->user_type === 'student') {
+                    $cls = $att->user->studentClasses->first();
+                    $sub = $cls ? $cls->name : 'Siswa';
+                } else {
+                    $roles = $att->user->roles->pluck('name')->map(fn($r) => ucfirst($r))->join(', ');
+                    $sub = $roles ?: 'Pegawai';
+                }
+
+                $lateList->push([
+                    'user_id' => $att->user_id,
+                    'name' => $att->user->name,
+                    'subtitle' => $sub,
+                    'avatar' => $att->user->avatar ?? null,
+                    'initials' => strtoupper(substr($att->user->name, 0, 2)),
+                    'check_in_time' => $checkInCarbon->format('H:i'),
+                    'late_duration' => $lateDuration,
+                ]);
+            }
+        }
+
+        return $lateList;
+    }
+
+    /**
+     * Dapatkan daftar pegawai/siswa yang sedang dalam masa izin/cuti aktif hari ini.
+     */
+    private function getOnLeaveToday($user): \Illuminate\Support\Collection
+    {
+        $today = Carbon::today('Asia/Jakarta')->format('Y-m-d');
+
+        $activeLeaves = LeaveRequest::with(['user.roles', 'user.studentClasses'])
+            ->where('school_id', $user->school_id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        return $activeLeaves->map(function($leave) {
+            $u = $leave->user;
+            $sub = '';
+            if ($u) {
+                if ($u->user_type === 'student') {
+                    $cls = $u->studentClasses->first();
+                    $sub = $cls ? $cls->name : 'Siswa';
+                } else {
+                    $roles = $u->roles->pluck('name')->map(fn($r) => ucfirst($r))->join(', ');
+                    $sub = $roles ?: 'Pegawai';
+                }
+            }
+
+            $badgeClass = match($leave->type) {
+                'sick' => 'badge-warning',
+                'duty' => 'badge-info',
+                'leave' => 'badge-primary',
+                default => 'badge-neutral',
+            };
+
+            $typeLabel = match($leave->type) {
+                'sick' => 'Sakit',
+                'duty' => 'Dinas Luar',
+                'leave' => 'Cuti',
+                default => ucfirst($leave->type),
+            };
+
+            $startDateStr = $leave->start_date ? Carbon::parse($leave->start_date)->translatedFormat('d M') : '';
+            $endDateStr = $leave->end_date ? Carbon::parse($leave->end_date)->translatedFormat('d M') : '';
+            $dateRange = $startDateStr === $endDateStr ? $startDateStr : "{$startDateStr} - {$endDateStr}";
+
+            return [
+                'name' => $u ? $u->name : 'User',
+                'subtitle' => $sub,
+                'avatar' => $u?->avatar ?? null,
+                'initials' => strtoupper(substr($u?->name ?? 'US', 0, 2)),
+                'type_label' => $typeLabel,
+                'badge_class' => $badgeClass,
+                'date_range' => $dateRange,
+            ];
+        });
+    }
+
+    /**
+     * Dapatkan feed absensi terbaru (real-time, maksimal 10), tidak redundan dengan terlambat.
+     */
+    private function getRecentAttendanceFeed($user, array $excludeUserIds = []): \Illuminate\Support\Collection
+    {
+        $query = Attendance::with(['user.roles', 'user.studentClasses'])
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('school_id', $user->school_id);
+            });
+
+        if (!empty($excludeUserIds)) {
+            $query->whereNotIn('user_id', $excludeUserIds);
+        }
+
+        $attendances = $query->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return $attendances->map(function($att) {
+            $u = $att->user;
+            $isCheckOut = !empty($att->check_out) && $att->check_out > $att->check_in;
+            $eventTime = $isCheckOut ? Carbon::parse($att->check_out) : ($att->check_in ? Carbon::parse($att->check_in) : Carbon::parse($att->created_at));
+            $eventType = $isCheckOut ? 'Absen keluar' : 'Absen masuk';
+            $location = $att->location_name ?: ($att->latitude && $att->longitude ? round($att->latitude, 4) . ', ' . round($att->longitude, 4) : null);
+
+            return [
+                'name' => $u ? $u->name : 'User',
+                'avatar' => $u?->avatar ?? null,
+                'initials' => strtoupper(substr($u?->name ?? 'US', 0, 2)),
+                'event_type' => $eventType,
+                'time_str' => $eventTime->timezone('Asia/Jakarta')->format('H:i'),
+                'relative_time' => $eventTime->timezone('Asia/Jakarta')->diffForHumans(),
+                'location' => $location,
+            ];
+        });
     }
 
     /**
