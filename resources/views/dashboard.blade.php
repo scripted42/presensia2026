@@ -213,293 +213,107 @@
             @endif
         </div>
 
-        <!-- KPI & Usage (Admin/Headmaster) -->
+        <!-- ZONA 1 — Ringkasan (satu baris, tanpa gauge) -->
         @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
-        <div class="bg-white overflow-hidden shadow rounded-lg mb-8 card-hover">
-            <div class="px-4 py-5 sm:p-6">
-                <div class="mb-4">
+        @php
+            $formatPercent = function($val) {
+                $num = (float) ($val ?? 0);
+                return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
+            };
+            $getSemanticHex = function($p) {
+                $val = (float) $p;
+                if ($val >= 80) return '#059669'; // hijau (>= 80%)
+                if ($val >= 50) return '#b45309'; // kuning/amber (50-79%)
+                return '#dc2626'; // merah (< 50%)
+            };
+        @endphp
+
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-500">Zona 1 — ringkasan (satu baris, tanpa gauge)</h3>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openDateBottomSheet()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Filter Tanggal">
+                        <i data-lucide="more-horizontal" class="h-5 w-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Date Bottom Sheet Modal (kept for functional date filtering) -->
+            <div id="date-sheet-backdrop" onclick="closeDateBottomSheet()" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden transition-opacity duration-300 opacity-0"></div>
+            <div id="date-sheet" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transform translate-y-full transition-transform duration-300 shadow-2xl safe-bottom max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-center py-3" onclick="closeDateBottomSheet()">
+                    <div class="w-12 h-1 bg-gray-200 rounded-full"></div>
+                </div>
+                <div class="px-6 pb-8">
                     <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900">Ringkasan Performa</h3>
-                            <p class="text-xs text-gray-400 mt-0.5">Periode: {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d/m/Y') : '-' }} s/d {{ $endDate ? \Carbon\Carbon::parse($endDate)->format('d/m/Y') : '-' }}</p>
-                        </div>
-                        
-                        <!-- Trigger Bottom Sheet -->
-                        <div onclick="openDateBottomSheet()" class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-                            <i data-lucide="calendar" class="text-gray-500 h-4 w-4"></i>
-                            <span class="text-xs font-semibold text-gray-600">
-                                Filter Tanggal
-                            </span>
-                        </div>
+                        <h3 class="text-lg font-bold text-gray-900">Pilih Rentang Tanggal</h3>
+                        <button type="button" onclick="closeDateBottomSheet()" class="p-1 text-gray-400 hover:text-gray-600">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
                     </div>
-
-                    <!-- Backdrop -->
-                    <div id="date-sheet-backdrop" onclick="closeDateBottomSheet()" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden transition-opacity duration-300 opacity-0"></div>
-
-                    <!-- Bottom Sheet -->
-                    <div id="date-sheet" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transform translate-y-full transition-transform duration-300 shadow-2xl safe-bottom max-h-[85vh] overflow-y-auto">
-                        <!-- Drag Handle -->
-                        <div class="flex justify-center py-3" onclick="closeDateBottomSheet()">
-                            <div class="w-12 h-1 bg-gray-200 rounded-full"></div>
-                        </div>
-                        
-                        <div class="px-6 pb-8">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-bold text-gray-900">Pilih Rentang Tanggal</h3>
-                                <button type="button" onclick="closeDateBottomSheet()" class="p-1 text-gray-400 hover:text-gray-600">
-                                    <i data-lucide="x" class="h-5 w-5"></i>
-                                </button>
-                            </div>
-                            
-                            <form method="GET" action="{{ route('dashboard') }}" id="bottom-sheet-date-form">
-                                <div class="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Mulai</label>
-                                        <input type="date" name="start" value="{{ $startDate ?? '' }}" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Selesai</label>
-                                        <input type="date" name="end" value="{{ $endDate ?? '' }}" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                                    </div>
-                                </div>
-                                
-                                @if(isset($metrics['role_filter']))
-                                <div class="mb-4">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Filter Peran</label>
-                                    <select name="role" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="all" {{ ($metrics['role_filter'] ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>
-                                        <option value="employee" {{ ($metrics['role_filter'] ?? 'all') === 'employee' ? 'selected' : '' }}>Pegawai</option>
-                                        <option value="student" {{ ($metrics['role_filter'] ?? 'all') === 'student' ? 'selected' : '' }}>Siswa</option>
-                                    </select>
-                                </div>
-                                @endif
-                                
-                                <!-- Presets -->
-                                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-                                    <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">Hari Ini</a>
-                                    <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->subDays(6)->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">7 Hari Terakhir</a>
-                                    <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->startOfMonth()->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">Bulan Ini</a>
-                                </div>
-                                
-                                <div class="flex gap-3">
-                                    <button type="button" onclick="closeDateBottomSheet()" class="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Batal</button>
-                                    <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Terapkan</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @php
-                        $good = $metrics['thresholds']['good'] ?? 90;
-                        $warn = $metrics['thresholds']['warn'] ?? 75;
-                        $colorFor = function($p) use ($good, $warn) {
-                            if ($p >= $good) return 'bg-green-500';
-                            if ($p >= $warn) return 'bg-yellow-500';
-                            return 'bg-red-500';
-                        };
-                        $formatPercent = function($val) {
-                            $num = (float) ($val ?? 0);
-                            return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
-                        };
-                        $getCardStyle = function($percentage) {
-                            $p = (float) ($percentage ?? 0);
-                            if ($p >= 80) {
-                                return [
-                                    'bg' => 'bg-emerald-50/90 border-emerald-200/80',
-                                    'label' => 'text-emerald-800',
-                                    'number' => 'text-emerald-950',
-                                    'context' => 'text-emerald-700',
-                                    'icon' => 'text-emerald-600',
-                                    'status' => 'success',
-                                ];
-                            } elseif ($p >= 50) {
-                                return [
-                                    'bg' => 'bg-amber-50/90 border-amber-200/90',
-                                    'label' => 'text-amber-800',
-                                    'number' => 'text-amber-950',
-                                    'context' => 'text-amber-700',
-                                    'icon' => 'text-amber-600',
-                                    'status' => 'warning',
-                                ];
-                            } else {
-                                return [
-                                    'bg' => 'bg-rose-50/90 border-rose-200/80',
-                                    'label' => 'text-rose-800',
-                                    'number' => 'text-rose-950',
-                                    'context' => 'text-rose-700',
-                                    'icon' => 'text-rose-600',
-                                    'status' => 'danger',
-                                ];
-                            }
-                        };
-                        $cUsage = $getCardStyle($metrics['usage']['percentage'] ?? 0);
-                        $cKpi = $getCardStyle($metrics['kpi']['score'] ?? 0);
-                        $cEmp = $getCardStyle($metrics['completeness']['employees']['percentage'] ?? 0);
-                        $cStu = $getCardStyle($metrics['completeness']['students']['percentage'] ?? 0);
-                    @endphp
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- Card 1: Penggunaan -->
-                        <div class="p-4 rounded-2xl border {{ $cUsage['bg'] }} transition-all flex flex-col justify-between shadow-xs">
+                    <form method="GET" action="{{ route('dashboard') }}" id="bottom-sheet-date-form">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="{{ $cUsage['status'] === 'danger' ? 'alert-triangle' : 'user-check' }}" class="h-4 w-4 {{ $cUsage['icon'] }}"></i>
-                                    <span class="text-xs font-semibold {{ $cUsage['label'] }}">Penggunaan</span>
-                                </div>
-                                <div class="text-2xl font-semibold {{ $cUsage['number'] }} mb-1">
-                                    {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
-                                </div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Mulai</label>
+                                <input type="date" name="start" value="{{ $startDate ?? '' }}" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
-                            <div class="mt-1">
-                                <div class="text-xs font-medium {{ $cUsage['context'] }}">
-                                    {{ $metrics['usage']['active_users'] ?? 0 }}/{{ $metrics['usage']['total_users'] ?? 0 }} user aktif
-                                </div>
-                                @if(($metrics['usage']['active_users'] ?? 0) === 0)
-                                    <div class="text-[10px] text-rose-700 font-semibold mt-0.5 flex items-center gap-1">
-                                        <i data-lucide="info" class="h-3 w-3 inline"></i>
-                                        <span>Belum ada aktivitas absensi</span>
-                                    </div>
-                                @endif
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Selesai</label>
+                                <input type="date" name="end" value="{{ $endDate ?? '' }}" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                         </div>
-
-                        <!-- Card 2: KPI Absensi -->
-                        <div class="p-4 rounded-2xl border {{ $cKpi['bg'] }} transition-all flex flex-col justify-between shadow-xs">
-                            <div class="flex items-center gap-2 mb-2">
-                                <i data-lucide="clock" class="h-4 w-4 {{ $cKpi['icon'] }}"></i>
-                                <span class="text-xs font-semibold {{ $cKpi['label'] }}">KPI absensi</span>
-                            </div>
-                            <div class="text-2xl font-semibold {{ $cKpi['number'] }} mb-1">
-                                {{ $formatPercent($metrics['kpi']['score'] ?? 0) }}
-                            </div>
-                            <div class="text-xs font-medium {{ $cKpi['context'] }}">
-                                {{ $metrics['kpi']['ontime_rate'] ?? 0 }}% tepat waktu
-                            </div>
-                        </div>
-
-                        <!-- Card 3: Data Pegawai -->
-                        <div class="p-4 rounded-2xl border {{ $cEmp['bg'] }} transition-all flex flex-col justify-between shadow-xs">
-                            <div class="flex items-center gap-2 mb-2">
-                                <i data-lucide="{{ $cEmp['status'] === 'success' ? 'user-check' : 'user-x' }}" class="h-4 w-4 {{ $cEmp['icon'] }}"></i>
-                                <span class="text-xs font-semibold {{ $cEmp['label'] }}">Data pegawai</span>
-                            </div>
-                            <div class="text-2xl font-semibold {{ $cEmp['number'] }} mb-1">
-                                {{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}
-                            </div>
-                            <div class="text-xs font-medium {{ $cEmp['context'] }}">
-                                {{ $metrics['completeness']['employees']['complete'] ?? 0 }}/{{ $metrics['completeness']['employees']['total'] ?? 0 }} lengkap
-                            </div>
-                        </div>
-
-                        <!-- Card 4: Data Siswa -->
-                        <div class="p-4 rounded-2xl border {{ $cStu['bg'] }} transition-all flex flex-col justify-between shadow-xs">
-                            <div class="flex items-center gap-2 mb-2">
-                                <i data-lucide="users" class="h-4 w-4 {{ $cStu['icon'] }}"></i>
-                                <span class="text-xs font-semibold {{ $cStu['label'] }}">Data siswa</span>
-                            </div>
-                            <div class="text-2xl font-semibold {{ $cStu['number'] }} mb-1">
-                                {{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}
-                            </div>
-                            <div class="text-xs font-medium {{ $cStu['context'] }}">
-                                {{ $metrics['completeness']['students']['complete'] ?? 0 }}/{{ $metrics['completeness']['students']['total'] ?? 0 }} lengkap
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Late Attendance KPI -->
-                @if(isset($metrics['late_attendance']))
-                <div class="mt-8">
-                    <h4 class="text-base font-bold text-gray-900 mb-4">⏰ KPI Absensi Terlambat</h4>
-                    <div class="flex flex-col gap-6">
-                        <!-- Gauge Chart Card -->
-                        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <h5 class="text-sm font-bold text-gray-800">Persentase Terlambat</h5>
-                                <i data-lucide="clock" class="text-orange-500 h-5 w-5"></i>
-                            </div>
-                            <div class="flex flex-col items-center justify-center">
-                                <div class="text-3xl font-black text-orange-600 mb-1">
-                                    {{ $metrics['late_attendance']['late_percentage'] }}%
-                                </div>
-                                <div class="text-xs text-gray-400 font-medium mb-4">
-                                    {{ $metrics['late_attendance']['total_late'] }} dari {{ $metrics['late_attendance']['total_attendance'] }} absensi
-                                </div>
-                                <div id="gauge-late" style="height: 180px;" class="w-full"></div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Late Card List -->
-                        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <h5 class="text-sm font-bold text-gray-800">Terlambat Terbaru</h5>
-                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
-                                    {{ count($metrics['late_attendance']['recent_late']) }} orang
-                                </span>
-                            </div>
-                            <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
-                                @forelse($metrics['late_attendance']['recent_late'] as $late)
-                                <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl transition-all">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                            <i data-lucide="user" class="text-orange-600 h-5 w-5"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-gray-900 text-sm">{{ $late['user_name'] }}</div>
-                                            <div class="text-[10px] text-gray-400 mt-0.5">
-                                                @foreach($late['user_roles'] as $role)
-                                                    <span class="bg-gray-200/50 text-gray-600 px-2 py-0.5 rounded font-bold mr-1">{{ ucfirst($role) }}</span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-xs font-bold text-gray-500">{{ $late['date'] }}</div>
-                                        <div class="text-xs font-extrabold text-orange-600 mt-1">{{ $late['check_in'] }}</div>
-                                    </div>
-                                </div>
-                                @empty
-                                <x-empty-state icon="check-circle" iconColor="text-emerald-500" title="Tidak ada absensi terlambat" subtitle="Semua kehadiran hadir tepat waktu sesuai jadwal." />
-                                @endforelse
-                            </div>
-                        </div>
-
-                        <!-- Late by User Analysis Card List -->
-                        @if(count($metrics['late_attendance']['late_by_user']) > 0)
-                        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                            <h5 class="text-sm font-bold text-gray-800 mb-4">📋 Analisis per User</h5>
-                            <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
-                                @foreach($metrics['late_attendance']['late_by_user'] as $userLate)
-                                <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                            <i data-lucide="user" class="text-orange-600 h-5 w-5"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-gray-900 text-sm">{{ $userLate['user']['name'] }}</div>
-                                            <div class="text-[10px] text-gray-400 mt-0.5 flex flex-wrap gap-1 items-center">
-                                                @foreach($userLate['user']['roles'] as $role)
-                                                    <span class="bg-gray-200/50 text-gray-600 px-2 py-0.5 rounded font-bold mr-1">{{ ucfirst($role) }}</span>
-                                                @endforeach
-                                                <span class="text-gray-400 font-medium">terakhir: {{ $userLate['latest_late'] }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full text-xs font-extrabold border border-orange-100">
-                                            {{ $userLate['late_count'] }}x
-                                        </span>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
+                        @if(isset($metrics['role_filter']))
+                        <div class="mb-4">
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Filter Peran</label>
+                            <select name="role" class="w-full border border-gray-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="all" {{ ($metrics['role_filter'] ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>
+                                <option value="employee" {{ ($metrics['role_filter'] ?? 'all') === 'employee' ? 'selected' : '' }}>Pegawai</option>
+                                <option value="student" {{ ($metrics['role_filter'] ?? 'all') === 'student' ? 'selected' : '' }}>Siswa</option>
+                            </select>
                         </div>
                         @endif
+                        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                            <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">Hari Ini</a>
+                            <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->subDays(6)->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">7 Hari Terakhir</a>
+                            <a href="{{ route('dashboard', ['start' => now()->timezone('Asia/Jakarta')->startOfMonth()->format('Y-m-d'), 'end' => now()->timezone('Asia/Jakarta')->format('Y-m-d')]) }}" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold whitespace-nowrap border border-gray-100 transition-colors">Bulan Ini</a>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="closeDateBottomSheet()" class="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Batal</button>
+                            <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Terapkan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Single Flat Row: 4 Columns -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 py-1">
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">Penggunaan</div>
+                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['usage']['percentage'] ?? 0) }};">
+                        {{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}
                     </div>
                 </div>
-                @endif
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">KPI absensi</div>
+                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['kpi']['score'] ?? 0) }};">
+                        {{ $formatPercent($metrics['kpi']['score'] ?? 0) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">Data pegawai</div>
+                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['completeness']['employees']['percentage'] ?? 0) }};">
+                        {{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-medium text-gray-500 mb-1">Data siswa</div>
+                    <div class="text-2xl font-bold" style="color: {{ $getSemanticHex($metrics['completeness']['students']['percentage'] ?? 0) }};">
+                        {{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
                       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
                     <!-- Leak Table Card -->
@@ -609,10 +423,7 @@
                             @endforelse
                         </div>
                     </div>
-                </div>              </div>
-            </div>
-        </div>
-        @endif
+                </div>
 
         <!-- Charts after Ringkasan Performa (role-based) -->
         
@@ -823,73 +634,7 @@
 .quick-actions .qa-orange{ background-color: #fff7ed; }
 .quick-actions .qa-orange:hover{ background-color:#ffedd5; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-    const gauges = {
-        usage: {{ $metrics['usage']['percentage'] ?? 0 }},
-        kpi: {{ $metrics['kpi']['score'] ?? 0 }},
-        emp: {{ $metrics['completeness']['employees']['percentage'] ?? 0 }},
-        stu: {{ $metrics['completeness']['students']['percentage'] ?? 0 }},
-        late: {{ $metrics['late_attendance']['gauge_value'] ?? 0 }}
-    };
-    const thresholds = {
-        good: {{ $metrics['thresholds']['good'] ?? 90 }},
-        warn: {{ $metrics['thresholds']['warn'] ?? 75 }}
-    };
-    function pickColor(value){
-        const v = Number(value || 0);
-        if (v >= 80) return '#10b981'; // hijau (sukses >= 80%)
-        if (v >= 50) return '#f59e0b'; // amber/kuning (perlu perhatian 50-79%)
-        return '#ef4444'; // merah (kritis < 50%)
-    }
-    function renderGauge(el, value, color){
-        const options = {
-            chart: { height: 120, type: 'radialBar', sparkline: { enabled: true } },
-            series: [Number(value || 0)],
-            colors: [color || pickColor(Number(value || 0))],
-            plotOptions: {
-                radialBar: {
-                    hollow: { size: '60%' },
-                    dataLabels: {
-                        name: { show: false },
-                        value: { formatter: (v)=>{ const n = Math.round(v * 10) / 10; return (Number.isInteger(n) ? n : n.toFixed(1)) + '%'; }, fontSize: '16px' }
-                    }
-                }
-            }
-        };
-        const target = document.querySelector(el);
-        if (target) new ApexCharts(target, options).render();
-    }
-    
-    // Render late attendance gauge with inverted colors (higher is worse)
-    if (document.querySelector('#gauge-late')) {
-        const lateOptions = {
-            series: [gauges.late],
-            chart: {
-                type: 'radialBar',
-                height: 200,
-                sparkline: { enabled: true }
-            },
-            plotOptions: {
-                radialBar: {
-                    startAngle: -90,
-                    endAngle: 90,
-                    dataLabels: {
-                        name: { show: false },
-                        value: { 
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            color: gauges.late > 50 ? '#dc2626' : gauges.late > 25 ? '#f59e0b' : '#16a34a',
-                            formatter: function(val) { return val + '%' }
-                        }
-                    }
-                }
-            },
-            colors: [gauges.late > 50 ? '#dc2626' : gauges.late > 25 ? '#f59e0b' : '#16a34a'],
-            labels: ['Terlambat']
-        };
-        new ApexCharts(document.querySelector('#gauge-late'), lateOptions).render();
-    }
     // add loaded class to custom banner image
     window.requestAnimationFrame(()=>{
         const bannerImg=document.querySelector('.banner-custom-image');
