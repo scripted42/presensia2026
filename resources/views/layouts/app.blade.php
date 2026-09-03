@@ -644,9 +644,9 @@
 
             <!-- Page content -->
             <main id="main-content" class="flex-1 relative overflow-y-auto focus:outline-none" tabindex="-1">
-                <div class="py-4 md:py-6">
+                <div class="py-4 md:py-6 pb-24 md:pb-24">
                     <!-- Mobile: padding standar. Desktop (≥1024px): lebar penuh via .desktop-content-wrapper -->
-                    <div class="px-4 sm:px-6 desktop-content-wrapper">
+                    <div class="px-4 sm:px-6 desktop-content-wrapper pb-6">
                         @yield('content')
                     </div>
                 </div>
