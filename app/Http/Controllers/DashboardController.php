@@ -939,9 +939,23 @@ class DashboardController extends Controller
             }
         } elseif ($type === 'incomplete') {
             $list = $this->getIncompleteProfiles($user, 1000);
-            $rows[] = ['Nama', 'Tipe'];
+            $rows[] = ['Nama', 'Tipe', 'Kolom Kosong'];
             foreach ($list as $u) {
-                $rows[] = [$u->name, $u->user_type];
+                $rows[] = [$u->name, $u->user_type, $u->missing_count ?? 0];
+            }
+        } elseif ($type === 'all' || empty($type)) {
+            $rows[] = ['Kategori Masalah', 'Nama', 'Tipe', 'Detail'];
+            $incomplete = $this->getIncompleteProfiles($user, 1000);
+            foreach ($incomplete as $u) {
+                $rows[] = ['Profil Kosong', $u->name, $u->user_type, ($u->missing_count ?? 0) . ' kosong'];
+            }
+            $nonUsers = $this->getNonUserList($user, $startDate, $endDate, 1000);
+            foreach ($nonUsers as $u) {
+                $rows[] = ['Tidak Aktif', $u->name, $u->user_type, 'Tidak aktif'];
+            }
+            $leak = $this->calculateLeakMetrics($user, $startDate, $endDate);
+            foreach ($leak['samples'] as $rec) {
+                $rows[] = ['Leak Absensi', $rec->user->name, $rec->user->user_type, 'Date: ' . $rec->date . ' Check In: ' . optional($rec->check_in)->format('H:i')];
             }
         } else {
             abort(400, 'Jenis export tidak dikenal');

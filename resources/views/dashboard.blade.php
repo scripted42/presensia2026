@@ -315,115 +315,197 @@
         </div>
         @endif
 
-                      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-                    <!-- Leak Table Card -->
-                    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="font-bold text-gray-800 text-sm">Masuk tanpa Keluar (Leak)</span>
-                                <span class="text-[10px] text-gray-400 font-semibold mt-0.5">Rate: {{ $metrics['leak']['rate'] ?? 0 }}%</span>
-                            </div>
-                            <a href="{{ route('dashboard.export', ['type' => 'leak', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl transition-colors">
-                                <i data-lucide="download" class="h-3.5 w-3.5"></i>
-                                Export
-                            </a>
-                        </div>
-                        <div class="p-4 space-y-3 max-h-[350px] overflow-y-auto">
-                            @forelse(($metrics['leak']['samples'] ?? []) as $item)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                                        <i data-lucide="user-minus" class="text-red-600 h-5 w-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-gray-900 text-sm">{{ $item->user->name }}</div>
-                                        <div class="text-[10px] text-gray-400 mt-0.5 font-semibold">
-                                            {{ $item->user->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-xs font-bold text-gray-700">{{ (string)$item->date }}</div>
-                                    <div class="text-[10px] font-extrabold text-red-600 mt-1">Check In: {{ optional($item->check_in)->format('H:i') }}</div>
-                                </div>
-                            </div>
-                            @empty
-                            <x-empty-state icon="smile" iconColor="text-emerald-500" title="Tidak ada kebocoran absensi" subtitle="Semua user yang check-in telah menyelesaikan check-out." />
-                            @endforelse
-                        </div>
+        <!-- ZONA 2 — Satu List Terpadu, Ganti 3 Card Terpisah -->
+        @if(isset($metrics) && ($user->hasRole('admin') || $user->hasRole('headmaster') || $user->hasRole('bk') || $user->hasRole('kesiswaan')))
+        @php
+            $incompleteList = collect($metrics['incomplete_profiles'] ?? [])->map(function($u) {
+                return [
+                    'category' => 'incomplete',
+                    'name' => $u->name,
+                    'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
+                    'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · profil kosong',
+                    'badge_text' => ($u->missing_count ?? 0) . ' kosong',
+                    'badge_style' => 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;',
+                ];
+            });
+
+            $daysDiff = 7;
+            if (!empty($startDate) && !empty($endDate)) {
+                $daysDiff = max(1, \Carbon\Carbon::parse($startDate)->diffInDays(\Carbon\Carbon::parse($endDate)) + 1);
+            }
+
+            $nonUserList = collect($metrics['non_users'] ?? [])->map(function($u) use ($daysDiff) {
+                return [
+                    'category' => 'non_user',
+                    'name' => $u->name,
+                    'user_type' => $u->user_type === 'employee' ? 'Pegawai' : 'Siswa',
+                    'subtitle' => ($u->user_type === 'employee' ? 'Pegawai' : 'Siswa') . ' · tidak aktif',
+                    'badge_text' => $daysDiff . ' hari',
+                    'badge_style' => 'background-color: #fffbeb; color: #b45309; border: 1px solid #fef3c7;',
+                ];
+            });
+
+            $leakList = collect($metrics['leak']['samples'] ?? [])->map(function($item) {
+                return [
+                    'category' => 'leak',
+                    'name' => $item->user->name ?? 'User',
+                    'user_type' => ($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa',
+                    'subtitle' => (($item->user->user_type ?? '') === 'employee' ? 'Pegawai' : 'Siswa') . ' · leak absensi (' . (string)$item->date . ')',
+                    'badge_text' => 'Tanpa Check Out',
+                    'badge_style' => 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;',
+                ];
+            });
+
+            $allProblems = collect();
+            $maxCount = max($incompleteList->count(), $nonUserList->count(), $leakList->count());
+            for ($i = 0; $i < $maxCount; $i++) {
+                if ($incompleteList->has($i)) $allProblems->push($incompleteList->get($i));
+                if ($nonUserList->has($i)) $allProblems->push($nonUserList->get($i));
+                if ($leakList->has($i)) $allProblems->push($leakList->get($i));
+            }
+
+            $totalIssuesCount = $allProblems->count();
+            $incompleteCount = $incompleteList->count();
+            $nonUserCount = $nonUserList->count();
+            $leakCount = $leakList->count();
+        @endphp
+
+        <div class="mb-8">
+            <h3 class="text-sm font-semibold text-gray-500 mb-3">Zona 2 — satu list terpadu, ganti 3 card terpisah</h3>
+            
+            <div class="rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
+                <!-- Header Tabs and Single Export Button -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                    <!-- Tab horizontal -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0" id="zona2-tabs">
+                        <button type="button" onclick="switchZona2Tab('all')" id="tab-btn-all" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-bold border-b-2 border-black text-gray-900 transition-all">
+                            Semua ({{ $totalIssuesCount }})
+                        </button>
+                        <button type="button" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                            Profil kosong ({{ $incompleteCount }})
+                        </button>
+                        <button type="button" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                            Tidak aktif ({{ $nonUserCount }})
+                        </button>
+                        <button type="button" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="zona2-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-700 transition-all">
+                            Leak absensi ({{ $leakCount }})
+                        </button>
                     </div>
 
-                    <!-- Incomplete Profiles Table Card -->
-                    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="font-bold text-gray-800 text-sm">Profil Tidak Lengkap</span>
-                                <span class="text-[10px] text-gray-400 font-semibold mt-0.5">Top {{ ($metrics['incomplete_profiles'] ?? collect())->count() }} orang</span>
-                            </div>
-                            <a href="{{ route('dashboard.export', ['type' => 'incomplete', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs font-bold rounded-xl transition-colors">
-                                <i data-lucide="download" class="h-3.5 w-3.5"></i>
-                                Export
-                            </a>
-                        </div>
-                        <div class="p-4 space-y-3 max-h-[350px] overflow-y-auto">
-                            @forelse(($metrics['incomplete_profiles'] ?? []) as $u)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center">
-                                        <i data-lucide="user-x" class="text-yellow-600 h-5 w-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-gray-900 text-sm">{{ $u->name }}</div>
-                                        <div class="text-[10px] text-gray-400 mt-0.5 font-semibold">
-                                            {{ $u->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <span class="bg-red-50 border border-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-extrabold">
-                                        {{ $u->missing_count ?? 0 }} kosong
-                                    </span>
-                                </div>
-                            </div>
-                            @empty
-                            <x-empty-state icon="award" iconColor="text-emerald-500" title="Semua profil sudah lengkap" subtitle="Seluruh data profil pegawai dan siswa telah terisi 100%." />
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <!-- Non Users Table Card -->
-                    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="font-bold text-gray-800 text-sm">Tidak Aktif Menggunakan</span>
-                                <span class="text-[10px] text-gray-400 font-semibold mt-0.5">Top {{ ($metrics['non_users'] ?? collect())->count() }} orang</span>
-                            </div>
-                            <a href="{{ route('dashboard.export', ['type' => 'non_users', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded-xl transition-colors">
-                                <i data-lucide="download" class="h-3.5 w-3.5"></i>
-                                Export
-                            </a>
-                        </div>
-                        <div class="p-4 space-y-3 max-h-[350px] overflow-y-auto">
-                            @forelse(($metrics['non_users'] ?? []) as $u)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                                        <i data-lucide="user-minus" class="text-gray-400 h-5 w-5"></i>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-gray-900 text-sm">{{ $u->name }}</div>
-                                        <div class="text-[10px] text-gray-400 mt-0.5 font-semibold">
-                                            {{ $u->user_type === 'employee' ? 'Pegawai' : 'Siswa' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            @empty
-                            <x-empty-state icon="users" iconColor="text-emerald-500" title="Semua user aktif menggunakan" subtitle="Seluruh user tercatat melakukan absensi pada periode ini." />
-                            @endforelse
-                        </div>
+                    <!-- Single Export Button (top right) -->
+                    <div class="flex items-center self-end sm:self-auto">
+                        <a id="zona2-export-btn" href="{{ route('dashboard.export', ['type' => 'all', 'start' => $startDate, 'end' => $endDate]) }}" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 transition-colors">
+                            <i data-lucide="download" class="h-3.5 w-3.5 text-gray-500"></i>
+                            <span>Export</span>
+                        </a>
                     </div>
                 </div>
+
+                <!-- Tab Content Panels (Flat rows, max 5 rows) -->
+                <!-- Tab 'all' -->
+                <div id="zona2-panel-all" class="zona2-panel divide-y divide-gray-100">
+                    @forelse($allProblems->take(5) as $row)
+                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                        <div>
+                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                                {{ $row['badge_text'] }}
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-8 text-center text-sm text-gray-400">Tidak ada masalah profil, keaktifan, atau kebocoran absensi.</div>
+                    @endforelse
+                </div>
+
+                <!-- Tab 'incomplete' -->
+                <div id="zona2-panel-incomplete" class="zona2-panel divide-y divide-gray-100 hidden">
+                    @forelse($incompleteList->take(5) as $row)
+                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                        <div>
+                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                                {{ $row['badge_text'] }}
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua data profil sudah lengkap 100%.</div>
+                    @endforelse
+                </div>
+
+                <!-- Tab 'non_user' -->
+                <div id="zona2-panel-non_user" class="zona2-panel divide-y divide-gray-100 hidden">
+                    @forelse($nonUserList->take(5) as $row)
+                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                        <div>
+                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                                {{ $row['badge_text'] }}
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Semua user aktif menggunakan absensi.</div>
+                    @endforelse
+                </div>
+
+                <!-- Tab 'leak' -->
+                <div id="zona2-panel-leak" class="zona2-panel divide-y divide-gray-100 hidden">
+                    @forelse($leakList->take(5) as $row)
+                    <div class="flex items-center justify-between py-3.5 hover:bg-gray-50/50 px-2 rounded-xl transition-colors">
+                        <div>
+                            <div class="font-bold text-gray-900 text-sm">{{ $row['name'] }}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">{{ $row['subtitle'] }}</div>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="{{ $row['badge_style'] }}">
+                                {{ $row['badge_text'] }}
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-8 text-center text-sm text-emerald-600 font-medium">Tidak ada kebocoran absensi (seluruh user telah check out).</div>
+                    @endforelse
+                </div>
+
+                <!-- Footer 'Lihat semua N item' button -->
+                <div class="pt-4 border-t border-gray-100 text-center">
+                    <button type="button" onclick="openZona2Modal()" id="zona2-view-all-btn" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors inline-flex items-center gap-1">
+                        <span id="zona2-view-all-text">Lihat semua {{ $totalIssuesCount }} item</span>
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detail 'Lihat Semua' Zona 2 -->
+        <div id="zona2-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-40 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                    <h3 class="font-bold text-gray-900 text-base" id="zona2-modal-title">Daftar Lengkap (Semua)</h3>
+                    <button type="button" onclick="closeZona2Modal()" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
+                </div>
+                <div class="py-3 flex-1 overflow-y-auto divide-y divide-gray-100" id="zona2-modal-body">
+                    <!-- Populated dynamically by JS -->
+                </div>
+                <div class="pt-3 border-t border-gray-100 flex justify-end">
+                    <button type="button" onclick="closeZona2Modal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition-colors">Tutup</button>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Charts after Ringkasan Performa (role-based) -->
         
@@ -680,5 +762,93 @@
             }, 300);
         }
     }
+
+    // Zona 2 Tab and Modal Logic
+    @if(isset($metrics))
+    const zona2Data = {
+        all: @json($allProblems ?? []),
+        incomplete: @json($incompleteList ?? []),
+        non_user: @json($nonUserList ?? []),
+        leak: @json($leakList ?? []),
+        startDate: @json($startDate ?? ''),
+        endDate: @json($endDate ?? ''),
+    };
+    let currentZona2Tab = 'all';
+
+    function switchZona2Tab(tab) {
+        currentZona2Tab = tab;
+        // Tab buttons styling
+        document.querySelectorAll('.zona2-tab-btn').forEach(btn => {
+            btn.classList.remove('border-b-2', 'border-black', 'text-gray-900', 'font-bold');
+            btn.classList.add('text-gray-400', 'font-semibold');
+        });
+        const activeBtn = document.getElementById('tab-btn-' + tab);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-gray-400', 'font-semibold');
+            activeBtn.classList.add('border-b-2', 'border-black', 'text-gray-900', 'font-bold');
+        }
+
+        // Tab panels display
+        document.querySelectorAll('.zona2-panel').forEach(p => p.classList.add('hidden'));
+        const activePanel = document.getElementById('zona2-panel-' + tab);
+        if (activePanel) activePanel.classList.remove('hidden');
+
+        // Export button update
+        const exportBtn = document.getElementById('zona2-export-btn');
+        if (exportBtn) {
+            const typeMap = { all: 'all', incomplete: 'incomplete', non_user: 'non_users', leak: 'leak' };
+            const exportType = typeMap[tab] || 'all';
+            exportBtn.href = `{{ route('dashboard.export') }}?type=${exportType}&start=${zona2Data.startDate}&end=${zona2Data.endDate}`;
+        }
+
+        // View All text update
+        const count = (zona2Data[tab] || []).length;
+        const viewAllText = document.getElementById('zona2-view-all-text');
+        if (viewAllText) {
+            viewAllText.innerText = `Lihat semua ${count} item`;
+        }
+    }
+
+    function openZona2Modal() {
+        const modal = document.getElementById('zona2-modal');
+        const modalTitle = document.getElementById('zona2-modal-title');
+        const modalBody = document.getElementById('zona2-modal-body');
+        if (!modal || !modalTitle || !modalBody) return;
+
+        const titles = {
+            all: 'Daftar Semua Masalah (' + (zona2Data.all || []).length + ')',
+            incomplete: 'Daftar Profil Kosong (' + (zona2Data.incomplete || []).length + ')',
+            non_user: 'Daftar Tidak Aktif (' + (zona2Data.non_user || []).length + ')',
+            leak: 'Daftar Leak Absensi (' + (zona2Data.leak || []).length + ')'
+        };
+        modalTitle.innerText = titles[currentZona2Tab] || 'Daftar Masalah';
+
+        const items = zona2Data[currentZona2Tab] || [];
+        if (items.length === 0) {
+            modalBody.innerHTML = '<div class="py-8 text-center text-sm text-gray-400">Tidak ada item dalam kategori ini.</div>';
+        } else {
+            modalBody.innerHTML = items.map(item => `
+                <div class="flex items-center justify-between py-3">
+                    <div>
+                        <div class="font-bold text-gray-900 text-sm">${item.name}</div>
+                        <div class="text-xs text-gray-400 mt-0.5">${item.subtitle}</div>
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="${item.badge_style}">
+                            ${item.badge_text}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        modal.classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeZona2Modal() {
+        const modal = document.getElementById('zona2-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+    @endif
 </script>
 @endpush
