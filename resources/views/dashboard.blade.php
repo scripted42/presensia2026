@@ -303,6 +303,12 @@
                             $num = (float) ($val ?? 0);
                             return (floor($num) == $num ? number_format($num, 0) : number_format($num, 1)) . '%';
                         };
+                        $statusColorText = function($p) {
+                            $val = (float) $p;
+                            if ($val >= 80) return 'text-emerald-600';
+                            if ($val >= 50) return 'text-amber-600';
+                            return 'text-rose-600';
+                        };
                     @endphp
                     
                     <!-- Penggunaan Absensi Card -->
@@ -312,7 +318,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Penggunaan Absensi</div>
                                 <i data-lucide="user-check" class="text-blue-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}</div>
+                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['usage']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['usage']['percentage'] ?? 0) }}</div>
                             <div id="gauge-usage" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -344,7 +350,7 @@
                                 </div>
                                 <i data-lucide="gauge" class="text-emerald-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['kpi']['score'] ?? 0) }}</div>
+                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['kpi']['score'] ?? 0) }}">{{ $formatPercent($metrics['kpi']['score'] ?? 0) }}</div>
                             <div id="gauge-kpi" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50">
@@ -407,7 +413,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Pegawai</div>
                                 <i data-lucide="contact" class="text-indigo-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}</div>
+                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['completeness']['employees']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['completeness']['employees']['percentage'] ?? 0) }}</div>
                             <div id="gauge-emp" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -422,7 +428,7 @@
                                 <div class="text-sm font-semibold text-gray-500">Kelengkapan Data Siswa</div>
                                 <i data-lucide="graduation-cap" class="text-rose-600 h-5 w-5"></i>
                             </div>
-                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}</div>
+                            <div class="mt-2 text-2xl font-bold {{ $statusColorText($metrics['completeness']['students']['percentage'] ?? 0) }}">{{ $formatPercent($metrics['completeness']['students']['percentage'] ?? 0) }}</div>
                             <div id="gauge-stu" class="mt-4" style="height:160px;"></div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-50 text-center">
@@ -869,10 +875,10 @@
         warn: {{ $metrics['thresholds']['warn'] ?? 75 }}
     };
     function pickColor(value){
-        if (Number(value) === 0) return '#94a3b8'; // grey / slate-400
-        if (value >= thresholds.good) return '#16a34a'; // green
-        if (value >= thresholds.warn) return '#f59e0b'; // amber
-        return '#ef4444'; // red
+        const v = Number(value || 0);
+        if (v >= 80) return '#10b981'; // hijau (sukses >= 80%)
+        if (v >= 50) return '#f59e0b'; // amber/kuning (perlu perhatian 50-79%)
+        return '#ef4444'; // merah (kritis < 50%)
     }
     function renderGauge(el, value, color){
         const options = {
