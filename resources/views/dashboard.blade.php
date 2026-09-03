@@ -629,38 +629,41 @@
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 quick-actions">
                         @if($user->hasRole('admin'))
                             <!-- Admin Menu -->
-                            <a href="{{ route('users.index') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl mb-2">
+                            <!-- Kategori 1: Manajemen Data / User (Biru) -->
+                            <a href="{{ route('users.index') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-blue-50 text-blue-600 border border-blue-100/60 rounded-2xl mb-2 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                     <i data-lucide="users" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Manajemen User</span>
                             </a>
-                            <a href="{{ route('users.import') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-green-50 text-green-600 rounded-2xl mb-2">
+                            <a href="{{ route('users.import') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-blue-50 text-blue-600 border border-blue-100/60 rounded-2xl mb-2 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                     <i data-lucide="upload" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Import Data</span>
                             </a>
-                            <a href="{{ route('settings.attendance') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-purple-50 text-purple-600 rounded-2xl mb-2">
+                            <!-- Kategori 2: Laporan & Pengaturan (Ungu) -->
+                            <a href="{{ route('settings.attendance') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-purple-50 text-purple-600 border border-purple-100/60 rounded-2xl mb-2 group-hover:bg-purple-600 group-hover:text-white transition-all">
                                     <i data-lucide="settings" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Pengaturan</span>
                             </a>
-                            <a href="{{ route('attendance.reports') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-orange-50 text-orange-600 rounded-2xl mb-2">
+                            <a href="{{ route('attendance.reports') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-purple-50 text-purple-600 border border-purple-100/60 rounded-2xl mb-2 group-hover:bg-purple-600 group-hover:text-white transition-all">
                                     <i data-lucide="bar-chart-2" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Laporan</span>
                             </a>
-                            <a href="{{ route('leave-requests.create') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-orange-50 text-orange-600 rounded-2xl mb-2">
+                            <!-- Kategori 3: Izin & Cuti (Amber/Orange) -->
+                            <a href="{{ route('leave-requests.create') }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-amber-50 text-amber-600 border border-amber-100/60 rounded-2xl mb-2 group-hover:bg-amber-600 group-hover:text-white transition-all">
                                     <i data-lucide="calendar-days" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Izin Pribadi</span>
                             </a>
-                            <a href="{{ route('leave-requests.create', ['user_id' => 'student']) }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all">
-                                <div class="p-3 bg-yellow-50 text-yellow-600 rounded-2xl mb-2">
+                            <a href="{{ route('leave-requests.create', ['user_id' => 'student']) }}" class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md flex flex-col items-center text-center transition-all group">
+                                <div class="p-3 bg-amber-50 text-amber-600 border border-amber-100/60 rounded-2xl mb-2 group-hover:bg-amber-600 group-hover:text-white transition-all">
                                     <i data-lucide="user-x" class="h-6 w-6"></i>
                                 </div>
                                 <span class="text-xs font-bold text-gray-700">Izin Siswa</span>
