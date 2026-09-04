@@ -36,6 +36,7 @@
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">NIK</th>
                         @else
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">NIS</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Kelas</th>
                         @endif
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Status</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Issues</th>
@@ -54,6 +55,7 @@
                                 <td class="px-3 py-2 text-sm text-gray-900">{{ $row['data']['nik'] ?? '' }}</td>
                             @else
                                 <td class="px-3 py-2 text-sm text-gray-900">{{ $row['data']['nis'] ?? '' }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-900 font-medium">{{ !empty($row['data']['class']) ? $row['data']['class'] : '-' }}</td>
                             @endif
                             <td class="px-3 py-2 text-sm"><span class="px-2 py-1 rounded {{ $statusColor }}">{{ ucfirst($row['status']) }}</span></td>
                             <td class="px-3 py-2 text-sm text-gray-900">{{ implode('; ', $row['issues']) }}</td>

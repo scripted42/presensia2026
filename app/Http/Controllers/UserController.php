@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\SuperAdmin;
 use App\Models\School;
 use App\Models\SchoolClass;
+use App\Models\ClassStudent;
 use App\Models\EmployeeProfile;
 use App\Models\StudentProfile;
 use Illuminate\Support\Facades\Hash;
@@ -305,7 +306,15 @@ class UserController extends Controller
                             if ($type === 'employee' && !empty($row['nik'])) $q->orWhere('nik', $row['nik']);
                             if ($type === 'student' && !empty($row['nis'])) $q->orWhere('nis', $row['nis']);
                         });
-                    if ($existsQuery->exists()) { $duplicates++; continue; }
+                    $existingUser = $existsQuery->first();
+                    if ($existingUser) { 
+                        $duplicates++; 
+                        // Jika siswa sudah ada dan di file terdapat kolom kelas, hubungkan/update kelasnya
+                        if ($type === 'student' && !empty($row['class'])) {
+                            $this->assignStudentToClass($existingUser, $row['class']);
+                        }
+                        continue; 
+                    }
 
                     $user = User::create([
                         'school_id' => auth()->user()->school_id,
@@ -324,6 +333,11 @@ class UserController extends Controller
                     ]);
                     $role = $row['role'] ?? ($type === 'student' ? 'student' : 'teacher');
                     $user->assignRole($role);
+
+                    // Hubungkan siswa ke kelas jika kolom kelas diisi
+                    if ($type === 'student' && !empty($row['class'])) {
+                        $this->assignStudentToClass($user, $row['class']);
+                    }
 
                     // Create minimal profile with birth_place + birth_date mapping
                     if ($type === 'employee') {
@@ -395,6 +409,11 @@ class UserController extends Controller
             'tempat lahir' => 'birth_place',
             'tempat_lahir' => 'birth_place',
             'alamat' => 'address',
+            'kelas' => 'class',
+            'kelas_siswa' => 'class',
+            'rombel' => 'class',
+            'rombongan_belajar' => 'class',
+            'tingkat' => 'class',
             'telepon' => 'phone',
             'no hp' => 'phone',
             'no_hp' => 'phone',
@@ -482,6 +501,7 @@ class UserController extends Controller
                 $row['kip_number'] = trim($row['kip_number'] ?? '');
                 $row['nis'] = trim($row['nis'] ?? '');
                 $row['nisn'] = trim($row['nisn'] ?? '');
+                $row['class'] = trim($row['class'] ?? '');
                 if ($row['password'] === '') {
                     $row['password'] = $row['nis']; // Default password = NIS
                 }
@@ -561,8 +581,8 @@ class UserController extends Controller
             $headers = ['name','email','password','nik','phone','address','birth_place','birth_date','gender','role','nuptk'];
             $sample  = ['Budi Santoso','','','3173xxxxxxxxxxxx','08123456789','Jl. Merdeka 1, Jakarta','Jakarta','31-08-1990','L','teacher','123456789012'];
         } else {
-            $headers = ['name','email','password','nis','nisn','phone','address','birth_place','birth_date','gender','role','kk_number','kip_number'];
-            $sample  = ['Siti Aminah','','','12001','3200xxxxxxxxxx','08129876543','Jl. Kenanga 2, Bandung','Bandung','15-07-2008','P','student','3173xxxxxxxxxxxx','KIP123456789'];
+            $headers = ['name','email','password','nis','nisn','class','gender','phone','address','birth_place','birth_date','role','kk_number','kip_number'];
+            $sample  = ['Siti Aminah','','','12001','3200xxxxxxxxxx','7A','P','08129876543','Jl. Kenanga 2, Surabaya','Surabaya','15-07-2011','student','3173xxxxxxxxxxxx','KIP123456789'];
         }
 
         // Gunakan fputcsv agar kolom yang mengandung koma otomatis di-quote
@@ -578,6 +598,47 @@ class UserController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"'
         ]);
+    }
+
+    /**
+     * Hubungkan siswa ke kelas (buat kelas otomatis jika belum ada di sekolah)
+     */
+    private function assignStudentToClass(User $student, string $className): void
+    {
+        $className = trim($className);
+        if (empty($className)) return;
+
+        // Ekstrak tingkat kelas (contoh: "7A" -> "7", "VII-B" -> "7", "8" -> "8", "Kelas 9" -> "9")
+        $level = preg_replace('/[^0-9]/', '', $className);
+        if (empty($level)) {
+            if (stripos($className, 'vii') !== false) $level = '7';
+            elseif (stripos($className, 'viii') !== false) $level = '8';
+            elseif (stripos($className, 'ix') !== false) $level = '9';
+            else $level = '7';
+        }
+
+        $schoolClass = SchoolClass::firstOrCreate(
+            [
+                'school_id' => $student->school_id,
+                'name' => $className,
+            ],
+            [
+                'level' => $level,
+                'year' => (int) date('Y'),
+                'is_active' => true,
+            ]
+        );
+
+        ClassStudent::updateOrCreate(
+            [
+                'class_id' => $schoolClass->id,
+                'student_id' => $student->id,
+            ],
+            [
+                'status' => 'active',
+                'enrolled_at' => now(),
+            ]
+        );
     }
 
     /**
