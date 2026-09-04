@@ -1251,24 +1251,24 @@ class DashboardController extends Controller
                 $rows[] = [$rec->user->name, (string)$rec->date, optional($rec->check_in)->format('H:i')];
             }
         } elseif ($type === 'non_users') {
-            $list = $this->getNonUserList($user, $startDate, $endDate, 1000);
+            $list = $this->getNonUserList($user, $startDate, $endDate, 10000);
             $rows[] = ['Nama', 'Tipe'];
             foreach ($list as $u) {
                 $rows[] = [$u->name, $u->user_type];
             }
         } elseif ($type === 'incomplete') {
-            $list = $this->getIncompleteProfiles($user, 1000);
+            $list = $this->getIncompleteProfiles($user, 10000);
             $rows[] = ['Nama', 'Tipe', 'Kolom Kosong'];
             foreach ($list as $u) {
                 $rows[] = [$u->name, $u->user_type, $u->missing_count ?? 0];
             }
         } elseif ($type === 'all' || empty($type)) {
             $rows[] = ['Kategori Masalah', 'Nama', 'Tipe', 'Detail'];
-            $incomplete = $this->getIncompleteProfiles($user, 1000);
+            $incomplete = $this->getIncompleteProfiles($user, 10000);
             foreach ($incomplete as $u) {
                 $rows[] = ['Profil Kosong', $u->name, $u->user_type, ($u->missing_count ?? 0) . ' kosong'];
             }
-            $nonUsers = $this->getNonUserList($user, $startDate, $endDate, 1000);
+            $nonUsers = $this->getNonUserList($user, $startDate, $endDate, 10000);
             foreach ($nonUsers as $u) {
                 $rows[] = ['Tidak Aktif', $u->name, $u->user_type, 'Tidak aktif'];
             }

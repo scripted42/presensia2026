@@ -353,6 +353,12 @@
 
     // Zona 2 Tab and Modal Logic
     @if(isset($metrics))
+    const zona2Counts = {
+        all: {{ $trueTotalIssuesCount ?? $totalIssuesCount ?? 0 }},
+        incomplete: {{ $trueIncompleteCount ?? $incompleteCount ?? 0 }},
+        non_user: {{ $trueNonUserCount ?? $nonUserCount ?? 0 }},
+        leak: {{ $trueLeakCount ?? $leakCount ?? 0 }},
+    };
     const zona2Data = {
         all: @json($allProblems ?? []),
         incomplete: @json($incompleteList ?? []),
@@ -388,7 +394,7 @@
         }
 
         // View All text update
-        const count = (zona2Data[tab] || []).length;
+        const count = zona2Counts[tab] !== undefined ? zona2Counts[tab] : (zona2Data[tab] || []).length;
         const viewAllText = document.getElementById('zona2-view-all-text');
         if (viewAllText) {
             viewAllText.innerText = `Lihat semua ${count} item`;

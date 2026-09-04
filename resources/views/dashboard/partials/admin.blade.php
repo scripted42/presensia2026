@@ -445,10 +445,16 @@
                 if ($leakList->has($i)) $allProblems->push($leakList->get($i));
             }
 
-            $totalIssuesCount = $allProblems->count();
-            $incompleteCount = $incompleteList->count();
-            $nonUserCount = $nonUserList->count();
-            $leakCount = $leakList->count();
+            $trueIncompleteCount = (($metrics['completeness']['employees']['total'] ?? 0) - ($metrics['completeness']['employees']['complete'] ?? 0))
+                                 + (($metrics['completeness']['students']['total'] ?? 0) - ($metrics['completeness']['students']['complete'] ?? 0));
+            $trueNonUserCount = max(0, ($metrics['usage']['total_users'] ?? 0) - ($metrics['usage']['active_users'] ?? 0));
+            $trueLeakCount = $metrics['leak']['count'] ?? 0;
+            $trueTotalIssuesCount = $trueIncompleteCount + $trueNonUserCount + $trueLeakCount;
+
+            $totalIssuesCount = $trueTotalIssuesCount;
+            $incompleteCount = $trueIncompleteCount;
+            $nonUserCount = $trueNonUserCount;
+            $leakCount = $trueLeakCount;
         @endphp
 
         <div>
@@ -460,16 +466,16 @@
                     <!-- daisyUI tabs -->
                     <div role="tablist" class="tabs tabs-bordered overflow-x-auto" id="zona2-tabs">
                         <a role="tab" onclick="switchZona2Tab('all')" id="tab-btn-all" class="tab tab-active font-bold text-xs whitespace-nowrap">
-                            Semua ({{ $totalIssuesCount }})
+                            Semua ({{ $trueTotalIssuesCount }})
                         </a>
                         <a role="tab" onclick="switchZona2Tab('incomplete')" id="tab-btn-incomplete" class="tab text-xs whitespace-nowrap">
-                            Profil kosong ({{ $incompleteCount }})
+                            Profil kosong ({{ $trueIncompleteCount }})
                         </a>
                         <a role="tab" onclick="switchZona2Tab('non_user')" id="tab-btn-non_user" class="tab text-xs whitespace-nowrap">
-                            Tidak aktif ({{ $nonUserCount }})
+                            Tidak aktif ({{ $trueNonUserCount }})
                         </a>
                         <a role="tab" onclick="switchZona2Tab('leak')" id="tab-btn-leak" class="tab text-xs whitespace-nowrap">
-                            Leak absensi ({{ $leakCount }})
+                            Leak absensi ({{ $trueLeakCount }})
                         </a>
                     </div>
 
@@ -480,6 +486,10 @@
                             <span>Export</span>
                         </a>
                     </div>
+                </div>
+
+                <div class="pt-3 pb-1 px-1 text-xs text-gray-500 flex items-center justify-between">
+                    <span>Menampilkan sampel data teratas. Klik <strong>Export</strong> di pojok kanan atas untuk mengunduh seluruh data (CSV).</span>
                 </div>
 
                 <!-- Tab Content Panels (Flat rows with daisyUI badges) -->
