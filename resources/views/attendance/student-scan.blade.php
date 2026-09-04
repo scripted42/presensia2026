@@ -400,10 +400,41 @@ body { overscroll-behavior: none; touch-action: pan-y; }
 .av-3{background:#f59e0b;} .av-4{background:#ef4444;} .av-5{background:#06b6d4;}
 .av-6{background:#ec4899;} .av-7{background:#84cc16;}
 
-/* Toast */
-.toast { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#1e293b; color:white; font-size:13px; font-weight:600; padding:10px 20px; border-radius:12px; z-index:999; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,.3); animation:toastIn .25s ease forwards; }
-.toast.success{background:#059669;} .toast.error{background:#dc2626;} .toast.warning{background:#d97706;} .toast.info{background:#2563eb;}
-@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-8px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+/* Toast Notification */
+.scan-toast {
+    position: fixed !important;
+    top: 24px !important;
+    bottom: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: max-content !important;
+    width: auto !important;
+    max-width: calc(100vw - 32px) !important;
+    background: #1e293b;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 99px;
+    z-index: 99999 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,.45), 0 8px 10px -6px rgba(0,0,0,.4);
+    animation: scanToastIn .25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+}
+.scan-toast.success { background: #059669 !important; }
+.scan-toast.error   { background: #dc2626 !important; }
+.scan-toast.warning { background: #d97706 !important; }
+.scan-toast.info    { background: #2563eb !important; }
+
+@keyframes scanToastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.95); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
 </style>
 
 <script>
@@ -637,11 +668,19 @@ document.getElementById('syncButtonBottom').addEventListener('click', doSync);
 
 /* TOAST */
 function showToast(message, type='info') {
+    // Bersihkan toast sebelumnya jika ada
+    document.querySelectorAll('.scan-toast').forEach(el => el.remove());
+
     const t = document.createElement('div');
-    t.className = 'toast ' + type;
+    t.className = 'scan-toast ' + type;
     t.textContent = message;
     document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 3000);
+    setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(-10px) scale(0.95)';
+        t.style.transition = 'all .3s ease';
+        setTimeout(() => t.remove(), 300);
+    }, 2800);
 }
 
 /* SYNC RESULT FROM SESSION */
