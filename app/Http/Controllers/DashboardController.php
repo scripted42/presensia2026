@@ -723,7 +723,7 @@ class DashboardController extends Controller
         $employees = User::with('employeeProfile')
             ->where('school_id', $user->school_id)
             ->where('user_type', 'employee')
-            ->whereDoesntHave('roles', function($q){ $q->where('name','super-admin'); })
+            ->whereDoesntHave('roles', function($q){ $q->whereIn('name', ['super-admin', 'admin']); })
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%')
             ->get(['id','name','phone','address','nik']);
@@ -761,8 +761,8 @@ class DashboardController extends Controller
         $stuMissing = $students->reduce(function($carry, $u) use ($studentRequired) {
             $m = 0; foreach ($studentRequired as $f) { if ($this->isFieldEmpty($u, $f, 'student_profile')) $m++; } return $carry + $m; }, 0);
 
-        $empCompleteness = $totalEmpFields > 0 ? round((1 - ($empMissing / $totalEmpFields)) * 100, 1) : 0;
-        $stuCompleteness = $totalStuFields > 0 ? round((1 - ($stuMissing / $totalStuFields)) * 100, 1) : 0;
+        $empCompleteness = ($empTotal > 0 && $totalEmpFields > 0) ? round((1 - ($empMissing / $totalEmpFields)) * 100, 1) : 0;
+        $stuCompleteness = ($stuTotal > 0 && $totalStuFields > 0) ? round((1 - ($stuMissing / $totalStuFields)) * 100, 1) : 0;
 
         return [
             'employees' => [
@@ -811,7 +811,7 @@ class DashboardController extends Controller
         $completenessRate = (
             (($completeness['employees']['percentage'] ?? 0) + ($completeness['students']['percentage'] ?? 0)) / 2
         ) / 100;
-        $checkoutConsistency = 1 - (($leak['rate'] ?? 0) / 100);
+        $checkoutConsistency = $totalRecords > 0 ? (1 - (($leak['rate'] ?? 0) / 100)) : 0;
 
         // Normalisasi bobot
         $wOn = $weights['ontime'] ?? 0.4;
@@ -821,7 +821,8 @@ class DashboardController extends Controller
         $wSum = max($wOn + $wAd + $wCo + $wCc, 0.0001);
         $wOn /= $wSum; $wAd /= $wSum; $wCo /= $wSum; $wCc /= $wSum;
 
-        $score = round(($wOn * $ontimeRate + $wAd * $coverageRate + $wCo * $completenessRate + $wCc * $checkoutConsistency) * 100, 1);
+        $hasData = ($totalRecords > 0) || (($usage['total'] ?? 0) > 0) || (($completeness['employees']['total'] ?? 0) > 0) || (($completeness['students']['total'] ?? 0) > 0);
+        $score = $hasData ? round(($wOn * $ontimeRate + $wAd * $coverageRate + $wCo * $completenessRate + $wCc * $checkoutConsistency) * 100, 1) : 0;
 
         return [
             'score' => $score,
