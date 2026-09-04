@@ -412,10 +412,24 @@ class SuperAdminController extends Controller
     public function destroy(School $school)
     {
         $schoolName = $school->name;
-        $userCount = $school->users->count();
-        
-        // Delete related data first (cascade delete)
-        $school->users()->delete();
+        $superAdminEmail = config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'));
+        $superAdminUser = $school->users()->where('email', $superAdminEmail)->first();
+
+        // Jika super admin terikat di sekolah ini, pindahkan ke sekolah lain atau cegah jika ini sekolah terakhir
+        if ($superAdminUser) {
+            $otherSchool = School::where('id', '!=', $school->id)->first();
+            if ($otherSchool) {
+                $superAdminUser->update(['school_id' => $otherSchool->id]);
+            } else {
+                return redirect()->route('super-admin.index')
+                    ->with('error', 'Tidak dapat menghapus sekolah ini karena merupakan satu-satunya sekolah tempat akun Super Admin terdaftar.');
+            }
+        }
+
+        $userCount = $school->users()->where('email', '!=', $superAdminEmail)->count();
+
+        // Delete related data first (cascade delete, kecuali super admin)
+        $school->users()->where('email', '!=', $superAdminEmail)->delete();
         $school->classes()->delete();
         $school->tenantSettings()->delete();
         $school->attendanceSettings()->delete();
