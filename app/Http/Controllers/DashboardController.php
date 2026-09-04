@@ -87,9 +87,8 @@ class DashboardController extends Controller
 
         if ($isManagerial) {
             $lateToday = $this->getLateToday($user);
-            $lateUserIds = $lateToday->pluck('user_id')->toArray();
             $onLeaveToday = $this->getOnLeaveToday($user);
-            $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+            $recentAttendanceFeed = $this->getRecentAttendanceFeed($user);
         }
 
         // Data Personal untuk Pegawai & Siswa
@@ -130,8 +129,7 @@ class DashboardController extends Controller
         }
 
         $lateToday = $this->getLateToday($user);
-        $lateUserIds = $lateToday->pluck('user_id')->filter()->unique()->values()->all();
-        $recentAttendanceFeed = $this->getRecentAttendanceFeed($user, $lateUserIds);
+        $recentAttendanceFeed = $this->getRecentAttendanceFeed($user);
         $onLeaveToday = $this->getOnLeaveToday($user);
 
         return response()->json([
@@ -548,18 +546,17 @@ class DashboardController extends Controller
     }
 
     /**
-     * Dapatkan feed absensi terbaru (real-time, maksimal 10), tidak redundan dengan terlambat.
+     * Dapatkan feed absensi terbaru (real-time, maksimal 50), menampilkan seluruh aktivitas absensi (tepat waktu maupun terlambat).
      */
-    private function getRecentAttendanceFeed($user, array $excludeUserIds = []): \Illuminate\Support\Collection
+    private function getRecentAttendanceFeed($user): \Illuminate\Support\Collection
     {
+        $today = Carbon::today('Asia/Jakarta')->format('Y-m-d');
+
         $query = Attendance::with(['user.roles', 'user.studentClasses'])
             ->whereHas('user', function($q) use ($user) {
                 $q->where('school_id', $user->school_id);
-            });
-
-        if (!empty($excludeUserIds)) {
-            $query->whereNotIn('user_id', $excludeUserIds);
-        }
+            })
+            ->whereDate('date', $today);
 
         $attendances = $query->orderBy('updated_at', 'desc')
             ->orderBy('created_at', 'desc')
@@ -572,12 +569,16 @@ class DashboardController extends Controller
             $eventTime = $isCheckOut ? Carbon::parse($att->check_out) : ($att->check_in ? Carbon::parse($att->check_in) : Carbon::parse($att->created_at));
             $eventType = $isCheckOut ? 'Absen keluar' : 'Absen masuk';
             $location = $att->location_name ?: ($att->latitude && $att->longitude ? round($att->latitude, 4) . ', ' . round($att->longitude, 4) : null);
+            $isLate = ($att->status === 'late');
 
             return [
                 'name' => $u ? $u->name : 'User',
                 'avatar' => $u?->avatar ?? null,
                 'initials' => strtoupper(substr($u?->name ?? 'US', 0, 2)),
                 'event_type' => $eventType,
+                'status' => $att->status,
+                'status_label' => $isLate ? 'Terlambat' : 'Tepat Waktu',
+                'is_late' => $isLate,
                 'time_str' => $eventTime->timezone('Asia/Jakarta')->format('H:i'),
                 'relative_time' => $eventTime->timezone('Asia/Jakarta')->diffForHumans(),
                 'location' => $location,

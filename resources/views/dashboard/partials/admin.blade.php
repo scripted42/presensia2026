@@ -751,6 +751,16 @@
                                     <div class="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5 flex-wrap">
                                         <span class="font-medium text-gray-600">{{ $feed['event_type'] }}</span>
                                         <span>•</span>
+                                        @if(!empty($feed['is_late']))
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            Terlambat
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            Tepat Waktu
+                                        </span>
+                                        @endif
+                                        <span>•</span>
                                         <span class="flex items-center gap-0.5 text-gray-400">
                                             <i data-lucide="clock" class="h-3 w-3"></i>
                                             {{ $feed['time_str'] }}

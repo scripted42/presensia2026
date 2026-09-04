@@ -484,6 +484,10 @@
                                     ? `<span>•</span><span class="truncate max-w-[110px] text-gray-400" title="${feed.location}">${feed.location}</span>` 
                                     : '';
 
+                                const statusBadgeHtml = feed.is_late
+                                    ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Terlambat</span>`
+                                    : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Tepat Waktu</span>`;
+
                                 return `
                                 <div class="flex items-center justify-between py-3 hover:bg-gray-50/50 rounded-xl px-1.5 transition-colors">
                                     <div class="flex items-center gap-2.5 min-w-0">
@@ -492,6 +496,8 @@
                                             <p class="text-sm font-medium text-gray-900 leading-tight truncate">${feed.name}</p>
                                             <div class="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5 flex-wrap">
                                                 <span class="font-medium text-gray-600">${feed.event_type}</span>
+                                                <span>•</span>
+                                                ${statusBadgeHtml}
                                                 <span>•</span>
                                                 <span class="flex items-center gap-0.5 text-gray-400">
                                                     <i data-lucide="clock" class="h-3 w-3"></i>
