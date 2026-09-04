@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - Presensia</title>
-    <!-- Resource Hints: speed up cold start/hard refresh -->
+    <!-- Resource Hints -->
     <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
@@ -13,15 +14,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/fontawesome.css') }}">
-    <!-- Inter font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google Fonts: Baloo 2 (heading), Manrope (body), Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+
     <style>
+        [x-cloak] { display: none !important; }
+
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            font-family: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif; 
         }
         
         /* Entrance animation for form */
@@ -104,6 +113,12 @@
         .banner-background.loaded {
             opacity: 1;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-entrance {
+                animation: none !important;
+            }
+        }
     </style>
     <script>
         tailwind.config = {
@@ -112,17 +127,28 @@
                     colors: {
                         primary: '#3b82f6',
                         accent: '#4f46e5',
+                        teal: '#1E9C8D',
+                        coral: '#FF6F59',
+                        sun: '#FFC857',
                         background: '#f8fafc',
                         foreground: '#0f172a',
                         muted: '#64748b',
                         'muted-foreground': '#64748b',
+                    },
+                    fontFamily: {
+                        display: ['"Baloo 2"', 'sans-serif'],
+                        sans: ['Manrope', 'system-ui', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-[#f8fafc]">
+<body class="bg-[#f8fafc]" x-data="loginTransition()">
+
+    <!-- Reusable Auth Transition Component -->
+    <x-auth-transition />
+
     <div class="min-h-screen flex">
         <!-- Left Side - Branding -->
         <div class="hidden lg:flex lg:w-1/2 banner-container">
@@ -141,41 +167,46 @@
                 id="bannerBackground"
                 style="background-image: url('{{ asset('assets/images/banner/background.jpg') }}');"
             ></div>
-            <div class="absolute inset-0 bg-gradient-to-br from-slate-900/90 to-slate-800/90"></div>
             
-            <!-- Content Container - Centered with Left Alignment -->
-            <div class="relative z-10 flex flex-col justify-center items-start p-16 w-full max-w-xl mx-auto">
-                <!-- Logo -->
-                <img 
-                    src="{{ asset('assets/images/logo/presensia-logo.png') }}" 
-                    alt="Presensia Logo" 
-                    class="h-12 w-auto mb-10 brightness-0 invert"
-                />
-
-                <!-- Text Content -->
-                <div class="space-y-6">
-                    <h1 class="text-4xl font-extrabold text-white leading-tight tracking-tight text-left">
-                        Transform Your School Management
+            <!-- Content Overlay -->
+            <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 text-white bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center p-2 shadow-sm border border-white/20">
+                        <img 
+                            src="{{ asset('assets/images/logo/logo-icon.png') }}" 
+                            alt="Presensia Icon" 
+                            class="w-full h-full object-contain filter brightness-0 invert"
+                        />
+                    </div>
+                    <span class="text-2xl font-bold tracking-tight">Presensia</span>
+                </div>
+                
+                <div class="space-y-4 max-w-md">
+                    <h1 class="text-3xl font-extrabold tracking-tight leading-tight">
+                        Sistem Absensi Digital Terpadu
                     </h1>
-                    <p class="text-lg text-slate-300 leading-relaxed text-left">
-                        Smart attendance management made simple. Track, analyze, and optimize your school's performance with precision.
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Kelola kehadiran pegawai dan siswa dengan mudah, cepat, dan akurat menggunakan teknologi GPS dan QR Code.
                     </p>
                 </div>
-
-                <!-- Security Badge -->
-                <div class="flex items-center space-x-3 text-slate-400 text-sm mt-12 bg-white/5 px-4 py-2.5 rounded-full border border-white/10">
-                    <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>Your data is secure and encrypted</span>
+                
+                <div class="flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-6">
+                    <p>&copy; 2026 Presensia. All rights reserved.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Side - Login Form -->
-        <div class="flex-1 flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100">
-            <div class="w-full max-w-md space-y-8 animate-entrance">
-                <div class="bg-white rounded-2xl border border-slate-150 p-10 shadow-xl shadow-slate-200/50">
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+            <div class="w-full max-w-md animate-entrance">
+                <div 
+                    class="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 transition-all duration-300 ease-out"
+                    :class="{ 'opacity-0 -translate-y-2 pointer-events-none': state === 'loading' || state === 'leaving' }"
+                >
                     <!-- Mobile Logo -->
                     <div class="lg:hidden flex justify-center mb-6">
                         <img 
@@ -195,16 +226,37 @@
                     </div>
 
                     <div class="space-y-2 mb-8">
-                        <h2 class="text-2xl font-bold text-slate-800">
+                        <h2 class="font-display text-2xl font-bold text-slate-800">
                             Sign in to your account
                         </h2>
-                        <p class="text-sm text-slate-500">
+                        <p class="text-sm text-slate-500 font-sans">
                             Enter your credentials to access your dashboard
                         </p>
                     </div>
 
+                    <!-- Inline Error Notification (AJAX or Session) -->
+                    <div 
+                        x-show="errorMessage" 
+                        x-cloak 
+                        class="p-3.5 mb-5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5 transition-all"
+                    >
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span x-text="errorMessage"></span>
+                    </div>
+
+                    @if(session('error'))
+                    <div class="p-3.5 mb-5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    @endif
+
                     <!-- Login Form -->
-                    <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                    <form @submit.prevent="submitLogin" method="POST" action="{{ route('login') }}" class="space-y-5">
                         @csrf
                         <div>
                             <label for="login" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">NIS / NIK</label>
@@ -212,6 +264,7 @@
                                 type="text" 
                                 id="login" 
                                 name="login" 
+                                x-model="login"
                                 value="{{ old('login', old('email')) }}"
                                 class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all @if($errors->has('login') || $errors->has('email')) border-red-500 @endif"
                                 placeholder="NIS siswa, NIK pegawai, atau Email"
@@ -232,6 +285,7 @@
                                     type="password" 
                                     id="password" 
                                     name="password" 
+                                    x-model="password"
                                     class="w-full pl-4 pr-11 py-3 text-sm border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all @error('password') border-red-500 @enderror"
                                     placeholder="••••••••"
                                     required
@@ -266,6 +320,7 @@
                                 type="text" 
                                 id="captcha" 
                                 name="captcha" 
+                                x-model="captcha"
                                 class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all @error('captcha') border-red-500 @enderror"
                                 placeholder="Jawaban"
                                 required
@@ -282,28 +337,37 @@
                                     type="checkbox" 
                                     id="remember" 
                                     name="remember" 
-                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500/20 border-slate-300 rounded"
+                                    x-model="remember"
+                                    class="h-4 w-4 text-teal focus:ring-teal/20 border-slate-300 rounded"
                                 >
                                 <label for="remember" class="ml-2 block text-sm text-slate-700">
                                     Remember me
                                 </label>
                             </div>
-                            <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                            <a href="#" class="text-sm font-medium text-teal hover:text-teal/80 transition-colors">
                                 Forgot password?
                             </a>
                         </div>
 
                         <button 
                             type="submit" 
-                            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 active:scale-[0.98] transition-all duration-150"
+                            :disabled="state !== 'idle'"
+                            class="w-full flex items-center justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white bg-gradient-to-r from-teal to-blue-600 hover:from-teal/90 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-teal/20 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-150"
                         >
-                            Sign in
+                            <span x-show="state === 'idle'">Sign in</span>
+                            <span x-show="state !== 'idle'" x-cloak class="inline-flex items-center gap-2">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Memproses…
+                            </span>
                         </button>
                     </form>
 
                     <div class="text-center text-sm text-slate-500 mt-8">
                         Don't have an account? 
-                        <a href="#" class="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                        <a href="#" class="font-semibold text-teal hover:underline transition-colors">
                             Contact admin
                         </a>
                     </div>
@@ -313,7 +377,107 @@
     </div>
     
     <script>
-        // Simple Loading Animation
+        // Alpine.js Component for Login Transition State Machine
+        function loginTransition() {
+            return {
+                login: '{{ old("login", old("email")) }}',
+                password: '',
+                remember: false,
+                captcha: '',
+                errorMessage: '',
+                state: 'idle', // 'idle' | 'loading' | 'leaving' | 'done'
+                progress: 0,
+                statusText: 'Memeriksa NIS-mu…',
+                textFading: false,
+                redirectUrl: '',
+                animTimeouts: [],
+
+                clearAnimTimeouts() {
+                    this.animTimeouts.forEach(t => clearTimeout(t));
+                    this.animTimeouts = [];
+                },
+
+                async submitLogin() {
+                    if (this.state !== 'idle') return;
+                    this.errorMessage = '';
+                    this.clearAnimTimeouts();
+
+                    // Start transition sequence immediately
+                    this.state = 'loading';
+                    this.progress = 0.12;
+                    this.statusText = 'Memeriksa NIS-mu…';
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                        || document.querySelector('input[name="_token"]')?.value;
+
+                    // Sequence timeline (~0-800ms: Memeriksa NIS-mu…, ~800-1800ms: Menyiapkan jadwal kelas…, ~1800-2800ms: Hampir siap…)
+                    this.animTimeouts.push(setTimeout(() => {
+                        this.updateStatus('Menyiapkan jadwal kelas…', 0.55);
+                    }, 850));
+
+                    this.animTimeouts.push(setTimeout(() => {
+                        this.updateStatus('Hampir siap…', 1.0);
+                    }, 1850));
+
+                    const animationReady = new Promise(resolve => {
+                        this.animTimeouts.push(setTimeout(resolve, 2900));
+                    });
+
+                    try {
+                        const response = await fetch('{{ route("login") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                login: this.login,
+                                password: this.password,
+                                remember: this.remember,
+                                captcha: this.captcha
+                            })
+                        });
+
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok || !data.success) {
+                            // On failure: cancel animation, restore form with error alert
+                            this.clearAnimTimeouts();
+                            this.state = 'idle';
+                            this.errorMessage = data.message || 'NIS, NIK, atau password salah.';
+                            return;
+                        }
+
+                        this.redirectUrl = data.redirect || '{{ route("dashboard") }}';
+
+                        // Wait until the sequence is complete (~2.8s)
+                        await animationReady;
+
+                        // Navigate directly to dashboard while the loading screen remains active
+                        // (Prevents any momentary glimpse of the login form)
+                        window.location.href = this.redirectUrl;
+
+                    } catch (err) {
+                        this.clearAnimTimeouts();
+                        this.state = 'idle';
+                        this.errorMessage = 'Terjadi gangguan jaringan. Silakan coba lagi.';
+                    }
+                },
+
+                updateStatus(newText, newProgress) {
+                    this.textFading = true;
+                    setTimeout(() => {
+                        this.statusText = newText;
+                        this.progress = newProgress;
+                        this.textFading = false;
+                    }, 150);
+                }
+            };
+        }
+
+        // Simple Loading Animation for Background
         document.addEventListener('DOMContentLoaded', function() {
             const bannerLoading = document.getElementById('bannerLoading');
             const bannerBackground = document.getElementById('bannerBackground');
@@ -321,50 +485,26 @@
             // Preload gambar background
             const img = new Image();
             
-            // Event ketika gambar berhasil di-load
             img.onload = function() {
-                // Fade in background
                 bannerBackground.classList.add('loaded');
-                
-                // Hide loading quickly
                 setTimeout(function() {
                     bannerLoading.classList.add('hidden');
                 }, 200);
             };
             
-            // Event jika gambar gagal load
             img.onerror = function() {
-                // Show fallback gradient
                 bannerLoading.classList.add('hidden');
                 bannerBackground.style.background = 'linear-gradient(135deg, #f8fafc 0%, #0f2a5f 100%)';
             };
             
-            // Start preload
             img.src = '{{ asset('assets/images/banner/background.jpg') }}';
             
-            // Timeout fallback
             setTimeout(function() {
                 if (!bannerBackground.classList.contains('loaded')) {
                     bannerLoading.classList.add('hidden');
                     bannerBackground.style.background = 'linear-gradient(135deg, #f8fafc 0%, #0f2a5f 100%)';
                 }
-            }, 5000); // 5 detik timeout
-        });
-        
-        // Refresh CSRF token on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/login', {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    console.log('CSRF token refreshed');
-                }
-            }).catch(error => {
-                console.log('CSRF token refresh failed:', error);
-            });
+            }, 5000);
 
             // Toggle password visibility
             const togglePasswordBtn = document.getElementById('togglePassword');

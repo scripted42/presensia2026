@@ -57,6 +57,13 @@ class LoginController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput($request->except('password'));
@@ -72,6 +79,14 @@ class LoginController extends Controller
 
         // Check temporary ban (30 minutes)
         if (Cache::has($banKey)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.',
+                    'captcha_required' => true,
+                    'captcha_question' => session('captcha_question'),
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors(['login' => 'Terlalu banyak percobaan login. Coba lagi dalam beberapa saat.'])
                 ->withInput($request->except('password'))
@@ -86,6 +101,14 @@ class LoginController extends Controller
             if ($expected === null || $captchaInput === '' || (string) $expected !== $captchaInput) {
                 // ensure captcha question exists
                 $this->generateCaptchaQuestion($request);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Captcha salah atau belum diisi.',
+                        'captcha_required' => true,
+                        'captcha_question' => session('captcha_question'),
+                    ], 422);
+                }
                 return redirect()->back()
                     ->withErrors(['captcha' => 'Captcha salah atau belum diisi.'])
                     ->withInput($request->except('password'))
@@ -126,6 +149,12 @@ class LoginController extends Controller
         if ($user && $isValidPassword) {
             // Check if user is active
             if (!$user->is_active) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'
+                    ], 422);
+                }
                 return redirect()->back()
                     ->withErrors(['login' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'])
                     ->withInput($request->except('password'));
@@ -139,14 +168,27 @@ class LoginController extends Controller
             Cache::forget($banKey);
             $request->session()->forget(['captcha_required', 'captcha_question', 'captcha_answer', 'login_identity_lower']);
 
-            // Redirect super admin ke dashboard SaaS
+            // Redirect target
+            $redirectUrl = route('dashboard');
             $superEmail = config('app.super_admin_email', env('APP_SUPER_ADMIN_EMAIL', 'superadmin@presensia.com'));
             if (strtolower(Auth::user()->email) === strtolower((string) $superEmail)) {
-                return redirect()->intended(route('super-admin.index'));
+                $redirectUrl = route('super-admin.index');
             }
 
-            // Redirect to loading screen first, then dashboard
-            return redirect()->route('loading');
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => $redirectUrl,
+                    'user' => [
+                        'name' => $user->name,
+                        'nis' => $user->nis,
+                        'role' => $user->roles->first()?->name ?? $user->user_type
+                    ]
+                ]);
+            }
+
+            // Traditional redirect fallback
+            return redirect()->intended($redirectUrl);
         }
 
         // On failed login: increment attempts
@@ -166,6 +208,15 @@ class LoginController extends Controller
 
         // Remember last identity to evaluate attempts on GET
         $request->session()->put('login_identity_lower', $identityLower);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'NIS, NIK, atau password salah.',
+                'captcha_required' => $attempts >= 3,
+                'captcha_question' => session('captcha_question')
+            ], 422);
+        }
 
         return redirect()->back()
             ->withErrors(['login' => 'NIS, NIK, atau password salah.'])
