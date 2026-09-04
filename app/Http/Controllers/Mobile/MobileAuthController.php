@@ -35,7 +35,29 @@ class MobileAuthController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        $passwordInput = (string) $request->password;
+        $isValidPassword = false;
+
+        if ($user) {
+            $isValidPassword = Hash::check($passwordInput, $user->password) 
+                || Hash::check(trim($passwordInput), $user->password);
+
+            // Fallback: Jika siswa login dengan password = NIS-nya sendiri, sinkronkan ke DB jika belum sesuai
+            if (!$isValidPassword && $user->hasRole('student') && !empty($user->nis) && trim($passwordInput) === (string)$user->nis) {
+                $user->password = Hash::make((string)$user->nis);
+                $user->save();
+                $isValidPassword = true;
+            }
+
+            // Fallback: Jika pegawai login dengan password = NIK-nya sendiri, sinkronkan ke DB jika belum sesuai
+            if (!$isValidPassword && !$user->hasRole('student') && !empty($user->nik) && trim($passwordInput) === (string)$user->nik) {
+                $user->password = Hash::make((string)$user->nik);
+                $user->save();
+                $isValidPassword = true;
+            }
+        }
+
+        if (!$user || !$isValidPassword) {
             return response()->json([
                 'success' => false,
                 'message' => 'NIS/NIK atau password salah'

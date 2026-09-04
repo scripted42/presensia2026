@@ -49,12 +49,11 @@ class LoginController extends Controller
 
         $validator = Validator::make($request->all(), [
             'login' => 'required|string',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string',
             'captcha' => 'nullable|string'
         ], [
             'login.required' => 'NIS, NIK, atau Email wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 6 karakter.'
+            'password.required' => 'Password wajib diisi.'
         ]);
 
         if ($validator->fails()) {
@@ -102,7 +101,29 @@ class LoginController extends Controller
                   ->orWhere('email', $loginInput);
         })->first();
 
-        if ($user && Hash::check($request->password, $user->password)) {
+        $passwordInput = (string) $request->password;
+        $isValidPassword = false;
+
+        if ($user) {
+            $isValidPassword = Hash::check($passwordInput, $user->password) 
+                || Hash::check(trim($passwordInput), $user->password);
+
+            // Fallback: Jika siswa login dengan password = NIS-nya sendiri, sinkronkan ke DB jika belum sesuai
+            if (!$isValidPassword && $user->hasRole('student') && !empty($user->nis) && trim($passwordInput) === (string)$user->nis) {
+                $user->password = Hash::make((string)$user->nis);
+                $user->save();
+                $isValidPassword = true;
+            }
+
+            // Fallback: Jika pegawai login dengan password = NIK-nya sendiri, sinkronkan ke DB jika belum sesuai
+            if (!$isValidPassword && !$user->hasRole('student') && !empty($user->nik) && trim($passwordInput) === (string)$user->nik) {
+                $user->password = Hash::make((string)$user->nik);
+                $user->save();
+                $isValidPassword = true;
+            }
+        }
+
+        if ($user && $isValidPassword) {
             // Check if user is active
             if (!$user->is_active) {
                 return redirect()->back()
