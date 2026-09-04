@@ -170,15 +170,7 @@
             
             <!-- Content Overlay -->
             <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 text-white bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent">
-                <div class="flex items-center">
-                    <div class="inline-flex items-center bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-lg shadow-black/10 border border-white/40">
-                        <img 
-                            src="{{ asset('assets/images/logo/presensia-logo.png') }}" 
-                            alt="Presensia Logo" 
-                            class="h-8 w-auto"
-                        />
-                    </div>
-                </div>
+                <div></div>
                 
                 <div class="space-y-4 max-w-md">
                     <h1 class="text-3xl font-extrabold tracking-tight leading-tight">
