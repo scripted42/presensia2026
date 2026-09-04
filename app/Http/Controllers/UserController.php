@@ -289,7 +289,7 @@ class UserController extends Controller
             if (!$rows) {
                 return redirect()->back()->withErrors(['file' => 'Sesi import habis atau data tidak ditemukan.']);
             }
-            $created = 0; $duplicates = 0; $errors = 0; $errorDetails = [];
+            $created = 0; $duplicates = 0; $updatedClasses = 0; $errors = 0; $errorDetails = [];
             foreach ($rows as $row) {
                 try {
                     // Determine final email and password
@@ -312,6 +312,7 @@ class UserController extends Controller
                         // Jika siswa sudah ada dan di file terdapat kolom kelas, hubungkan/update kelasnya
                         if ($type === 'student' && !empty($row['class'])) {
                             $this->assignStudentToClass($existingUser, $row['class']);
+                            $updatedClasses++;
                         }
                         continue; 
                     }
@@ -368,7 +369,14 @@ class UserController extends Controller
                 }
             }
 
-            $message = "Import selesai: {$created} berhasil, {$duplicates} duplikasi, {$errors} gagal.";
+            $messageParts = [];
+            if ($created > 0) $messageParts[] = "{$created} akun baru dibuat";
+            if ($updatedClasses > 0) $messageParts[] = "{$updatedClasses} siswa berhasil dihubungkan ke kelas";
+            $skippedDuplicates = $duplicates - $updatedClasses;
+            if ($skippedDuplicates > 0) $messageParts[] = "{$skippedDuplicates} data duplikat dilewati";
+            if ($errors > 0) $messageParts[] = "{$errors} gagal";
+
+            $message = "Import selesai: " . (empty($messageParts) ? "Tidak ada perubahan." : implode(', ', $messageParts) . ".");
             if (!empty($errorDetails)) {
                 $message .= " Detail error: " . implode('; ', $errorDetails);
             }
@@ -431,7 +439,7 @@ class UserController extends Controller
             return redirect()->back()->withErrors(['file' => 'Header CSV tidak sesuai template. Kolom wajib yang hilang: '.implode(', ', $missing)]);
         }
 
-        $rows = []; $preview = []; $line = 1; $fileDuplicates = 0; $dbDuplicates = 0; $valid = 0; $invalid = 0; $seenKeys = [];
+        $rows = []; $preview = []; $line = 1; $fileDuplicates = 0; $dbDuplicates = 0; $valid = 0; $invalid = 0; $updates = 0; $seenKeys = [];
         // util untuk parse tanggal multi-format
         $parseDate = function($value) {
             $v = trim($value ?? '');
@@ -535,6 +543,8 @@ class UserController extends Controller
             if (isset($seenKeys[$key])) { $issues[] = 'Duplikasi di file'; $fileDuplicates++; }
             $seenKeys[$key] = true;
 
+            $hasFatalError = !empty($issues);
+
             // DB duplicate check
             $exists = User::where('school_id', auth()->user()->school_id)
                 ->where(function($q) use ($row, $type){
@@ -542,10 +552,33 @@ class UserController extends Controller
                     if ($type === 'student' && !empty($row['nis'])) $q->where('nis', $row['nis']);
                     $q->orWhere('email', $row['email']);
                 })->exists();
-            if ($exists) { $issues[] = 'Sudah ada di database'; $dbDuplicates++; }
 
-            if (empty($issues)) { $valid++; $rows[] = $row; $status = 'valid'; }
-            else { $invalid++; $status = 'invalid'; }
+            if ($exists) { 
+                $dbDuplicates++; 
+            }
+
+            if (!$hasFatalError) {
+                if ($exists && $type === 'student' && !empty($row['class'])) {
+                    $updates++;
+                    $rows[] = $row;
+                    $status = 'update';
+                    $issues[] = 'Siswa sudah ada di database (akan dihubungkan ke kelas ' . $row['class'] . ')';
+                } elseif ($exists) {
+                    $invalid++;
+                    $status = 'invalid';
+                    $issues[] = 'Sudah ada di database';
+                } else {
+                    $valid++;
+                    $rows[] = $row;
+                    $status = 'valid';
+                }
+            } else {
+                if ($exists) {
+                    $issues[] = 'Sudah ada di database';
+                }
+                $invalid++;
+                $status = 'invalid';
+            }
 
             $preview[] = [
                 'line' => $line,
@@ -563,11 +596,12 @@ class UserController extends Controller
             'preview' => $preview,
             'summary' => [
                 'valid' => $valid,
+                'update' => $updates,
                 'invalid' => $invalid,
                 'fileDuplicates' => $fileDuplicates,
                 'dbDuplicates' => $dbDuplicates,
-                'total' => $valid + $invalid,
-            ]
+                'total' => $valid + $updates + $invalid,
+            ],
         ]);
     }
 
