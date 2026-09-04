@@ -165,11 +165,11 @@
             <div 
                 class="banner-background"
                 id="bannerBackground"
-                style="background-image: url('{{ asset('assets/images/banner/background.jpg') }}');"
+                style="background-image: url('{{ asset('assets/images/banner/school-banner.jpg') }}');"
             ></div>
             
             <!-- Content Overlay -->
-            <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 text-white bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent">
+            <div class="relative z-10 flex flex-col justify-between w-full h-full p-12 text-white bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-slate-900/20">
                 <div></div>
                 
                 <div class="space-y-4 max-w-md">
@@ -488,7 +488,7 @@
                 bannerBackground.style.background = 'linear-gradient(135deg, #f8fafc 0%, #0f2a5f 100%)';
             };
             
-            img.src = '{{ asset('assets/images/banner/background.jpg') }}';
+            img.src = '{{ asset('assets/images/banner/school-banner.jpg') }}';
             
             setTimeout(function() {
                 if (!bannerBackground.classList.contains('loaded')) {
