@@ -20,11 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'cors' => \App\Http\Middleware\Cors::class,
         ]);
         
+        // Trust all proxies (Cloudflare Zero Trust / Tunnel)
+        $middleware->trustProxies(at: '*');
+
         // Add CSRF protection for web routes
         $middleware->web(append: [
             \App\Http\Middleware\VerifyCsrfToken::class,
         ]);
-
+        
         // Add CORS middleware for ngrok support
         $middleware->append(\App\Http\Middleware\Cors::class);
         
