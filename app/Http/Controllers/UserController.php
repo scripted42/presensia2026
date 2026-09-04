@@ -378,13 +378,38 @@ class UserController extends Controller
         if (!$header) { return redirect()->back()->withErrors(['file' => 'Header CSV tidak ditemukan.']); }
         $header = array_map(fn($h) => strtolower(trim($h)), $header);
 
-        // Role, email, password, birth_place opsional
-        $requiredEmployee = ['name','nik','phone','address','birth_date','gender'];
-        $requiredStudent  = ['name','nis','nisn','phone','address','birth_date','gender'];
-        $required = $type === 'employee' ? $requiredEmployee : $requiredStudent;
+        // Role, email, password, birth_place, phone, address, birth_date, gender opsional
+        $headerMap = [
+            'nama' => 'name',
+            'nama siswa' => 'name',
+            'nama_siswa' => 'name',
+            'nama lengkap' => 'name',
+            'nama_lengkap' => 'name',
+            'jenis kelamin' => 'gender',
+            'jenis_kelamin' => 'gender',
+            'jk' => 'gender',
+            'tanggal lahir' => 'birth_date',
+            'tanggal_lahir' => 'birth_date',
+            'tgl lahir' => 'birth_date',
+            'tgl_lahir' => 'birth_date',
+            'tempat lahir' => 'birth_place',
+            'tempat_lahir' => 'birth_place',
+            'alamat' => 'address',
+            'telepon' => 'phone',
+            'no hp' => 'phone',
+            'no_hp' => 'phone',
+            'nomor hp' => 'phone',
+            'nomor_hp' => 'phone',
+            'hp' => 'phone',
+            'peran' => 'role',
+        ];
+        $header = array_map(fn($h) => $headerMap[$h] ?? $h, $header);
+
+        // Hanya kolom utama yang benar-benar wajib di header CSV
+        $required = $type === 'employee' ? ['name', 'nik'] : ['name', 'nis'];
         $missing = array_diff($required, $header);
         if (!empty($missing)) {
-            return redirect()->back()->withErrors(['file' => 'Header CSV tidak sesuai template. Kolom hilang: '.implode(', ', $missing)]);
+            return redirect()->back()->withErrors(['file' => 'Header CSV tidak sesuai template. Kolom wajib yang hilang: '.implode(', ', $missing)]);
         }
 
         $rows = []; $preview = []; $line = 1; $fileDuplicates = 0; $dbDuplicates = 0; $valid = 0; $invalid = 0; $seenKeys = [];
@@ -420,15 +445,27 @@ class UserController extends Controller
             $originalEmail = trim($row['email'] ?? '');
             $row['email'] = strtolower($originalEmail);
             $row['password'] = trim($row['password'] ?? '');
-            $row['gender'] = strtoupper(trim($row['gender'] ?? ''));
+
+            // normalisasi gender (L/P, Laki-Laki, Perempuan, dll)
+            $rawGender = strtoupper(trim($row['gender'] ?? ''));
+            if (in_array($rawGender, ['L', 'LAKI-LAKI', 'LAKI - LAKI', 'PRIA', 'M', 'MALE'])) {
+                $row['gender'] = 'L';
+            } elseif (in_array($rawGender, ['P', 'PEREMPUAN', 'WANITA', 'F', 'FEMALE'])) {
+                $row['gender'] = 'P';
+            } else {
+                $row['gender'] = $rawGender;
+            }
+
             $rawBirthDate = trim($row['birth_date'] ?? '');
-            $row['birth_date'] = $parseDate($row['birth_date'] ?? null);
+            $row['birth_date'] = $rawBirthDate !== '' ? $parseDate($rawBirthDate) : null;
             // map role
             $rawRole = strtolower(trim($row['role'] ?? ''));
             if (isset($roleAliases[$rawRole])) { $rawRole = $roleAliases[$rawRole]; }
-            $row['role'] = $rawRole !== '' ? $rawRole : null;
-            // optional birth_place passthrough
+            $row['role'] = $rawRole !== '' ? $rawRole : ($type === 'student' ? 'student' : null);
+            // optional birth_place, phone, address passthrough
             $row['birth_place'] = trim($row['birth_place'] ?? '');
+            $row['phone'] = trim($row['phone'] ?? '');
+            $row['address'] = trim($row['address'] ?? '');
             // optional extended fields
             if ($type === 'employee') {
                 $row['nuptk'] = trim($row['nuptk'] ?? '');
@@ -444,6 +481,7 @@ class UserController extends Controller
                 $row['kk_number'] = trim($row['kk_number'] ?? '');
                 $row['kip_number'] = trim($row['kip_number'] ?? '');
                 $row['nis'] = trim($row['nis'] ?? '');
+                $row['nisn'] = trim($row['nisn'] ?? '');
                 if ($row['password'] === '') {
                     $row['password'] = $row['nis']; // Default password = NIS
                 }
@@ -461,9 +499,10 @@ class UserController extends Controller
             if ($row['password'] === '' || strlen($row['password']) < 4) {
                 $issues[] = 'Password minimal 4 karakter (atau pastikan NIS/NIK terisi)';
             }
-            if (!in_array($row['gender'], ['L','P'])) $issues[] = 'Gender harus L/P';
-            if (($row['birth_date'] ?? null) === null) {
-                if ($rawBirthDate !== '' && preg_match('/[A-Za-z]/', $rawBirthDate)) {
+            if ($row['gender'] !== '' && !in_array($row['gender'], ['L','P'])) $issues[] = 'Gender harus L/P';
+            // Validasi format tanggal lahir hanya jika diisi (opsional jika kosong)
+            if ($rawBirthDate !== '' && ($row['birth_date'] ?? null) === null) {
+                if (preg_match('/[A-Za-z]/', $rawBirthDate)) {
                     $issues[] = 'Kolom birth_date berisi teks (mungkin tempat lahir?). Tambahkan kolom birth_place atau pindahkan tanggal lahir.';
                 } else {
                     $issues[] = 'Tanggal lahir tidak valid (format: dd-mm-yyyy atau yyyy-mm-dd)';
