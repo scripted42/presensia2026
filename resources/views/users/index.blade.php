@@ -24,7 +24,10 @@
                         </p>
                     </div>
                     <div class="flex space-x-3">
-                        <a href="{{ route('users.import', ['type' => $type]) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                        <a href="{{ route('users.export', ['type' => $type, 'q' => request('q')]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center">
+                            <i class="fas fa-download mr-2"></i>Export Excel
+                        </a>
+                        <a href="{{ route('users.import', ['type' => $type]) }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center">
                             <i class="fas fa-upload mr-2"></i>Import Excel
                         </a>
                     </div>
@@ -32,12 +35,15 @@
             </div>
         </div>
 
-        
-
-        <!-- Success Message -->
+        <!-- Alerts -->
         @if(session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-sm">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-sm flex items-center">
             <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+        </div>
+        @endif
+        @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
         </div>
         @endif
         @if($errors->any())

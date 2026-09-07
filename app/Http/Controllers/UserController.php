@@ -12,6 +12,12 @@ use App\Models\EmployeeProfile;
 use App\Models\StudentProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class UserController extends Controller
 {
@@ -676,12 +682,220 @@ class UserController extends Controller
     }
 
     /**
-     * Export users to Excel/CSV.
+     * Export users to Excel (.xlsx)
      */
     public function export(Request $request)
     {
-        // TODO: Implement Excel/CSV export logic
-        return redirect()->route('users.index')
-            ->with('success', 'Export berhasil. (Fitur dalam pengembangan)');
+        $type = $request->get('type', 'employee');
+        $superAdminEmails = SuperAdmin::pluck('email');
+
+        $query = User::with(['school', 'roles', 'employeeProfile', 'studentProfile', 'studentClasses'])
+            ->where('school_id', auth()->user()->school_id)
+            ->where('user_type', $type)
+            ->whereDoesntHave('roles', function($q) {
+                $q->where('name', 'super-admin');
+            })
+            ->whereNotIn('email', $superAdminEmails)
+            ->where('email', 'not like', 'superadmin@%');
+
+        if ($search = trim((string) $request->get('q', ''))) {
+            $query->where(function($q) use ($search, $type) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+                if ($type === 'employee') {
+                    $q->orWhere('nik', 'like', "%{$search}%");
+                } else {
+                    $q->orWhere('nis', 'like', "%{$search}%");
+                }
+            });
+        }
+
+        $users = $query->orderBy('name', 'asc')->get();
+
+        if ($users->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada data ' . ($type === 'employee' ? 'pegawai' : 'siswa') . ' untuk di-export.');
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        if ($type === 'employee') {
+            $sheet->setTitle('Data Pegawai');
+            $headers = [
+                'A1' => 'No',
+                'B1' => 'NIK/NIP',
+                'C1' => 'NUPTK',
+                'D1' => 'Nama Lengkap',
+                'E1' => 'Email',
+                'F1' => 'Role / Jabatan',
+                'G1' => 'Jenis Kelamin',
+                'H1' => 'No. Telepon',
+                'I1' => 'Tempat Lahir',
+                'J1' => 'Tanggal Lahir',
+                'K1' => 'Alamat',
+                'L1' => 'Jenis PTK',
+                'M1' => 'Status Kepegawaian',
+                'N1' => 'Status Akun',
+            ];
+            $lastCol = 'N';
+        } else {
+            $sheet->setTitle('Data Siswa');
+            $headers = [
+                'A1' => 'No',
+                'B1' => 'NIS',
+                'C1' => 'NISN',
+                'D1' => 'Nama Lengkap',
+                'E1' => 'Kelas',
+                'F1' => 'Jenis Kelamin',
+                'G1' => 'Email',
+                'H1' => 'No. Telepon',
+                'I1' => 'Tempat Lahir',
+                'J1' => 'Tanggal Lahir',
+                'K1' => 'Alamat',
+                'L1' => 'Nama Ayah',
+                'M1' => 'Nama Ibu',
+                'N1' => 'No. KK',
+                'O1' => 'No. KIP',
+                'P1' => 'Status Akun',
+            ];
+            $lastCol = 'P';
+        }
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        // Header Styling
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2563EB'], // Blue 600
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray($headerStyle);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        $rowNum = 2;
+        foreach ($users as $index => $u) {
+            $gender = $u->gender === 'L' ? 'Laki-laki' : ($u->gender === 'P' ? 'Perempuan' : ($u->gender ?? '-'));
+            $statusAkun = $u->is_active ? 'Aktif' : 'Tidak Aktif';
+
+            if ($type === 'employee') {
+                $nik = $u->nik ?? $u->employeeProfile?->nip ?? '-';
+                $nuptk = $u->employeeProfile?->nuptk ?? '-';
+                $role = $u->roles->first()?->display_name ?? $u->roles->first()?->name ?? 'No Role';
+                $phone = $u->phone ?? $u->employeeProfile?->phone ?? '-';
+                $pob = $u->employeeProfile?->place_of_birth ?? '-';
+                $dob = $u->birth_date ? $u->birth_date->format('d/m/Y') : ($u->employeeProfile?->date_of_birth ? $u->employeeProfile->date_of_birth->format('d/m/Y') : '-');
+                $address = $u->address ?? $u->employeeProfile?->address_line ?? '-';
+                $ptkType = $u->employeeProfile?->ptk_type ?? '-';
+                $empStatus = $u->employeeProfile?->employment_status ?? '-';
+
+                $sheet->setCellValue('A' . $rowNum, $index + 1);
+                $sheet->setCellValueExplicit('B' . $rowNum, $nik, DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('C' . $rowNum, $nuptk, DataType::TYPE_STRING);
+                $sheet->setCellValue('D' . $rowNum, $u->name);
+                $sheet->setCellValue('E' . $rowNum, $u->email);
+                $sheet->setCellValue('F' . $rowNum, $role);
+                $sheet->setCellValue('G' . $rowNum, $gender);
+                $sheet->setCellValueExplicit('H' . $rowNum, $phone, DataType::TYPE_STRING);
+                $sheet->setCellValue('I' . $rowNum, $pob);
+                $sheet->setCellValue('J' . $rowNum, $dob);
+                $sheet->setCellValue('K' . $rowNum, $address);
+                $sheet->setCellValue('L' . $rowNum, $ptkType);
+                $sheet->setCellValue('M' . $rowNum, $empStatus);
+                $sheet->setCellValue('N' . $rowNum, $statusAkun);
+            } else {
+                $nis = $u->nis ?? $u->studentProfile?->nis ?? '-';
+                $nisn = $u->nisn ?? $u->studentProfile?->nisn ?? '-';
+                $className = $u->studentClasses->first()?->name ?? '-';
+                $phone = $u->phone ?? $u->studentProfile?->phone ?? '-';
+                $pob = $u->studentProfile?->place_of_birth ?? '-';
+                $dob = $u->birth_date ? $u->birth_date->format('d/m/Y') : ($u->studentProfile?->date_of_birth ? $u->studentProfile->date_of_birth->format('d/m/Y') : '-');
+                $address = $u->address ?? $u->studentProfile?->address_line ?? '-';
+                $father = $u->studentProfile?->father_name ?? '-';
+                $mother = $u->studentProfile?->mother_name ?? '-';
+                $kk = $u->studentProfile?->kk_number ?? '-';
+                $kip = $u->studentProfile?->kip_number ?? '-';
+
+                $sheet->setCellValue('A' . $rowNum, $index + 1);
+                $sheet->setCellValueExplicit('B' . $rowNum, $nis, DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('C' . $rowNum, $nisn, DataType::TYPE_STRING);
+                $sheet->setCellValue('D' . $rowNum, $u->name);
+                $sheet->setCellValue('E' . $rowNum, $className);
+                $sheet->setCellValue('F' . $rowNum, $gender);
+                $sheet->setCellValue('G' . $rowNum, $u->email);
+                $sheet->setCellValueExplicit('H' . $rowNum, $phone, DataType::TYPE_STRING);
+                $sheet->setCellValue('I' . $rowNum, $pob);
+                $sheet->setCellValue('J' . $rowNum, $dob);
+                $sheet->setCellValue('K' . $rowNum, $address);
+                $sheet->setCellValue('L' . $rowNum, $father);
+                $sheet->setCellValue('M' . $rowNum, $mother);
+                $sheet->setCellValueExplicit('N' . $rowNum, $kk, DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('O' . $rowNum, $kip, DataType::TYPE_STRING);
+                $sheet->setCellValue('P' . $rowNum, $statusAkun);
+            }
+
+            // Zebra stripe
+            if ($rowNum % 2 === 0) {
+                $sheet->getStyle("A{$rowNum}:{$lastCol}{$rowNum}")->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB('F8FAFC');
+            }
+
+            $sheet->getRowDimension($rowNum)->setRowHeight(22);
+            $rowNum++;
+        }
+
+        $lastRow = $rowNum - 1;
+
+        // Border styling
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'E2E8F0'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        $sheet->getStyle("A1:{$lastCol}{$lastRow}")->applyFromArray($borderStyle);
+
+        // Alignment
+        $sheet->getStyle("A2:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        if ($type === 'employee') {
+            $sheet->getStyle("B2:C{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("G2:G{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("J2:J{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("N2:N{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        } else {
+            $sheet->getStyle("B2:C{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E2:F{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("J2:J{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("P2:P{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Auto column width
+        foreach (range('A', $lastCol) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = ($type === 'employee' ? 'data_pegawai_' : 'data_siswa_') . date('Y-m-d_H-i') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }
