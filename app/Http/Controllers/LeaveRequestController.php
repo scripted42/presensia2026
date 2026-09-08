@@ -18,18 +18,15 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $query = LeaveRequest::with(['user', 'approver']);
+        $perPageParam = $request->get('per_page', '10');
+        $perPage = (string) $perPageParam === 'all' ? 1000000 : max(1, (int) $perPageParam);
 
         // Role-based filtering with tenant isolation
-        if ($user->hasRole('admin')) {
-            // Admin can see all leave requests in their school only
+        if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
+            // Admin and Headmaster can see all leave requests in their school
             $query->whereHas('user', function($userQuery) use ($user) {
                 $userQuery->where('school_id', $user->school_id);
-            })->orderBy('created_at', 'desc');
-        } elseif ($user->hasRole('headmaster')) {
-            // Headmaster can see all leave requests in their school
-            $query->whereHas('user', function($userQuery) use ($user) {
-                $userQuery->where('school_id', $user->school_id);
-            })->orderBy('created_at', 'desc');
+            });
         } elseif ($user->hasRole('teacher')) {
             // Teacher can see their own and students in the same school
             $query->where(function($q) use ($user) {
@@ -38,25 +35,128 @@ class LeaveRequestController extends Controller
                       $userQuery->where('user_type', 'student')
                                 ->where('school_id', $user->school_id);
                   });
-            })->orderBy('created_at', 'desc');
+            });
         } else {
             // Other roles can only see their own requests
-            $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
+            $query->where('user_id', $user->id);
         }
 
-        // Filter by status
-        if ($request->has('status') && $request->status !== '') {
-            $query->where('status', $request->status);
+        // Apply centralized filter scope
+        $query->filter($request->all());
+
+        $leaveRequests = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        // Build active filters for badges/chips
+        $activeFilters = [];
+        if ($q = trim($request->get('q', ''))) {
+            $activeFilters[] = [
+                'key' => 'q',
+                'label' => 'Cari',
+                'value' => $q,
+                'removeUrl' => request()->fullUrlWithQuery(['q' => null]),
+            ];
+        }
+        if ($status = $request->get('status')) {
+            $statusLabels = [
+                'pending' => 'Menunggu Persetujuan',
+                'approved' => 'Disetujui',
+                'rejected' => 'Ditolak',
+            ];
+            $activeFilters[] = [
+                'key' => 'status',
+                'label' => 'Status',
+                'value' => $statusLabels[$status] ?? $status,
+                'removeUrl' => request()->fullUrlWithQuery(['status' => null]),
+            ];
+        }
+        if ($type = $request->get('type')) {
+            $typeLabels = [
+                'sick' => 'Sakit',
+                'leave' => 'Cuti',
+                'duty' => 'Dinas Luar',
+                'permit' => 'Izin',
+            ];
+            $activeFilters[] = [
+                'key' => 'type',
+                'label' => 'Jenis',
+                'value' => $typeLabels[$type] ?? $type,
+                'removeUrl' => request()->fullUrlWithQuery(['type' => null]),
+            ];
+        }
+        if ($startDate = $request->get('start_date')) {
+            $activeFilters[] = [
+                'key' => 'start_date',
+                'label' => 'Dari',
+                'value' => $startDate,
+                'removeUrl' => request()->fullUrlWithQuery(['start_date' => null]),
+            ];
+        }
+        if ($endDate = $request->get('end_date')) {
+            $activeFilters[] = [
+                'key' => 'end_date',
+                'label' => 'Sampai',
+                'value' => $endDate,
+                'removeUrl' => request()->fullUrlWithQuery(['end_date' => null]),
+            ];
         }
 
-        // Filter by type
-        if ($request->has('type') && $request->type !== '') {
-            $query->where('type', $request->type);
+        // Summary metrics for cards
+        $baseCountQuery = LeaveRequest::query();
+        if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
+            $baseCountQuery->whereHas('user', function($userQuery) use ($user) {
+                $userQuery->where('school_id', $user->school_id);
+            });
+        } elseif ($user->hasRole('teacher')) {
+            $baseCountQuery->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('user', function($userQuery) use ($user) {
+                      $userQuery->where('user_type', 'student')
+                                ->where('school_id', $user->school_id);
+                  });
+            });
+        } else {
+            $baseCountQuery->where('user_id', $user->id);
         }
 
-        $leaveRequests = $query->paginate(10);
+        $totalLeaves = (clone $baseCountQuery)->count();
+        $pendingLeaves = (clone $baseCountQuery)->where('status', 'pending')->count();
+        $approvedLeaves = (clone $baseCountQuery)->where('status', 'approved')->count();
+        $rejectedLeaves = (clone $baseCountQuery)->where('status', 'rejected')->count();
 
-        return view('leave-requests.index', compact('leaveRequests'));
+        $summaryCards = [
+            [
+                'title' => 'Total Permohonan',
+                'value' => number_format($totalLeaves),
+                'subtext' => 'Seluruh pengajuan izin',
+                'icon' => 'fas fa-envelope-open-text',
+                'color' => 'blue',
+            ],
+            [
+                'title' => 'Menunggu Persetujuan',
+                'value' => number_format($pendingLeaves),
+                'subtext' => $pendingLeaves > 0 ? '<span class="text-amber-600 font-medium">Perlu ditindaklanjuti</span>' : 'Tidak ada antrean',
+                'icon' => 'fas fa-clock',
+                'color' => 'amber',
+            ],
+            [
+                'title' => 'Disetujui',
+                'value' => number_format($approvedLeaves),
+                'subtext' => $totalLeaves > 0 ? round(($approvedLeaves / $totalLeaves) * 100) . '% dari total' : 'Telah diverifikasi',
+                'icon' => 'fas fa-check-circle',
+                'color' => 'emerald',
+            ],
+            [
+                'title' => 'Ditolak',
+                'value' => number_format($rejectedLeaves),
+                'subtext' => 'Pengajuan tidak disetujui',
+                'icon' => 'fas fa-times-circle',
+                'color' => 'rose',
+            ],
+        ];
+
+        return view('leave-requests.index', compact('leaveRequests', 'activeFilters', 'perPageParam', 'summaryCards'));
     }
 
     /**

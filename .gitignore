@@ -63,6 +63,8 @@ presensia.sql
 # Temporary files
 *.tmp
 *.temp
+*.xlsx
+importdatasiswa-pegawai/*.xlsx
 
 
 

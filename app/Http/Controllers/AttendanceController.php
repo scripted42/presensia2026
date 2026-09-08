@@ -713,6 +713,35 @@ class AttendanceController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->with('user');
             
+        // Role-based restrictions & custom filters
+        $search = trim((string) $request->get('q', ''));
+        $classId = $request->get('class_id');
+        $statusFilter = $request->get('status');
+
+        if ($search !== '') {
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%");
+            });
+        }
+
+        if ($classId) {
+            if ($classId === 'none') {
+                $query->whereHas('user', function($q) {
+                    $q->whereDoesntHave('studentClasses');
+                });
+            } else {
+                $query->whereHas('user.studentClasses', function($q) use ($classId) {
+                    $q->where('classes.id', $classId);
+                });
+            }
+        }
+
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+
         // Apply role-based restrictions
         if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
             // Admin dan Headmaster dapat melihat semua data
@@ -750,32 +779,47 @@ class AttendanceController extends Controller
         
         $attendances = $query->get()->groupBy('user_id');
 
-        // Get all users for the report (not just those with attendance)
+        // Get all users for the report (matching the same filters)
+        $usersBaseQuery = User::where('school_id', $user->school_id);
+        if ($search !== '') {
+            $usersBaseQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%");
+            });
+        }
+        if ($classId) {
+            if ($classId === 'none') {
+                $usersBaseQuery->whereDoesntHave('studentClasses');
+            } else {
+                $usersBaseQuery->whereHas('studentClasses', function($q) use ($classId) {
+                    $q->where('classes.id', $classId);
+                });
+            }
+        }
+
         $allUserIds = collect();
-        
         if ($user->hasRole('admin') || $user->hasRole('headmaster')) {
-            // Admin dan Headmaster dapat melihat semua user
             if ($type === 'employees') {
-                $allUserIds = User::where('school_id', $user->school_id)
+                $allUserIds = (clone $usersBaseQuery)
                     ->whereIn('user_type', ['admin', 'teacher', 'tu', 'bk', 'kesiswaan', 'employee'])
-                ->pluck('id');
+                    ->pluck('id');
             } elseif ($type === 'students') {
-                $allUserIds = User::where('school_id', $user->school_id)
+                $allUserIds = (clone $usersBaseQuery)
                     ->where('user_type', 'student')
                     ->pluck('id');
             } else {
-                $allUserIds = User::where('school_id', $user->school_id)->pluck('id');
+                $allUserIds = (clone $usersBaseQuery)->pluck('id');
             }
         } elseif ($user->hasRole('teacher')) {
-            // Teacher dapat melihat semua siswa + dirinya sendiri
             if ($type === 'employees') {
                 $allUserIds = collect([$user->id]);
             } elseif ($type === 'students') {
-                $allUserIds = User::where('school_id', $user->school_id)
+                $allUserIds = (clone $usersBaseQuery)
                     ->where('user_type', 'student')
                     ->pluck('id');
             } else {
-                $allUserIds = User::where('school_id', $user->school_id)
+                $allUserIds = (clone $usersBaseQuery)
                     ->where(function($q) {
                         $q->where('user_type', 'student')
                           ->orWhere('id', Auth::id());
@@ -808,7 +852,7 @@ class AttendanceController extends Controller
             $to = $leave->end_date->copy();
             while ($cursor->lte($to)) {
                 if ($cursor->gte($startDate) && $cursor->lte($endDate)) {
-                    $leaveByUserDate[$leave->user_id][$cursor->format('Y-m-d')] = $leave->type; // sick|permit|duty|leave
+                    $leaveByUserDate[$leave->user_id][$cursor->format('Y-m-d')] = $leave->type;
                 }
                 $cursor->addDay();
             }
@@ -820,8 +864,97 @@ class AttendanceController extends Controller
             ->where('is_active', true)
             ->get()
             ->keyBy('date');
+
+        // Classes for dropdown filter
+        $classes = \App\Models\SchoolClass::where('school_id', $user->school_id)
+            ->where('is_active', true)
+            ->orderBy('level')
+            ->orderBy('name')
+            ->get();
+
+        // Active filters list for chips/badges
+        $activeFilters = [];
+        if ($search !== '') {
+            $activeFilters[] = [
+                'key' => 'q',
+                'label' => 'Cari',
+                'value' => $search,
+                'removeUrl' => request()->fullUrlWithQuery(['q' => null]),
+            ];
+        }
+        if ($classId) {
+            $cName = $classId === 'none' ? 'Tanpa Kelas' : ($classes->firstWhere('id', $classId)?->name ?? $classId);
+            $activeFilters[] = [
+                'key' => 'class_id',
+                'label' => 'Kelas',
+                'value' => $cName,
+                'removeUrl' => request()->fullUrlWithQuery(['class_id' => null]),
+            ];
+        }
+        if ($statusFilter) {
+            $statusLabels = [
+                'ontime' => 'Tepat Waktu',
+                'late' => 'Terlambat',
+                'sick' => 'Sakit',
+                'permit' => 'Izin',
+                'alpha' => 'Alpha',
+            ];
+            $activeFilters[] = [
+                'key' => 'status',
+                'label' => 'Status',
+                'value' => $statusLabels[$statusFilter] ?? $statusFilter,
+                'removeUrl' => request()->fullUrlWithQuery(['status' => null]),
+            ];
+        }
+        if ($type !== 'all') {
+            $activeFilters[] = [
+                'key' => 'type',
+                'label' => 'Tipe',
+                'value' => $type === 'students' ? 'Siswa' : 'Pegawai',
+                'removeUrl' => request()->fullUrlWithQuery(['type' => 'all']),
+            ];
+        }
+
+        // Summary Cards Metrics for Attendance Report
+        $allAttendanceFlat = $attendances->flatten();
+        $totalRecords = $allAttendanceFlat->count();
+        $ontimeCount = $allAttendanceFlat->where('status', 'ontime')->count();
+        $lateCount = $allAttendanceFlat->where('status', 'late')->count();
+        $leaveCount = count($approvedLeaves);
+        $totalUsersInReport = $allUserIds->count();
+
+        $summaryCards = [
+            [
+                'title' => 'Pengguna Dilaporkan',
+                'value' => number_format($totalUsersInReport) . ' Orang',
+                'subtext' => $type === 'students' ? 'Siswa terpilih' : ($type === 'employees' ? 'Pegawai terpilih' : 'Semua pengguna'),
+                'icon' => 'fas fa-users',
+                'color' => 'blue',
+            ],
+            [
+                'title' => 'Tepat Waktu',
+                'value' => number_format($ontimeCount) . ' Kehadiran',
+                'subtext' => $totalRecords > 0 ? round(($ontimeCount / $totalRecords) * 100) . '% dari total hadir' : 'Bulan ini',
+                'icon' => 'fas fa-user-check',
+                'color' => 'emerald',
+            ],
+            [
+                'title' => 'Terlambat',
+                'value' => number_format($lateCount) . ' Kejadian',
+                'subtext' => $lateCount > 0 ? '<span class="text-amber-600 font-medium">Perlu perhatian</span>' : '<span class="text-emerald-600 font-medium">Tidak ada terlambat</span>',
+                'icon' => 'fas fa-user-clock',
+                'color' => 'amber',
+            ],
+            [
+                'title' => 'Izin / Sakit / Cuti',
+                'value' => number_format($leaveCount) . ' Pengajuan',
+                'subtext' => 'Disetujui pada periode ini',
+                'icon' => 'fas fa-calendar-minus',
+                'color' => 'purple',
+            ],
+        ];
         
-        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user', 'leaveByUserDate', 'holidays'));
+        return view('attendance.reports', compact('attendances', 'month', 'year', 'startDate', 'endDate', 'type', 'user', 'leaveByUserDate', 'holidays', 'classes', 'activeFilters', 'summaryCards'));
     }
 
     /**

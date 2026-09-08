@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Models\SchoolClass;
 use ZipArchive;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -18,26 +19,98 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 
 class QrManagementController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Helper to build the filtered student query
+     */
+    private function buildStudentQuery(Request $request)
     {
-        $query = trim((string) $request->get('q', ''));
-        $perPageParam = $request->get('per_page', '10');
-        $perPage = (string) $perPageParam === 'all' ? 1000000 : (in_array((int) $perPageParam, [10, 25, 50]) ? (int) $perPageParam : 10);
-
-        $students = User::where('school_id', auth()->user()->school_id)
+        return User::where('school_id', auth()->user()->school_id)
             ->where('user_type', 'student')
             ->with(['studentClasses', 'studentProfile'])
-            ->when($query !== '', function ($q) use ($query) {
-                $q->where(function ($qq) use ($query) {
-                    $qq->where('name', 'like', "%$query%");
-                    $qq->orWhere('nis', 'like', "%$query%");
-                });
-            })
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->appends(['q' => $query, 'per_page' => $perPageParam]);
+            ->filter($request->all())
+            ->orderBy('name');
+    }
 
-        return view('qr.index', compact('students', 'query', 'perPageParam'));
+    public function index(Request $request)
+    {
+        $schoolId = auth()->user()->school_id;
+        $classes = SchoolClass::where('school_id', $schoolId)->orderBy('name')->get();
+        $levels = SchoolClass::where('school_id', $schoolId)->whereNotNull('level')->distinct()->pluck('level');
+
+        $query = trim((string) $request->get('q', ''));
+        $perPageParam = $request->get('per_page', '10');
+        $perPage = (string) $perPageParam === 'all' ? 1000000 : (in_array((int) $perPageParam, [10, 25, 50, 100]) ? (int) $perPageParam : 10);
+
+        $students = $this->buildStudentQuery($request)
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        // Build active filters
+        $activeFilters = [];
+        if ($request->filled('q')) {
+            $activeFilters[] = [
+                'label' => 'Cari',
+                'value' => $request->q,
+                'remove_url' => request()->fullUrlWithQuery(['q' => null, 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('level')) {
+            $activeFilters[] = [
+                'label' => 'Tingkat',
+                'value' => 'Kelas ' . $request->level,
+                'remove_url' => request()->fullUrlWithQuery(['level' => null, 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('class_id')) {
+            $classObj = $classes->firstWhere('id', $request->class_id);
+            $activeFilters[] = [
+                'label' => 'Kelas',
+                'value' => $classObj ? $classObj->name : $request->class_id,
+                'remove_url' => request()->fullUrlWithQuery(['class_id' => null, 'page' => null]),
+            ];
+        }
+
+        // Summary metric cards
+        $baseStudentQuery = User::where('school_id', $schoolId)->where('user_type', 'student');
+        $totalStudents = (clone $baseStudentQuery)->count();
+        $withNis = (clone $baseStudentQuery)->whereNotNull('nis')->where('nis', '!=', '')->count();
+        $assignedClass = (clone $baseStudentQuery)->whereHas('studentClasses')->count();
+        $noClass = (clone $baseStudentQuery)->whereDoesntHave('studentClasses')->count();
+
+        $summaryCards = [
+            [
+                'title' => 'Total Siswa (QR)',
+                'value' => number_format($totalStudents) . ' Siswa',
+                'subtext' => 'Seluruh siswa terdaftar',
+                'icon' => 'fas fa-qrcode',
+                'color' => 'blue',
+            ],
+            [
+                'title' => 'Siswa Memiliki NIS',
+                'value' => number_format($withNis) . ' Siswa',
+                'subtext' => $totalStudents > 0 ? round(($withNis / $totalStudents) * 100) . '% memiliki NIS valid' : 'Nomor Induk Siswa',
+                'icon' => 'fas fa-id-badge',
+                'color' => 'emerald',
+            ],
+            [
+                'title' => 'Terdaftar di Rombel',
+                'value' => number_format($assignedClass) . ' Siswa',
+                'subtext' => 'Sudah masuk kelas/rombel',
+                'icon' => 'fas fa-chalkboard-teacher',
+                'color' => 'purple',
+            ],
+            [
+                'title' => 'Belum Ada Kelas',
+                'value' => number_format($noClass) . ' Siswa',
+                'subtext' => $noClass > 0 ? '<span class="text-amber-600 font-medium">Perlu penempatan kelas</span>' : '<span class="text-emerald-600 font-medium">Semua telah terplot</span>',
+                'icon' => 'fas fa-user-tag',
+                'color' => 'amber',
+            ],
+        ];
+
+        return view('qr.index', compact('students', 'classes', 'levels', 'activeFilters', 'query', 'perPageParam', 'summaryCards'));
     }
 
     /**
@@ -119,18 +192,7 @@ class QrManagementController extends Controller
      */
     public function exportExcel(Request $request)
     {
-        $query = trim((string) $request->get('q', ''));
-        $students = User::where('school_id', auth()->user()->school_id)
-            ->where('user_type', 'student')
-            ->with(['studentClasses', 'studentProfile'])
-            ->when($query !== '', function ($q) use ($query) {
-                $q->where(function ($qq) use ($query) {
-                    $qq->where('name', 'like', "%$query%");
-                    $qq->orWhere('nis', 'like', "%$query%");
-                });
-            })
-            ->orderBy('name')
-            ->get();
+        $students = $this->buildStudentQuery($request)->get();
 
         if ($students->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-export.');
@@ -139,7 +201,15 @@ class QrManagementController extends Controller
         $spreadsheet = $this->buildSpreadsheet($students);
         $writer = new Xlsx($spreadsheet);
 
-        $filename = 'daftar_siswa_qrcode_' . date('Y-m-d_H-i') . '.xlsx';
+        $classSuffix = '';
+        if ($request->filled('class_id')) {
+            $classObj = SchoolClass::find($request->class_id);
+            if ($classObj) {
+                $classSuffix = '_' . $this->sanitizeFilename($classObj->name);
+            }
+        }
+
+        $filename = 'daftar_siswa_qrcode' . $classSuffix . '_' . date('Y-m-d_H-i') . '.xlsx';
         
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
@@ -159,17 +229,21 @@ class QrManagementController extends Controller
         set_time_limit(300); // 5 menit
 
         try {
-            $students = User::where('school_id', auth()->user()->school_id)
-                ->where('user_type', 'student')
-                ->with(['studentClasses', 'studentProfile'])
-                ->orderBy('name')
-                ->get();
+            $students = $this->buildStudentQuery($request)->get();
 
             if ($students->isEmpty()) {
                 return redirect()->back()->with('error', 'Tidak ada data siswa untuk di-download.');
             }
 
-            $zipFilename = 'qr_siswa_' . date('Y-m-d_H-i-s') . '.zip';
+            $classSuffix = '';
+            if ($request->filled('class_id')) {
+                $classObj = SchoolClass::find($request->class_id);
+                if ($classObj) {
+                    $classSuffix = '_' . $this->sanitizeFilename($classObj->name);
+                }
+            }
+
+            $zipFilename = 'qr_siswa' . $classSuffix . '_' . date('Y-m-d_H-i-s') . '.zip';
             $tempZipPath = tempnam(sys_get_temp_dir(), 'qrz_');
 
             $zip = new ZipArchive();

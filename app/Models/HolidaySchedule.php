@@ -116,4 +116,42 @@ class HolidaySchedule extends Model
         
         return $holidayCount;
     }
+
+    /**
+     * Scope for applying flexible filters.
+     */
+    public function scopeFilter($query, array $filters = [])
+    {
+        // 1. Search keyword (holiday name)
+        if (!empty($filters['q'])) {
+            $search = trim($filters['q']);
+            $query->where('holiday_name', 'like', "%{$search}%");
+        }
+
+        // 2. Year filter
+        if (isset($filters['year']) && $filters['year'] !== 'all' && $filters['year'] !== '') {
+            $query->whereYear('date', $filters['year']);
+        }
+
+        // 3. Month filter
+        if (isset($filters['month']) && $filters['month'] !== 'all' && $filters['month'] !== '') {
+            $query->whereMonth('date', $filters['month']);
+        }
+
+        // 4. Type filter (national or school)
+        if (!empty($filters['type'])) {
+            if ($filters['type'] === 'national') {
+                $query->where('is_national_holiday', true);
+            } elseif ($filters['type'] === 'school') {
+                $query->where('is_national_holiday', false);
+            }
+        }
+
+        // 5. Active status filter
+        if (isset($filters['is_active']) && $filters['is_active'] !== '' && $filters['is_active'] !== null) {
+            $query->where('is_active', (bool) $filters['is_active']);
+        }
+
+        return $query;
+    }
 }

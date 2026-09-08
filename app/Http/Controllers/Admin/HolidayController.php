@@ -16,14 +16,115 @@ class HolidayController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $year = $request->get('year', now()->year);
         
-        $holidays = HolidaySchedule::where('school_id', $user->school_id)
-            ->whereYear('date', $year)
-            ->orderBy('date')
-            ->get();
-            
-        return view('admin.holidays.index', compact('holidays', 'year'));
+        $params = $request->all();
+        if (!$request->has('year')) {
+            $params['year'] = (string) now()->year;
+        }
+
+        $query = HolidaySchedule::where('school_id', $user->school_id)
+            ->filter($params)
+            ->orderBy('date', 'desc');
+
+        $perPage = (int) $request->get('per_page', 25);
+        $holidays = $query->paginate($perPage)->appends($request->query());
+
+        // Build active filters
+        $activeFilters = [];
+
+        if ($request->filled('q')) {
+            $activeFilters[] = [
+                'label' => 'Cari',
+                'value' => $request->q,
+                'remove_url' => request()->fullUrlWithQuery(['q' => null, 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('year') && $request->year !== 'all') {
+            $activeFilters[] = [
+                'label' => 'Tahun',
+                'value' => $request->year,
+                'remove_url' => request()->fullUrlWithQuery(['year' => 'all', 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('month') && $request->month !== 'all') {
+            $monthNames = [
+                '1' => 'Januari', '2' => 'Februari', '3' => 'Maret', '4' => 'April',
+                '5' => 'Mei', '6' => 'Juni', '7' => 'Juli', '8' => 'Agustus',
+                '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            ];
+            $activeFilters[] = [
+                'label' => 'Bulan',
+                'value' => $monthNames[$request->month] ?? $request->month,
+                'remove_url' => request()->fullUrlWithQuery(['month' => null, 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('type')) {
+            $typeNames = ['national' => 'Nasional', 'school' => 'Sekolah'];
+            $activeFilters[] = [
+                'label' => 'Jenis',
+                'value' => $typeNames[$request->type] ?? $request->type,
+                'remove_url' => request()->fullUrlWithQuery(['type' => null, 'page' => null]),
+            ];
+        }
+
+        if ($request->filled('is_active')) {
+            $activeFilters[] = [
+                'label' => 'Status',
+                'value' => $request->is_active == '1' ? 'Aktif' : 'Nonaktif',
+                'remove_url' => request()->fullUrlWithQuery(['is_active' => null, 'page' => null]),
+            ];
+        }
+
+        $year = $request->get('year', (string) now()->year);
+
+        // Compute summary metrics
+        $baseHolidayQuery = HolidaySchedule::where('school_id', $user->school_id);
+        if ($year !== 'all') {
+            $baseHolidayQuery->whereYear('date', $year);
+        }
+
+        $totalHolidays = (clone $baseHolidayQuery)->count();
+        $nationalHolidays = (clone $baseHolidayQuery)->where('is_national_holiday', true)->count();
+        $schoolHolidays = (clone $baseHolidayQuery)->where('is_national_holiday', false)->count();
+        $activeHolidays = (clone $baseHolidayQuery)->where('is_active', true)->count();
+
+        $yearLabel = $year === 'all' ? 'Semua tahun' : "Tahun $year";
+
+        $summaryCards = [
+            [
+                'title' => 'Total Hari Libur',
+                'value' => number_format($totalHolidays) . ' Hari',
+                'subtext' => $yearLabel,
+                'icon' => 'fas fa-calendar-alt',
+                'color' => 'blue',
+            ],
+            [
+                'title' => 'Libur Nasional',
+                'value' => number_format($nationalHolidays) . ' Hari',
+                'subtext' => 'Hari libur resmi nasional',
+                'icon' => 'fas fa-flag',
+                'color' => 'rose',
+            ],
+            [
+                'title' => 'Libur Sekolah',
+                'value' => number_format($schoolHolidays) . ' Hari',
+                'subtext' => 'Kebijakan internal sekolah',
+                'icon' => 'fas fa-school',
+                'color' => 'purple',
+            ],
+            [
+                'title' => 'Status Aktif',
+                'value' => number_format($activeHolidays) . ' Hari',
+                'subtext' => $totalHolidays > 0 ? round(($activeHolidays / $totalHolidays) * 100) . '% aktif berlaku' : 'Berlaku dalam sistem',
+                'icon' => 'fas fa-check-circle',
+                'color' => 'emerald',
+            ],
+        ];
+
+        return view('admin.holidays.index', compact('holidays', 'year', 'activeFilters', 'summaryCards'));
     }
 
     /**

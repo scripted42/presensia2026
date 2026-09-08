@@ -23,37 +23,66 @@
         </div>
     </div>
 
+    <!-- Summary Metric Cards -->
+    <x-summary-cards :cards="$summaryCards ?? []" />
+
     <!-- Filters -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="status" class="block text-sm text-gray-500 font-normal">Status</label>
-                    <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <option value="">Semua Status</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Persetujuan</option>
-                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
-                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="type" class="block text-sm text-gray-500 font-normal">Jenis Izin</label>
-                    <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <option value="">Semua Jenis</option>
-                        <option value="sick" {{ request('type') == 'sick' ? 'selected' : '' }}>Sakit</option>
-                        <option value="leave" {{ request('type') == 'leave' ? 'selected' : '' }}>Cuti</option>
-                        <option value="duty" {{ request('type') == 'duty' ? 'selected' : '' }}>Dinas Luar</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                        <i class="fas fa-filter mr-2"></i>
-                        Filter
-                    </button>
-                </div>
-            </form>
+    <x-filter-bar 
+        :action="route('leave-requests.index')" 
+        :reset-url="route('leave-requests.index')" 
+        :active-filters="$activeFilters ?? []"
+        title="Filter Permohonan Izin"
+        badge-class="badge badge-info badge-sm text-xs font-medium"
+    >
+        <div>
+            <label for="q" class="block text-sm text-gray-500 font-normal">Pencarian</label>
+            <input type="text" name="q" id="q" value="{{ request('q') }}" 
+                   placeholder="Nama pemohon, alasan..." 
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
         </div>
-    </div>
+
+        <div>
+            <label for="status" class="block text-sm text-gray-500 font-normal">Status</label>
+            <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Status</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Persetujuan</option>
+                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
+                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="type" class="block text-sm text-gray-500 font-normal">Jenis Izin</label>
+            <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Jenis</option>
+                <option value="sick" {{ request('type') == 'sick' ? 'selected' : '' }}>Sakit</option>
+                <option value="leave" {{ request('type') == 'leave' ? 'selected' : '' }}>Cuti</option>
+                <option value="duty" {{ request('type') == 'duty' ? 'selected' : '' }}>Dinas Luar</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="start_date" class="block text-sm text-gray-500 font-normal">Dari Tanggal</label>
+            <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}"
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+        </div>
+
+        <div>
+            <label for="end_date" class="block text-sm text-gray-500 font-normal">Sampai Tanggal</label>
+            <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}"
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+        </div>
+
+        <div>
+            <label for="per_page" class="block text-sm text-gray-500 font-normal">Tampilkan</label>
+            <select name="per_page" id="per_page" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 baris</option>
+                <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25 baris</option>
+                <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50 baris</option>
+                <option value="100" {{ request('per_page', 100) == 100 ? 'selected' : '' }}>100 baris</option>
+            </select>
+        </div>
+    </x-filter-bar>
 
     <!-- Leave Requests List -->
     <div class="bg-white shadow rounded-lg">

@@ -11,6 +11,7 @@ use App\Models\ClassStudent;
 use App\Models\EmployeeProfile;
 use App\Models\StudentProfile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -29,11 +30,12 @@ class UserController extends Controller
         $type = $request->get('type', 'employee'); // Default to employee
         $perPageParam = $request->get('per_page', '10');
         $perPage = (string) $perPageParam === 'all' ? 1000000 : max(1, (int) $perPageParam);
+        $schoolId = auth()->user()->school_id;
         
         $superAdminEmails = SuperAdmin::pluck('email');
 
-        $query = User::with(['school', 'roles'])
-            ->where('school_id', auth()->user()->school_id)
+        $query = User::with(['school', 'roles', 'studentClasses', 'employeeProfile'])
+            ->where('school_id', $schoolId)
             ->where('user_type', $type)
             ->whereDoesntHave('roles', function($q){
                 $q->where('name', 'super-admin');
@@ -41,26 +43,187 @@ class UserController extends Controller
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%');
 
-        // Optional search: name, email, NIK/NIS
-        if ($search = trim((string) $request->get('q', ''))) {
-            $query->where(function($q) use ($search, $type) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-                if ($type === 'employee') {
-                    $q->orWhere('nik', 'like', "%{$search}%");
-                } else {
-                    $q->orWhere('nis', 'like', "%{$search}%");
-                }
-            });
+        // Apply centralized filter scope
+        $query->filter($request->all());
+
+        $users = $query->orderBy('name', 'asc')
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        // Data for dynamic dropdown filters
+        $classes = collect();
+        $levels = collect();
+        $roles = collect();
+        $employmentStatuses = ['PNS', 'PPPK', 'GTT / PTT', 'Honorer', 'Tetap Yayasan', 'Kontrak'];
+
+        if ($type === 'student') {
+            $classes = SchoolClass::where('school_id', $schoolId)
+                ->where('is_active', true)
+                ->orderBy('level')
+                ->orderBy('name')
+                ->get();
+
+            $levels = SchoolClass::where('school_id', $schoolId)
+                ->where('is_active', true)
+                ->whereNotNull('level')
+                ->where('level', '!=', '')
+                ->distinct()
+                ->pluck('level')
+                ->sort()
+                ->values();
+        } else {
+            $roles = \Spatie\Permission\Models\Role::whereNotIn('name', ['super-admin', 'student'])->get();
         }
-            
-        $users = $query->paginate($perPage)->appends([
-            'type' => $type,
-            'per_page' => $perPageParam,
-            'q' => $request->get('q', ''),
-        ]);
+
+        // Build active filters for badges/chips
+        $activeFilters = [];
+        if ($q = trim($request->get('q', ''))) {
+            $activeFilters[] = [
+                'key' => 'q',
+                'label' => 'Cari',
+                'value' => $q,
+                'removeUrl' => request()->fullUrlWithQuery(['q' => null]),
+            ];
+        }
+        if ($classId = $request->get('class_id')) {
+            $className = $classId === 'none' ? 'Tanpa Kelas' : ($classes->firstWhere('id', $classId)?->name ?? $classId);
+            $activeFilters[] = [
+                'key' => 'class_id',
+                'label' => 'Kelas',
+                'value' => $className,
+                'removeUrl' => request()->fullUrlWithQuery(['class_id' => null]),
+            ];
+        }
+        if ($level = $request->get('level')) {
+            $activeFilters[] = [
+                'key' => 'level',
+                'label' => 'Tingkat',
+                'value' => 'Tingkat ' . $level,
+                'removeUrl' => request()->fullUrlWithQuery(['level' => null]),
+            ];
+        }
+        if ($gender = $request->get('gender')) {
+            $activeFilters[] = [
+                'key' => 'gender',
+                'label' => 'Gender',
+                'value' => $gender === 'L' ? 'Laki-laki' : 'Perempuan',
+                'removeUrl' => request()->fullUrlWithQuery(['gender' => null]),
+            ];
+        }
+        if ($request->filled('is_active')) {
+            $activeFilters[] = [
+                'key' => 'is_active',
+                'label' => 'Status',
+                'value' => $request->get('is_active') == '1' ? 'Aktif' : 'Tidak Aktif',
+                'removeUrl' => request()->fullUrlWithQuery(['is_active' => null]),
+            ];
+        }
+        if ($role = $request->get('role')) {
+            $roleObj = $roles->firstWhere('name', $role);
+            $activeFilters[] = [
+                'key' => 'role',
+                'label' => 'Role',
+                'value' => $roleObj?->display_name ?? $roleObj?->name ?? $role,
+                'removeUrl' => request()->fullUrlWithQuery(['role' => null]),
+            ];
+        }
+        if ($empStatus = $request->get('employment_status')) {
+            $activeFilters[] = [
+                'key' => 'employment_status',
+                'label' => 'Status Pegawai',
+                'value' => $empStatus,
+                'removeUrl' => request()->fullUrlWithQuery(['employment_status' => null]),
+            ];
+        }
+
+        // Summary Cards Metrics
+        $schoolId = Auth::user()->school_id;
+        $summaryCards = [];
+
+        if ($type === 'student') {
+            $totalStudents = User::where('school_id', $schoolId)->where('user_type', 'student')->count();
+            $maleStudents = User::where('school_id', $schoolId)->where('user_type', 'student')->where('gender', 'L')->count();
+            $femaleStudents = User::where('school_id', $schoolId)->where('user_type', 'student')->where('gender', 'P')->count();
+            $hasClasses = User::where('school_id', $schoolId)->where('user_type', 'student')->whereHas('studentClasses')->count();
+            $noClasses = $totalStudents - $hasClasses;
+            $activeStudents = User::where('school_id', $schoolId)->where('user_type', 'student')->where('is_active', true)->count();
+            $inactiveStudents = $totalStudents - $activeStudents;
+
+            $summaryCards = [
+                [
+                    'title' => 'Total Siswa',
+                    'value' => number_format($totalStudents),
+                    'subtext' => 'Terdaftar di sekolah',
+                    'icon' => 'fas fa-user-graduate',
+                    'color' => 'blue',
+                ],
+                [
+                    'title' => 'Jenis Kelamin',
+                    'value' => "{$maleStudents} L / {$femaleStudents} P",
+                    'subtext' => '<span class="text-blue-600 font-medium">L: ' . $maleStudents . '</span> · <span class="text-pink-600 font-medium">P: ' . $femaleStudents . '</span>',
+                    'icon' => 'fas fa-venus-mars',
+                    'color' => 'purple',
+                ],
+                [
+                    'title' => 'Penempatan Kelas',
+                    'value' => number_format($hasClasses) . ' Siswa',
+                    'subtext' => $noClasses > 0 ? '<span class="text-amber-600 font-medium">' . $noClasses . ' belum ada kelas</span>' : '<span class="text-emerald-600 font-medium">Semua memiliki kelas</span>',
+                    'icon' => 'fas fa-chalkboard-teacher',
+                    'color' => 'emerald',
+                ],
+                [
+                    'title' => 'Status Akun',
+                    'value' => number_format($activeStudents) . ' Aktif',
+                    'subtext' => $inactiveStudents > 0 ? '<span class="text-rose-600 font-medium">' . $inactiveStudents . ' nonaktif</span>' : '<span class="text-emerald-600 font-medium">100% aktif</span>',
+                    'icon' => 'fas fa-user-check',
+                    'color' => $inactiveStudents > 0 ? 'amber' : 'green',
+                ],
+            ];
+        } else {
+            $totalEmployees = User::where('school_id', $schoolId)->where('user_type', 'employee')->count();
+            $maleEmployees = User::where('school_id', $schoolId)->where('user_type', 'employee')->where('gender', 'L')->count();
+            $femaleEmployees = User::where('school_id', $schoolId)->where('user_type', 'employee')->where('gender', 'P')->count();
+            $activeEmployees = User::where('school_id', $schoolId)->where('user_type', 'employee')->where('is_active', true)->count();
+            $inactiveEmployees = $totalEmployees - $activeEmployees;
+            $pnsCount = User::where('school_id', $schoolId)->where('user_type', 'employee')
+                ->whereHas('employeeProfile', function($q) {
+                    $q->whereIn('employment_status', ['PNS', 'PPPK', 'PNS Depag', 'PNS Diperbantukan']);
+                })->count();
+            $honorerCount = $totalEmployees - $pnsCount;
+
+            $summaryCards = [
+                [
+                    'title' => 'Total Pegawai',
+                    'value' => number_format($totalEmployees),
+                    'subtext' => 'Pendidik & Tenaga Kependidikan',
+                    'icon' => 'fas fa-users-cog',
+                    'color' => 'blue',
+                ],
+                [
+                    'title' => 'Jenis Kelamin',
+                    'value' => "{$maleEmployees} L / {$femaleEmployees} P",
+                    'subtext' => '<span class="text-blue-600 font-medium">L: ' . $maleEmployees . '</span> · <span class="text-pink-600 font-medium">P: ' . $femaleEmployees . '</span>',
+                    'icon' => 'fas fa-venus-mars',
+                    'color' => 'purple',
+                ],
+                [
+                    'title' => 'Status Kepegawaian',
+                    'value' => $pnsCount . ' ASN / ' . $honorerCount . ' Non-ASN',
+                    'subtext' => 'PNS/PPPK & Honorer/GTT',
+                    'icon' => 'fas fa-id-badge',
+                    'color' => 'amber',
+                ],
+                [
+                    'title' => 'Status Akun',
+                    'value' => number_format($activeEmployees) . ' Aktif',
+                    'subtext' => $inactiveEmployees > 0 ? '<span class="text-rose-600 font-medium">' . $inactiveEmployees . ' nonaktif</span>' : '<span class="text-emerald-600 font-medium">100% aktif</span>',
+                    'icon' => 'fas fa-user-check',
+                    'color' => 'emerald',
+                ],
+            ];
+        }
         
-        return view('users.index', compact('users', 'type', 'perPageParam'));
+        return view('users.index', compact('users', 'type', 'perPageParam', 'classes', 'levels', 'roles', 'employmentStatuses', 'activeFilters', 'summaryCards'));
     }
 
     /**
@@ -698,17 +861,8 @@ class UserController extends Controller
             ->whereNotIn('email', $superAdminEmails)
             ->where('email', 'not like', 'superadmin@%');
 
-        if ($search = trim((string) $request->get('q', ''))) {
-            $query->where(function($q) use ($search, $type) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-                if ($type === 'employee') {
-                    $q->orWhere('nik', 'like', "%{$search}%");
-                } else {
-                    $q->orWhere('nis', 'like', "%{$search}%");
-                }
-            });
-        }
+        // Apply centralized filter scope
+        $query->filter($request->all());
 
         $users = $query->orderBy('name', 'asc')->get();
 

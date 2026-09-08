@@ -27,26 +27,79 @@
         </div>
     </div>
 
+    <!-- Summary Metric Cards -->
+    <x-summary-cards :cards="$summaryCards ?? []" />
+
     <!-- Filter -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <form method="GET" action="{{ route('admin.holidays.index') }}" class="flex items-center gap-4">
-                <div>
-                    <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
-                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        @for($i = now()->year - 1; $i <= now()->year + 2; $i++)
-                        <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
-                        @endfor
-                    </select>
-                </div>
-                <div class="mt-6">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                        <i class="fas fa-filter mr-2"></i>Filter
-                    </button>
-                </div>
-            </form>
+    <x-filter-bar 
+        :action="route('admin.holidays.index')" 
+        :reset-url="route('admin.holidays.index')" 
+        :active-filters="$activeFilters ?? []"
+        title="Filter Hari Libur"
+        badge-class="badge badge-info badge-sm text-xs font-medium"
+    >
+        <div>
+            <label for="q" class="block text-sm text-gray-500 font-normal">Pencarian</label>
+            <input type="text" name="q" id="q" value="{{ request('q') }}" 
+                   placeholder="Cari nama hari libur..." 
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
         </div>
-    </div>
+
+        <div>
+            <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
+            <select name="year" id="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="all" {{ request('year') === 'all' ? 'selected' : '' }}>Semua Tahun</option>
+                @for($i = now()->year - 2; $i <= now()->year + 2; $i++)
+                    <option value="{{ $i }}" {{ ($year == $i && request('year') !== 'all') ? 'selected' : '' }}>{{ $i }}</option>
+                @endfor
+            </select>
+        </div>
+
+        <div>
+            <label for="month" class="block text-sm text-gray-500 font-normal">Bulan</label>
+            <select name="month" id="month" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Bulan</option>
+                @php
+                    $monthList = [
+                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                    ];
+                @endphp
+                @foreach($monthList as $num => $name)
+                    <option value="{{ $num }}" {{ request('month') == $num ? 'selected' : '' }}>{{ $name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label for="type" class="block text-sm text-gray-500 font-normal">Jenis Libur</label>
+            <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Jenis</option>
+                <option value="national" {{ request('type') === 'national' ? 'selected' : '' }}>Hari Libur Nasional</option>
+                <option value="school" {{ request('type') === 'school' ? 'selected' : '' }}>Hari Libur Sekolah</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="is_active" class="block text-sm text-gray-500 font-normal">Status</label>
+            <select name="is_active" id="is_active" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Status</option>
+                <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
+                <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="per_page" class="block text-sm text-gray-500 font-normal">Tampilkan</label>
+            <select name="per_page" id="per_page" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="10" {{ request('per_page', 25) == 10 ? 'selected' : '' }}>10 baris</option>
+                <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25 baris</option>
+                <option value="50" {{ request('per_page', 25) == 50 ? 'selected' : '' }}>50 baris</option>
+                <option value="100" {{ request('per_page', 25) == 100 ? 'selected' : '' }}>100 baris</option>
+            </select>
+        </div>
+    </x-filter-bar>
 
     <!-- Holidays List -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -128,6 +181,11 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-6">
+                {{ $holidays->links() }}
             </div>
             @else
             <div class="text-center py-8">

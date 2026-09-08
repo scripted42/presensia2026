@@ -113,48 +113,83 @@
         </div>
     </div>
 
-    <!-- Filter -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-4 py-5 sm:p-6">
-            <form method="GET" action="{{ route('attendance.reports') }}" class="flex flex-wrap gap-4">
-                <div>
-                    <label for="month" class="block text-sm text-gray-500 font-normal">Bulan</label>
-                    <select name="month" id="month" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        @for($i = 1; $i <= 12; $i++)
-                        <option value="{{ $i }}" {{ $month == $i ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create(null, $i, 1)->format('F') }}
-                        </option>
-                        @endfor
-                    </select>
-                </div>
-                <div>
-                    <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
-                    <select name="year" id="year" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        @for($i = now()->year - 2; $i <= now()->year + 1; $i++)
-                        <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
-                        @endfor
-                    </select>
-                </div>
-                @if($user->hasRole('admin') || $user->hasRole('teacher'))
-                <div>
-                    <label for="type" class="block text-sm text-gray-500 font-normal">Tipe Data</label>
-                    <select name="type" id="type" class="mt-1 block border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <option value="all" {{ $type == 'all' ? 'selected' : '' }}>Semua</option>
-                        <option value="employees" {{ $type == 'employees' ? 'selected' : '' }}>Pegawai</option>
-                        <option value="students" {{ $type == 'students' ? 'selected' : '' }}>Siswa</option>
-                    </select>
-                </div>
-                @endif
-                <div class="flex items-end">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                        <i class="fas fa-search mr-2"></i>Filter
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Summary Metric Cards -->
+    <x-summary-cards :cards="$summaryCards ?? []" />
 
-    
+    <!-- Filter Bar Component -->
+    <x-filter-bar 
+        :action="route('attendance.reports')" 
+        :reset-url="route('attendance.reports')" 
+        :active-filters="$activeFilters"
+        title="Filter Laporan Absensi"
+        badge-class="att-badge att-ontime"
+    >
+        {{-- 1. Bulan --}}
+        <div>
+            <label for="month" class="block text-sm text-gray-500 font-normal">Bulan</label>
+            <select name="month" id="month" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                @for($i = 1; $i <= 12; $i++)
+                <option value="{{ $i }}" {{ $month == $i ? 'selected' : '' }}>
+                    {{ \Carbon\Carbon::create(null, $i, 1)->format('F') }}
+                </option>
+                @endfor
+            </select>
+        </div>
+
+        {{-- 2. Tahun --}}
+        <div>
+            <label for="year" class="block text-sm text-gray-500 font-normal">Tahun</label>
+            <select name="year" id="year" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                @for($i = now()->year - 2; $i <= now()->year + 1; $i++)
+                <option value="{{ $i }}" {{ $year == $i ? 'selected' : '' }}>{{ $i }}</option>
+                @endfor
+            </select>
+        </div>
+
+        {{-- 3. Tipe Data --}}
+        @if($user->hasRole('admin') || $user->hasRole('teacher') || $user->hasRole('headmaster'))
+        <div>
+            <label for="type" class="block text-sm text-gray-500 font-normal">Tipe Pengguna</label>
+            <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="all" {{ $type == 'all' ? 'selected' : '' }}>Semua Pengguna</option>
+                <option value="employees" {{ $type == 'employees' ? 'selected' : '' }}>Pegawai Saja</option>
+                <option value="students" {{ $type == 'students' ? 'selected' : '' }}>Siswa Saja</option>
+            </select>
+        </div>
+        @endif
+
+        {{-- 4. Filter Kelas --}}
+        <div>
+            <label for="class_id" class="block text-sm text-gray-500 font-normal">Kelas</label>
+            <select name="class_id" id="class_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Kelas</option>
+                <option value="none" {{ request('class_id') === 'none' ? 'selected' : '' }}>-- Tanpa Kelas --</option>
+                @foreach($classes as $c)
+                    <option value="{{ $c->id }}" {{ request('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- 5. Status Kehadiran --}}
+        <div>
+            <label for="status" class="block text-sm text-gray-500 font-normal">Status Kehadiran</label>
+            <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Status</option>
+                <option value="ontime" {{ request('status') === 'ontime' ? 'selected' : '' }}>Tepat Waktu</option>
+                <option value="late" {{ request('status') === 'late' ? 'selected' : '' }}>Terlambat</option>
+                <option value="sick" {{ request('status') === 'sick' ? 'selected' : '' }}>Sakit</option>
+                <option value="permit" {{ request('status') === 'permit' ? 'selected' : '' }}>Izin</option>
+                <option value="alpha" {{ request('status') === 'alpha' ? 'selected' : '' }}>Alpha</option>
+            </select>
+        </div>
+
+        {{-- 6. Cari Nama / NIS --}}
+        <div>
+            <label for="q" class="block text-sm text-gray-500 font-normal">Cari Nama / NIS</label>
+            <input type="text" name="q" id="q" value="{{ request('q') }}" placeholder="Ketik nama atau NIS..." 
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+        </div>
+    </x-filter-bar>
 
     <!-- Data Type Info -->
     @if($type !== 'all')
@@ -189,11 +224,11 @@
                     <p class="text-xs text-gray-500 mt-0.5">{{ $attendances->count() }} {{ $type === 'employees' ? 'pegawai' : ($type === 'students' ? 'siswa' : 'pengguna') }}</p>
                 </div>
                 <div class="flex space-x-2">
-                    <a href="{{ route('attendance.export', ['month' => $month, 'year' => $year, 'type' => $type]) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <a href="{{ route('attendance.export', request()->all()) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <i class="fas fa-download mr-2"></i>
                         Download Excel
                     </a>
-                    <a href="{{ route('attendance.export-detail', ['month' => $month, 'year' => $year, 'type' => $type]) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <a href="{{ route('attendance.export-detail', request()->all()) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-file-alt mr-2"></i>
                         Download Detail
                     </a>

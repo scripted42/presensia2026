@@ -10,13 +10,13 @@
                 <p class="text-gray-600 mt-1">Kelola dan cetak QR siswa untuk kartu pelajar (format: <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-blue-700 font-semibold">NIS|Nama</code>).</p>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
-                <a href="{{ route('qr.excel', ['q' => $query ?? '']) }}" 
+                <a href="{{ route('qr.excel', request()->all()) }}" 
                    class="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-150 text-sm"
                    title="Download daftar siswa, kelas, dan nama file QR dalam format Excel untuk vendor cetak">
                     <i class="fas fa-file-excel mr-2 text-emerald-200"></i>
                     Download Excel (.xlsx)
                 </a>
-                <a href="{{ route('qr.zip') }}" 
+                <a href="{{ route('qr.zip', request()->all()) }}" 
                    class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 text-sm"
                    title="Download seluruh file PNG QR Code (dilengkapi file Excel di dalamnya)">
                     <i class="fas fa-file-archive mr-2 text-blue-200"></i>
@@ -26,47 +26,106 @@
         </div>
     </div>
 
+    <!-- Summary Metric Cards -->
+    <x-summary-cards :cards="$summaryCards ?? []" />
+
+    <!-- Filter -->
+    <x-filter-bar 
+        :action="route('qr.index')" 
+        :reset-url="route('qr.index')" 
+        :active-filters="$activeFilters ?? []"
+        title="Filter QR Code Siswa"
+        badge-class="badge badge-info badge-sm text-xs font-medium"
+    >
+        <div>
+            <label for="q" class="block text-sm text-gray-500 font-normal">Pencarian</label>
+            <input type="text" name="q" id="q" value="{{ request('q') }}" 
+                   placeholder="NIS atau Nama Siswa..." 
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+        </div>
+
+        @if(isset($levels) && $levels->isNotEmpty())
+        <div>
+            <label for="level" class="block text-sm text-gray-500 font-normal">Tingkat</label>
+            <select name="level" id="level" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Tingkat</option>
+                @foreach($levels as $lvl)
+                    <option value="{{ $lvl }}" {{ request('level') == $lvl ? 'selected' : '' }}>Kelas {{ $lvl }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+
+        @if(isset($classes) && $classes->isNotEmpty())
+        <div>
+            <label for="class_id" class="block text-sm text-gray-500 font-normal">Kelas</label>
+            <select name="class_id" id="class_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">Semua Kelas</option>
+                @foreach($classes as $c)
+                    <option value="{{ $c->id }}" {{ request('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+
+        <div>
+            <label for="per_page" class="block text-sm text-gray-500 font-normal">Tampilkan</label>
+            <select name="per_page" id="per_page" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 baris</option>
+                <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25 baris</option>
+                <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50 baris</option>
+                <option value="100" {{ request('per_page', 100) == 100 ? 'selected' : '' }}>100 baris</option>
+                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>Semua Data</option>
+            </select>
+        </div>
+    </x-filter-bar>
+
     <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-5 sm:p-6 overflow-x-auto">
-            <form method="GET" action="{{ route('qr.index') }}" class="mb-4 flex items-center gap-3">
-                <input type="text" name="q" value="{{ $query ?? '' }}" placeholder="Cari NIS atau Nama..." class="border-gray-300 rounded-md">
-                <select name="per_page" class="border-gray-300 rounded-md">
-                    <option value="10" {{ ($perPageParam ?? '10')=='10' ? 'selected' : '' }}>10</option>
-                    <option value="25" {{ ($perPageParam ?? '')=='25' ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ ($perPageParam ?? '')=='50' ? 'selected' : '' }}>50</option>
-                    <option value="all" {{ ($perPageParam ?? '')=='all' ? 'selected' : '' }}>All</option>
-                </select>
-                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">Filter</button>
-            </form>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">NIS</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">View QR</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Aksi</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">NIS</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Kelas</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Preview</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach($students as $s)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-2 text-sm text-gray-900 font-medium">{{ $s->nis ?? '-' }}</td>
-                        <td class="px-3 py-2 text-sm text-gray-900">{{ $s->name }}</td>
-                        <td class="px-3 py-2 text-sm">
+                    @forelse($students as $s)
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium whitespace-nowrap">{{ $s->nis ?? '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ $s->name }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            @if($s->studentClasses && $s->studentClasses->isNotEmpty())
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    {{ $s->studentClasses->pluck('name')->join(', ') }}
+                                </span>
+                            @else
+                                <span class="text-xs text-gray-400 italic">Belum ada</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
                             <button onclick="showQRPreview('{{ $s->nis ?? 'NIS' }}', '{{ addslashes($s->name) }}', '{{ route('qr.view', $s) }}', '{{ route('qr.download', $s) }}')" 
-                                    class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-200 transition-colors">
+                                    class="inline-flex items-center px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md text-xs font-medium transition-colors">
                                 <i class="fas fa-eye mr-1"></i>View
                             </button>
                         </td>
-                        <td class="px-3 py-2 text-sm">
-                            <div class="flex flex-col space-y-1">
-                                <a class="text-blue-600 hover:text-blue-800 text-xs font-medium" href="{{ route('qr.download', $s) }}">
-                                    <i class="fas fa-download mr-1"></i>Download QR (.png)
-                                </a>
-                            </div>
+                        <td class="px-4 py-3 text-sm text-right whitespace-nowrap">
+                            <a class="inline-flex items-center px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md text-xs font-medium border border-gray-200 transition-colors" href="{{ route('qr.download', $s) }}">
+                                <i class="fas fa-download mr-1 text-gray-500"></i>Download (.png)
+                            </a>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-qrcode text-3xl text-gray-300 mb-2 block"></i>
+                            Tidak ada siswa yang sesuai dengan filter.
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
 

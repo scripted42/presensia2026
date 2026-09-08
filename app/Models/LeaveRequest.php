@@ -108,4 +108,43 @@ class LeaveRequest extends Model
     {
         return $query->where('type', $type);
     }
+
+    /**
+     * Scope for applying flexible filters.
+     */
+    public function scopeFilter($query, array $filters = [])
+    {
+        // 1. Search keyword (user name, NIS, NIK, reason)
+        if (!empty($filters['q'])) {
+            $search = trim($filters['q']);
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('nis', 'like', "%{$search}%")
+                         ->orWhere('nik', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // 2. Status filter
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // 3. Type filter
+        if (!empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        // 4. Date range filter
+        if (!empty($filters['start_date'])) {
+            $query->where('end_date', '>=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $query->where('start_date', '<=', $filters['end_date']);
+        }
+
+        return $query;
+    }
 }
