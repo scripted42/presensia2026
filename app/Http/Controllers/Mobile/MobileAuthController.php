@@ -92,7 +92,10 @@ class MobileAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->bearerToken();
+        if ($token) {
+            \Illuminate\Support\Facades\Cache::forget("mobile_token_{$token}");
+        }
 
         return response()->json([
             'success' => true,

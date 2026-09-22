@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'security.monitor' => \App\Http\Middleware\SecurityMonitoringMiddleware::class,
             'cors' => \App\Http\Middleware\Cors::class,
+            'mobile.auth' => \App\Http\Middleware\MobileAuthenticate::class,
+            'auth:sanctum' => \App\Http\Middleware\MobileAuthenticate::class,
         ]);
         
         // Trust all proxies (Cloudflare Zero Trust / Tunnel)

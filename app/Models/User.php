@@ -6,13 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -206,5 +205,21 @@ class User extends Authenticatable
         }
 
         return $query;
+    }
+
+    /**
+     * Generate mobile authentication token without external Sanctum dependency
+     *
+     * @param string $name
+     * @return object
+     */
+    public function createToken(string $name = 'mobile-app')
+    {
+        $plainToken = bin2hex(random_bytes(32));
+        \Illuminate\Support\Facades\Cache::put("mobile_token_{$plainToken}", $this->id, now()->addDays(30));
+
+        return (object) [
+            'plainTextToken' => $plainToken,
+        ];
     }
 }

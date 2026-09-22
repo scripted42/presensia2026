@@ -23,12 +23,12 @@ Route::prefix('mobile')->group(function () {
     // Authentication routes
     Route::prefix('auth')->group(function () {
         Route::post('/login', [MobileAuthController::class, 'login']);
-        Route::post('/logout', [MobileAuthController::class, 'logout'])->middleware('auth:sanctum');
-        Route::get('/me', [MobileAuthController::class, 'me'])->middleware('auth:sanctum');
+        Route::post('/logout', [MobileAuthController::class, 'logout'])->middleware('mobile.auth');
+        Route::get('/me', [MobileAuthController::class, 'me'])->middleware('mobile.auth');
     });
     
     // Protected routes (require authentication)
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['mobile.auth'])->group(function () {
         
         // Attendance routes
         Route::prefix('attendance')->group(function () {
