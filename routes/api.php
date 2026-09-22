@@ -5,6 +5,7 @@ use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileAttendanceController;
 use App\Http\Controllers\Mobile\MobileSettingsController;
 use App\Http\Controllers\Mobile\MobileReportController;
+use App\Http\Controllers\Mobile\MobileLeaveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,16 @@ Route::prefix('mobile')->group(function () {
             Route::get('/classes', [MobileAttendanceController::class, 'getClasses']);
         });
         
+        // Leave / Permission routes
+        Route::prefix('leave-requests')->group(function () {
+            Route::get('/', [MobileLeaveController::class, 'index']);
+            Route::post('/', [MobileLeaveController::class, 'store']);
+            Route::get('/{id}', [MobileLeaveController::class, 'show']);
+            Route::delete('/{id}', [MobileLeaveController::class, 'destroy']);
+            Route::post('/{id}/approve', [MobileLeaveController::class, 'approve']);
+            Route::post('/{id}/reject', [MobileLeaveController::class, 'reject']);
+        });
+
         // Settings routes
         Route::prefix('settings')->group(function () {
             Route::get('/attendance', [MobileSettingsController::class, 'attendanceSettings']);
