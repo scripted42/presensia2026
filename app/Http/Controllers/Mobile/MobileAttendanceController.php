@@ -52,14 +52,17 @@ class MobileAttendanceController extends Controller
             ]);
         }
         
-        // Validate request
+        // Validate request: 1. Photo selfie, 2. Within radius (lat/long), 3. TV display QR code
         $request->validate([
-            'qr_code' => 'nullable|string',
+            'qr_code' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'location_name' => 'required|string',
             'photo' => 'required|image|mimes:jpeg,png,jpg|max:12288',
             'notes' => 'nullable|string',
+        ], [
+            'qr_code.required' => 'QR Code dari layar sekolah wajib discan.',
+            'photo.required' => 'Foto selfie wajib diambil.',
         ]);
 
         // Check if already checked in today
@@ -74,24 +77,22 @@ class MobileAttendanceController extends Controller
             ], 400);
         }
 
-        // Validate QR code if provided
-        if ($request->qr_code) {
-            $qrCode = QrCode::where('code', $request->qr_code)
-                ->where('school_id', $user->school_id)
-                ->where('is_used', false)
-                ->where('expires_at', '>', now())
-                ->first();
+        // Validate QR code (Display-QR TV with 15s grace period for scan network transit)
+        $qrCode = QrCode::where('code', $request->qr_code)
+            ->where('school_id', $user->school_id)
+            ->where('is_used', false)
+            ->where('expires_at', '>', now()->subSeconds(15))
+            ->first();
 
-            if (!$qrCode) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'QR Code tidak valid atau sudah kedaluwarsa'
-                ], 400);
-            }
-
-            // Mark QR code as used
-            $qrCode->update(['is_used' => true, 'used_at' => now()]);
+        if (!$qrCode) {
+            return response()->json([
+                'success' => false,
+                'message' => 'QR Code tidak valid atau sudah kedaluwarsa. Silakan scan ulang QR di layar sekolah.'
+            ], 400);
         }
+
+        // Mark QR code as used
+        $qrCode->update(['is_used' => true, 'used_at' => now()]);
 
         // Validate location if required
         $settings = AttendanceSetting::where('school_id', $user->school_id)
@@ -164,13 +165,16 @@ class MobileAttendanceController extends Controller
         $user = Auth::user();
         $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
 
-        // Validate request
+        // Validate request: 1. Photo selfie, 2. Within radius (lat/long), 3. TV display QR code
         $request->validate([
-            'qr_code' => 'nullable|string',
+            'qr_code' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'location_name' => 'required|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:12288',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:12288',
+        ], [
+            'qr_code.required' => 'QR Code dari layar sekolah wajib discan.',
+            'photo.required' => 'Foto selfie pulang wajib diambil.',
         ]);
 
         $attendance = Attendance::where('user_id', $user->id)
@@ -191,24 +195,22 @@ class MobileAttendanceController extends Controller
             ], 400);
         }
 
-        // Validate QR code if provided
-        if ($request->qr_code) {
-            $qrCode = QrCode::where('code', $request->qr_code)
-                ->where('school_id', $user->school_id)
-                ->where('is_used', false)
-                ->where('expires_at', '>', now())
-                ->first();
+        // Validate QR code (Display-QR TV with 15s grace period)
+        $qrCode = QrCode::where('code', $request->qr_code)
+            ->where('school_id', $user->school_id)
+            ->where('is_used', false)
+            ->where('expires_at', '>', now()->subSeconds(15))
+            ->first();
 
-            if (!$qrCode) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'QR Code tidak valid atau sudah kedaluwarsa. Silakan scan ulang QR di layar sekolah.'
-                ], 400);
-            }
-
-            // Mark QR code as used
-            $qrCode->update(['is_used' => true, 'used_at' => now()]);
+        if (!$qrCode) {
+            return response()->json([
+                'success' => false,
+                'message' => 'QR Code tidak valid atau sudah kedaluwarsa. Silakan scan ulang QR di layar sekolah.'
+            ], 400);
         }
+
+        // Mark QR code as used
+        $qrCode->update(['is_used' => true, 'used_at' => now()]);
 
         // Validate location radius if required
         $settings = AttendanceSetting::where('school_id', $user->school_id)
@@ -232,18 +234,25 @@ class MobileAttendanceController extends Controller
         }
 
         // Handle photo upload if present
+        $photoPath = null;
         if ($request->hasFile('photo')) {
-            $request->file('photo')->store('attendance_photos', 'public');
+            $photoPath = $request->file('photo')->store('attendance_photos', 'public');
         }
 
         // Update check-out
         $checkOutTime = now('Asia/Jakarta');
-        $attendance->update([
+        $updateData = [
             'check_out' => $checkOutTime->format('H:i:s'),
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'location_name' => $request->location_name,
-        ]);
+            'qr_code_used' => $request->qr_code,
+        ];
+        if ($photoPath) {
+            $updateData['photo'] = $photoPath;
+        }
+
+        $attendance->update($updateData);
 
         return response()->json([
             'success' => true,
