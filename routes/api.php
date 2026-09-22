@@ -37,6 +37,8 @@ Route::prefix('mobile')->group(function () {
             Route::get('/history', [MobileAttendanceController::class, 'history']);
             Route::get('/today', [MobileAttendanceController::class, 'todayStatus']);
             Route::post('/scan-student', [MobileAttendanceController::class, 'scanStudent']);
+            Route::get('/students-history', [MobileAttendanceController::class, 'studentsHistory']);
+            Route::get('/classes', [MobileAttendanceController::class, 'getClasses']);
         });
         
         // Settings routes

@@ -572,6 +572,184 @@ class MobileAttendanceController extends Controller
             return ['nis' => $qrCode, 'name' => 'Unknown'];
         }
     }
+
+    /**
+     * Get list of school classes for mobile filter.
+     */
+    public function getClasses(Request $request)
+    {
+        $user = Auth::user();
+        $schoolId = $user->school_id ?? null;
+
+        $classesQuery = \App\Models\SchoolClass::query();
+        if ($schoolId) {
+            $classesQuery->where('school_id', $schoolId);
+        }
+
+        $classes = $classesQuery->orderBy('level', 'asc')
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name', 'level']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $classes,
+        ]);
+    }
+
+    /**
+     * Get student attendance history with date, class filter, search, and KPI statistics.
+     */
+    public function studentsHistory(Request $request)
+    {
+        $currentUser = Auth::user();
+        
+        // Date input (default to today Asia/Jakarta)
+        $dateStr = $request->input('date', Carbon::now('Asia/Jakarta')->toDateString());
+        try {
+            $targetDate = Carbon::parse($dateStr, 'Asia/Jakarta')->toDateString();
+        } catch (\Exception $e) {
+            $targetDate = Carbon::now('Asia/Jakarta')->toDateString();
+        }
+
+        $classId = $request->input('class_id');
+        $search = trim($request->input('q', $request->input('search', '')));
+        $statusFilter = strtolower(trim($request->input('status', 'all')));
+
+        // Query active students
+        $studentsQuery = User::where('user_type', 'student')
+            ->where('is_active', true);
+
+        if (!empty($currentUser->school_id)) {
+            $studentsQuery->where('school_id', $currentUser->school_id);
+        }
+
+        // Filter by class
+        if (!empty($classId) && $classId !== 'all') {
+            $studentsQuery->whereHas('studentClasses', function ($q) use ($classId) {
+                $q->where('classes.id', $classId);
+            });
+        }
+
+        // Search by keyword (name, nis, nisn)
+        if (!empty($search)) {
+            $studentsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            });
+        }
+
+        // Eager load class and attendance on target date
+        $students = $studentsQuery->with([
+            'studentClasses' => function ($q) {
+                $q->select('classes.id', 'classes.name', 'classes.level');
+            },
+            'attendances' => function ($q) use ($targetDate) {
+                $q->where('date', $targetDate);
+            }
+        ])
+        ->orderBy('name', 'asc')
+        ->get();
+
+        // Calculate statistics & map output
+        $totalStudents = $students->count();
+        $ontimeCount = 0;
+        $lateCount = 0;
+        $sickCount = 0;
+        $permitCount = 0;
+        $alphaCount = 0;
+
+        $mappedStudents = $students->map(function ($student) use (&$ontimeCount, &$lateCount, &$sickCount, &$permitCount, &$alphaCount) {
+            $attendance = $student->attendances->first();
+            $className = $student->studentClasses->first()->name ?? '-';
+
+            $status = 'alpha'; // default if no attendance record
+            $checkIn = null;
+            $checkOut = null;
+            $notes = null;
+            $photoUrl = null;
+
+            if ($attendance) {
+                $st = strtolower($attendance->status ?? 'present');
+                if (in_array($st, ['ontime', 'present', 'tepat_waktu'])) {
+                    $status = 'ontime';
+                    $ontimeCount++;
+                } elseif (in_array($st, ['late', 'terlambat'])) {
+                    $status = 'late';
+                    $lateCount++;
+                } elseif (in_array($st, ['sick', 'sakit'])) {
+                    $status = 'sick';
+                    $sickCount++;
+                } elseif (in_array($st, ['permit', 'izin', 'leave'])) {
+                    $status = 'permit';
+                    $permitCount++;
+                } else {
+                    $status = 'alpha';
+                    $alphaCount++;
+                }
+
+                $checkIn = $attendance->check_in ? Carbon::parse($attendance->check_in)->format('H:i') : null;
+                $checkOut = $attendance->check_out ? Carbon::parse($attendance->check_out)->format('H:i') : null;
+                $notes = $attendance->notes;
+                if (!empty($attendance->photo)) {
+                    $photoUrl = asset('storage/' . $attendance->photo);
+                }
+            } else {
+                $alphaCount++;
+            }
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'nis' => $student->nis ?? '-',
+                'nisn' => $student->nisn ?? null,
+                'gender' => $student->gender ?? null,
+                'class_name' => $className,
+                'class_id' => $student->studentClasses->first()->id ?? null,
+                'status' => $status,
+                'is_present' => in_array($status, ['ontime', 'late']),
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'notes' => $notes,
+                'photo_url' => $photoUrl,
+            ];
+        });
+
+        // Filter by status if requested
+        if ($statusFilter !== 'all') {
+            if ($statusFilter === 'present') {
+                $mappedStudents = $mappedStudents->filter(fn($s) => $s['is_present'])->values();
+            } else {
+                $mappedStudents = $mappedStudents->filter(fn($s) => $s['status'] === $statusFilter)->values();
+            }
+        }
+
+        $presentTotal = $ontimeCount + $lateCount;
+        $attendanceRate = $totalStudents > 0 ? round(($presentTotal / $totalStudents) * 100, 1) : 0;
+
+        // Indonesian date formatted
+        $targetCarbon = Carbon::parse($targetDate, 'Asia/Jakarta')->locale('id');
+        $dateFormatted = $targetCarbon->isoFormat('dddd, D MMMM Y');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'date' => $targetDate,
+                'date_formatted' => $dateFormatted,
+                'statistics' => [
+                    'total_students' => $totalStudents,
+                    'present_count' => $presentTotal,
+                    'ontime_count' => $ontimeCount,
+                    'late_count' => $lateCount,
+                    'sick_count' => $sickCount,
+                    'permit_count' => $permitCount,
+                    'alpha_count' => $alphaCount,
+                    'attendance_rate' => $attendanceRate,
+                ],
+                'students' => $mappedStudents,
+            ],
+        ]);
+    }
 }
 
 
