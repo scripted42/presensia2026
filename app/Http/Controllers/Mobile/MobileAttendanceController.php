@@ -274,8 +274,15 @@ class MobileAttendanceController extends Controller
     public function history(Request $request)
     {
         $user = Auth::user();
-        $startDate = $request->start_date ?? Carbon::now()->startOfMonth();
-        $endDate = $request->end_date ?? Carbon::now()->endOfMonth();
+        if ($request->has('month') && $request->has('year')) {
+            $year = (int) $request->year;
+            $month = (int) $request->month;
+            $startDate = Carbon::create($year, $month, 1, 0, 0, 0, 'Asia/Jakarta')->startOfMonth()->format('Y-m-d');
+            $endDate = Carbon::create($year, $month, 1, 0, 0, 0, 'Asia/Jakarta')->endOfMonth()->format('Y-m-d');
+        } else {
+            $startDate = $request->start_date ?? Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
+            $endDate = $request->end_date ?? Carbon::now('Asia/Jakarta')->endOfMonth()->format('Y-m-d');
+        }
 
         $attendances = Attendance::where('user_id', $user->id)
             ->whereBetween('date', [$startDate, $endDate])
