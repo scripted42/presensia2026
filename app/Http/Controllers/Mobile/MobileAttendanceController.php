@@ -293,22 +293,7 @@ class MobileAttendanceController extends Controller
      */
     private function determineStatus($user, $checkInTime, $settings = null)
     {
-        if ($checkInTime instanceof \Carbon\Carbon) {
-            $checkInTimeInTz = $checkInTime->copy()->timezone('Asia/Jakarta');
-        } else {
-            $checkInTimeInTz = \Carbon\Carbon::parse($checkInTime, 'Asia/Jakarta');
-        }
-        $checkInTimeFormatted = $checkInTimeInTz->format('H:i:s');
-        
-        // Role-based time limits with special schedules and daily overrides
-        $maxTimeRaw = $this->getMaxCheckInTime($user, $checkInTimeInTz);
-        $maxTime = AttendanceSetting::normalizeTimeString($maxTimeRaw) ?: '06:30:00';
-
-        $status = ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
-
-        \Log::info("Mobile determineStatus: user={$user->id} ({$user->name}), type={$user->user_type}, checkIn={$checkInTimeFormatted}, maxTime={$maxTime} => status={$status}");
-
-        return $status;
+        return Attendance::determineStatusFor($user, $checkInTime);
     }
 
     /**

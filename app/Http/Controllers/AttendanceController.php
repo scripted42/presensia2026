@@ -777,7 +777,17 @@ class AttendanceController extends Controller
             $query->where('user_id', $user->id);
         }
         
-        $attendances = $query->get()->groupBy('user_id');
+        $attendancesList = $query->with('user')->get();
+        foreach ($attendancesList as $att) {
+            if ($att->check_in && in_array($att->status, ['ontime', 'late']) && $att->user) {
+                $correctStatus = Attendance::determineStatusFor($att->user, $att->check_in);
+                if ($att->status !== $correctStatus) {
+                    $att->status = $correctStatus;
+                    $att->saveQuietly();
+                }
+            }
+        }
+        $attendances = $attendancesList->groupBy('user_id');
 
         // Get all users for the report (matching the same filters)
         $usersBaseQuery = User::where('school_id', $user->school_id);
@@ -1031,22 +1041,7 @@ class AttendanceController extends Controller
      */
     private function determineStatus($user, $checkInTime)
     {
-        if ($checkInTime instanceof \Carbon\Carbon) {
-            $checkInTimeInTz = $checkInTime->copy()->timezone('Asia/Jakarta');
-        } else {
-            $checkInTimeInTz = \Carbon\Carbon::parse($checkInTime, 'Asia/Jakarta');
-        }
-        $checkInTimeFormatted = $checkInTimeInTz->format('H:i:s');
-        
-        // Role-based time limits with special schedules and daily overrides
-        $maxTimeRaw = $this->getMaxCheckInTime($user, $checkInTimeInTz);
-        $maxTime = AttendanceSetting::normalizeTimeString($maxTimeRaw) ?: '06:30:00';
-        
-        $status = ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
-
-        \Log::info("determineStatus: user={$user->id} ({$user->name}), type={$user->user_type}, checkIn={$checkInTimeFormatted}, maxTime={$maxTime} => status={$status}");
-
-        return $status;
+        return Attendance::determineStatusFor($user, $checkInTime);
     }
 
     /**
@@ -1145,10 +1140,19 @@ class AttendanceController extends Controller
         $users = $query->orderBy('name')->get();
 
         // Get attendances for the month
-        $attendances = Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+        $attendancesList = Attendance::with('user')->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->whereIn('user_id', $users->pluck('id'))
-            ->get()
-            ->groupBy('user_id');
+            ->get();
+        foreach ($attendancesList as $att) {
+            if ($att->check_in && in_array($att->status, ['ontime', 'late']) && $att->user) {
+                $correctStatus = Attendance::determineStatusFor($att->user, $att->check_in);
+                if ($att->status !== $correctStatus) {
+                    $att->status = $correctStatus;
+                    $att->saveQuietly();
+                }
+            }
+        }
+        $attendances = $attendancesList->groupBy('user_id');
 
         // Create spreadsheet
         $spreadsheet = new Spreadsheet();
@@ -1351,6 +1355,16 @@ class AttendanceController extends Controller
             ->orderBy('date')
             ->orderBy('user_id')
             ->get();
+
+        foreach ($attendances as $att) {
+            if ($att->check_in && in_array($att->status, ['ontime', 'late']) && $att->user) {
+                $correctStatus = Attendance::determineStatusFor($att->user, $att->check_in);
+                if ($att->status !== $correctStatus) {
+                    $att->status = $correctStatus;
+                    $att->saveQuietly();
+                }
+            }
+        }
 
         // Create spreadsheet
         $spreadsheet = new Spreadsheet();

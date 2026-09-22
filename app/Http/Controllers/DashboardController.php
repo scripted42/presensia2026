@@ -457,7 +457,17 @@ class DashboardController extends Controller
             $checkInCarbon = Carbon::parse($att->check_in);
             $limitCarbon = Carbon::parse($att->date->format('Y-m-d') . ' ' . $targetMaxTime);
 
-            if ($checkInCarbon->gt($limitCarbon) || $att->status === 'late') {
+            $isLate = false;
+            $calculatedStatus = Attendance::determineStatusFor($att->user, $att->check_in);
+            if ($calculatedStatus === 'late' || $att->status === 'late' || $checkInCarbon->gt($limitCarbon)) {
+                $isLate = true;
+                if ($att->status !== 'late') {
+                    $att->status = 'late';
+                    $att->saveQuietly();
+                }
+            }
+
+            if ($isLate) {
                 $diffMinutes = max(1, $limitCarbon->diffInMinutes($checkInCarbon, false));
                 $hours = floor($diffMinutes / 60);
                 $mins = $diffMinutes % 60;
@@ -565,6 +575,13 @@ class DashboardController extends Controller
 
         return $attendances->map(function($att) {
             $u = $att->user;
+            if ($u && $att->check_in && in_array($att->status, ['ontime', 'late'])) {
+                $calculatedStatus = Attendance::determineStatusFor($u, $att->check_in);
+                if ($att->status !== $calculatedStatus) {
+                    $att->status = $calculatedStatus;
+                    $att->saveQuietly();
+                }
+            }
             $isCheckOut = !empty($att->check_out) && $att->check_out > $att->check_in;
             $eventTime = $isCheckOut ? Carbon::parse($att->check_out) : ($att->check_in ? Carbon::parse($att->check_in) : Carbon::parse($att->created_at));
             $eventType = $isCheckOut ? 'Absen keluar' : 'Absen masuk';

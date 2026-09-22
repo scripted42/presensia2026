@@ -49,6 +49,61 @@ class Attendance extends Model
     }
 
     /**
+     * Determine attendance status based on user and check-in time.
+     */
+    public static function determineStatusFor($user, $checkInTime): string
+    {
+        if (!$checkInTime || !$user) {
+            return 'alpha';
+        }
+
+        if ($checkInTime instanceof \Carbon\Carbon) {
+            $checkInTimeInTz = $checkInTime->copy()->timezone('Asia/Jakarta');
+        } else {
+            $checkInTimeInTz = \Carbon\Carbon::parse($checkInTime, 'Asia/Jakarta');
+        }
+        $checkInTimeFormatted = $checkInTimeInTz->format('H:i:s');
+
+        // Priority 1: Daily Override
+        $dailyOverrideTime = \App\Models\DailyOverride::getMaxCheckInTimeForDate($checkInTimeInTz, $user);
+        if ($dailyOverrideTime) {
+            $maxTime = AttendanceSetting::normalizeTimeString($dailyOverrideTime);
+            return ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
+        }
+
+        // Priority 2: Special Schedule
+        $specialScheduleTime = \App\Models\SpecialSchedule::getMaxCheckInTimeForDate($checkInTimeInTz, $user);
+        if ($specialScheduleTime) {
+            $maxTime = AttendanceSetting::normalizeTimeString($specialScheduleTime);
+            return ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
+        }
+
+        // Priority 3: Regular settings
+        $settings = AttendanceSetting::where('school_id', $user->school_id)
+            ->where('is_active', true)
+            ->first();
+
+        $isStudent = ($user->user_type === 'student') || (method_exists($user, 'hasRole') && $user->hasRole('student'));
+        $isTeacher = ($user->user_type === 'employee') || (method_exists($user, 'hasRole') && $user->hasRole(['teacher', 'employee', 'headmaster', 'tu', 'bk', 'kesiswaan']));
+
+        if ($settings) {
+            $checkInFallback = AttendanceSetting::normalizeTimeString($settings->check_in_time) ?: '06:30:00';
+
+            if ($isStudent) {
+                $maxTime = AttendanceSetting::normalizeTimeString($settings->student_max_time) ?: $checkInFallback;
+            } elseif ($isTeacher) {
+                $maxTime = AttendanceSetting::normalizeTimeString($settings->teacher_max_time) ?: $checkInFallback;
+            } else {
+                $maxTime = AttendanceSetting::normalizeTimeString($settings->other_roles_max_time) ?: '07:00:00';
+            }
+        } else {
+            $maxTime = ($isStudent || $isTeacher) ? '06:30:00' : '07:00:00';
+        }
+
+        return ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
+    }
+
+    /**
      * Get the status color for display.
      */
     public function getStatusColorAttribute()
