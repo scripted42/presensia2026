@@ -58,16 +58,16 @@ class MobileAttendanceController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'location_name' => 'required|string',
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:12288',
             'notes' => 'nullable|string',
         ]);
 
         // Check if already checked in today
         $existingAttendance = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->where('date', $todayFormatted)
             ->first();
 
-        if ($existingAttendance) {
+        if ($existingAttendance && $existingAttendance->check_in) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda sudah melakukan check-in hari ini'
@@ -109,7 +109,7 @@ class MobileAttendanceController extends Controller
             if ($distance > $settings->radius_meters) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda berada di luar radius yang diizinkan. Jarak: ' . round($distance) . 'm dari sekolah'
+                    'message' => 'Anda berada di luar radius yang diizinkan. Jarak: ' . round($distance) . 'm dari sekolah (radius maksimal: ' . $settings->radius_meters . 'm)'
                 ], 400);
             }
         }
@@ -124,19 +124,23 @@ class MobileAttendanceController extends Controller
         $checkInTime = now('Asia/Jakarta');
         $status = $this->determineStatus($user, $checkInTime, $settings);
 
-        // Create attendance record
-        $attendance = Attendance::create([
-            'user_id' => $user->id,
-            'date' => $todayFormatted,
-            'check_in' => $checkInTime,
-            'status' => $status,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'location_name' => $request->location_name,
-            'photo' => $photoPath,
-            'qr_code_used' => $request->qr_code,
-            'notes' => $request->notes,
-        ]);
+        // Create or update attendance record safely
+        $attendance = Attendance::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'date' => $todayFormatted,
+            ],
+            [
+                'check_in' => $checkInTime->format('H:i:s'),
+                'status' => $status,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'location_name' => $request->location_name,
+                'photo' => $photoPath,
+                'qr_code_used' => $request->qr_code,
+                'notes' => $request->notes,
+            ]
+        );
 
         return response()->json([
             'success' => true,
