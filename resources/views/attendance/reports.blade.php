@@ -4,56 +4,126 @@
 
 @push('styles')
 <style>
-    @media (min-width: 768px) {
-        .freeze-no { position: sticky !important; left: 0 !important; z-index: 101 !important; background: white !important; min-width: 48px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
-        .freeze-name { position: sticky !important; left: 48px !important; z-index: 100 !important; background: white !important; min-width: 200px !important; box-shadow: 2px 0 0 0 #f3f4f6; }
+    /* Table container with enabled horizontal scrolling and smooth scrollbar */
+    .attendance-table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+        max-width: 100%;
+        width: 100%;
     }
-    @media (max-width: 767px) {
-        .attendance-table { font-size: 12px !important; }
-        .attendance-table th, .attendance-table td { padding: 4px 2px !important; white-space: nowrap !important; }
-        .date-column { min-width: 60px !important; max-width: 60px !important; }
+    .attendance-table-container::-webkit-scrollbar {
+        height: 10px;
     }
-    /* Compact overall */
-    .attendance-table { font-size: 12px; }
-    .attendance-table th { padding: 6px 6px; }
+    .attendance-table-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+    .attendance-table-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+    }
+    .attendance-table-container::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    .attendance-table {
+        min-width: max-content;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12px;
+    }
+    .attendance-table th { padding: 8px 6px; }
     .attendance-table td { padding: 6px 4px; }
+
+    /* Sticky frozen columns for No and Name */
+    .attendance-table th.freeze-no,
+    .attendance-table td.freeze-no {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 20 !important;
+        background-color: #ffffff !important;
+        box-shadow: 1px 0 0 0 #e5e7eb;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        width: 48px !important;
+    }
+    .attendance-table thead th.freeze-no {
+        background-color: #f9fafb !important;
+        z-index: 30 !important;
+    }
+
+    .attendance-table th.freeze-name,
+    .attendance-table td.freeze-name {
+        position: sticky !important;
+        left: 48px !important;
+        z-index: 20 !important;
+        background-color: #ffffff !important;
+        box-shadow: 3px 0 5px -2px rgba(0, 0, 0, 0.08);
+        min-width: 220px !important;
+        max-width: 220px !important;
+        width: 220px !important;
+    }
+    .attendance-table thead th.freeze-name {
+        background-color: #f9fafb !important;
+        z-index: 30 !important;
+    }
+
+    /* Fixed date column sizes */
+    .attendance-table th.date-column,
+    .attendance-table td.date-cell {
+        min-width: 68px !important;
+        width: 68px !important;
+        max-width: 68px !important;
+    }
+
+    @media (max-width: 767px) {
+        .attendance-table { font-size: 11px !important; }
+        .attendance-table th, .attendance-table td { padding: 4px 2px !important; }
+        .attendance-table th.freeze-name,
+        .attendance-table td.freeze-name {
+            min-width: 160px !important;
+            max-width: 160px !important;
+            width: 160px !important;
+        }
+    }
     
-    /* Holiday styling - Very Simple */
+    /* Holiday styling */
     .holiday-cell {
-        background: #f8f9fa !important;
-        border-left: 2px solid #dc3545 !important;
+        background: #fef2f2 !important;
+        border-left: 2px solid #ef4444 !important;
     }
     
     .weekend-cell {
-        background: #f8f9fa !important;
-        border-left: 2px solid #fd7e14 !important;
+        background: #fff7ed !important;
+        border-left: 2px solid #f97316 !important;
     }
     
     .holiday-badge {
-        background: #dc3545 !important;
+        background: #ef4444 !important;
         color: white !important;
         font-size: 9px !important;
         padding: 1px 4px !important;
         border-radius: 2px !important;
         display: inline-block !important;
+        font-weight: 600;
     }
     
     .weekend-badge {
-        background: #fd7e14 !important;
+        background: #f97316 !important;
         color: white !important;
         font-size: 9px !important;
         padding: 1px 4px !important;
         border-radius: 2px !important;
         display: inline-block !important;
+        font-weight: 600;
     }
 
     /* Minimal pill badges */
     .att-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:9999px; border-width:1px; border-style:solid; font-size:10px; line-height:1; font-weight:600; min-width:64px; }
     .att-ontime { color:#065f46; background:#ecfdf5; border-color:#10b981; }
     .att-late { color:#92400e; background:#fffbeb; border-color:#eab308; }
-    /* Leave group now solid orange to be distinct from Alpha */
     .att-leave { color:#ffffff; background:#f97316; border-color:#f97316; }
-    /* Alpha stays light red */
     .att-alpha { color:#991b1b; background:#fef2f2; border-color:#ef4444; }
     .att-time { font-size:10px; margin-top:2px; opacity:.85; }
 </style>
@@ -64,17 +134,25 @@
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const currentDay = today.getDate();
-        const todayColumn = document.querySelector(`th:nth-child(${currentDay + 2})`);
-        if (todayColumn) {
-            const tableContainer = document.querySelector('.overflow-x-auto');
-            const columnIndex = currentDay + 1;
-            const columnWidth = 80;
-            const containerWidth = tableContainer.clientWidth;
-            const scrollPosition = (columnIndex * columnWidth) - (containerWidth / 2) + (columnWidth / 2);
-            tableContainer.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+        const selectedMonth = {{ (int)$month }};
+        const selectedYear = {{ (int)$year }};
+
+        const tableContainer = document.querySelector('.attendance-table-container');
+        const todayColumn = document.querySelector(`.attendance-table th.date-column:nth-of-type(${currentDay})`) || document.querySelector(`th:nth-child(${currentDay + 2})`);
+        
+        if (selectedMonth === currentMonth && selectedYear === currentYear && todayColumn && tableContainer) {
             todayColumn.style.backgroundColor = '#fef3c7';
             todayColumn.style.border = '2px solid #f59e0b';
             todayColumn.style.borderRadius = '4px';
+            todayColumn.style.fontWeight = 'bold';
+            todayColumn.style.color = '#b45309';
+
+            setTimeout(() => {
+                const leftOffset = todayColumn.offsetLeft - 270;
+                tableContainer.scrollTo({ left: Math.max(0, leftOffset), behavior: 'smooth' });
+            }, 300);
         }
     });
 </script>
@@ -235,8 +313,8 @@
                 </div>
             </div>
 
-            <!-- Simple Table without Freeze Pane -->
-            <div class="overflow-x-auto">
+            <!-- Attendance Table with Sticky Freeze Panes -->
+            <div class="attendance-table-container overflow-x-auto force-scroll-x">
                 <table class="min-w-full attendance-table">
                     <thead class="bg-gray-50">
                         <tr>
@@ -306,7 +384,7 @@
                                 $labels = [ 'ontime'=>'Ontime', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpha' ];
                                 $style = $badgeMap[$status] ?? $badgeMap['alpha'];
                             @endphp
-                            <td class="px-1 py-1 text-center {{ $isHoliday ? 'holiday-cell' : ($isWeekend ? 'weekend-cell' : 'bg-white') }}">
+                            <td class="px-1 py-1 text-center date-cell {{ $isHoliday ? 'holiday-cell' : ($isWeekend ? 'weekend-cell' : 'bg-white') }}">
                                 @if($isHoliday)
                                     <div class="holiday-badge">LIBUR</div>
                                 @elseif($isWeekend)

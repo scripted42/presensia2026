@@ -212,7 +212,7 @@
                 width: 100%;
                 table-layout: auto;
             }
-            .desktop-content-wrapper .overflow-x-auto {
+            .desktop-content-wrapper .overflow-x-auto:not(.attendance-table-container):not(.force-scroll-x) {
                 overflow-x: visible; /* tabel bisa pakai lebar penuh tanpa scroll horizontal */
             }
         }

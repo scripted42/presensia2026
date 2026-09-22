@@ -45,7 +45,15 @@ class DailyOverride extends Model
 
         // Check affected roles
         if ($this->affected_roles && !empty($this->affected_roles)) {
-            $userRoles = $user->roles->pluck('name')->toArray();
+            $userRoles = [];
+            if ($user->relationLoaded('roles') || method_exists($user, 'roles')) {
+                $userRoles = $user->roles ? $user->roles->pluck('name')->toArray() : [];
+            }
+            if (!empty($user->user_type)) {
+                $userRoles[] = $user->user_type;
+            }
+            $userRoles = array_unique(array_filter($userRoles));
+
             if (!array_intersect($this->affected_roles, $userRoles)) {
                 return false;
             }
@@ -67,6 +75,6 @@ class DailyOverride extends Model
                 return $override->appliesTo($date, $user);
             });
 
-        return $dailyOverride ? $dailyOverride->max_check_in_time->format('H:i:s') : null;
+        return $dailyOverride ? AttendanceSetting::normalizeTimeString($dailyOverride->max_check_in_time) : null;
     }
 }

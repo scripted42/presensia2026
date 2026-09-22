@@ -37,12 +37,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="check_in_time" class="block text-sm font-medium text-gray-700">Jam Masuk</label>
-                        <input type="time" name="check_in_time" id="check_in_time" value="{{ old('check_in_time', $settings->check_in_time ?? '07:00') }}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <input type="time" name="check_in_time" id="check_in_time" value="{{ old('check_in_time', $settings?->formatted_check_in_time ?? '06:30') }}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         @error('check_in_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label for="check_out_time" class="block text-sm font-medium text-gray-700">Jam Keluar</label>
-                        <input type="time" name="check_out_time" id="check_out_time" value="{{ old('check_out_time', $settings->check_out_time ?? '15:00') }}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <input type="time" name="check_out_time" id="check_out_time" value="{{ old('check_out_time', $settings?->formatted_check_out_time ?? '14:30') }}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         @error('check_out_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -53,19 +53,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label for="teacher_max_time" class="block text-sm font-medium text-gray-700">Guru (Maksimal)</label>
-                            <input type="time" name="teacher_max_time" id="teacher_max_time" value="{{ old('teacher_max_time', $settings->teacher_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <input type="time" name="teacher_max_time" id="teacher_max_time" value="{{ old('teacher_max_time', $settings?->formatted_teacher_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <p class="mt-1 text-xs text-gray-500">Guru yang absen setelah jam ini akan dicatat terlambat</p>
                             @error('teacher_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="student_max_time" class="block text-sm font-medium text-gray-700">Siswa (Maksimal)</label>
-                            <input type="time" name="student_max_time" id="student_max_time" value="{{ old('student_max_time', $settings->student_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <input type="time" name="student_max_time" id="student_max_time" value="{{ old('student_max_time', $settings?->formatted_student_max_time ?? '06:30') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <p class="mt-1 text-xs text-gray-500">Siswa yang absen setelah jam ini akan dicatat terlambat</p>
                             @error('student_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="other_roles_max_time" class="block text-sm font-medium text-gray-700">Role Lainnya (Maksimal)</label>
-                            <input type="time" name="other_roles_max_time" id="other_roles_max_time" value="{{ old('other_roles_max_time', $settings->other_roles_max_time ?? '07:00') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <input type="time" name="other_roles_max_time" id="other_roles_max_time" value="{{ old('other_roles_max_time', $settings?->formatted_other_roles_max_time ?? '07:00') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <p class="mt-1 text-xs text-gray-500">Role lainnya yang absen setelah jam ini akan dicatat terlambat</p>
                             @error('other_roles_max_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
@@ -152,8 +152,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h4 class="font-medium text-gray-700">Jam Absensi</h4>
-                    <p class="text-sm text-gray-600">Masuk: {{ $settings->check_in_time }}</p>
-                    <p class="text-sm text-gray-600">Keluar: {{ $settings->check_out_time }}</p>
+                    <p class="text-sm text-gray-600">Masuk: {{ $settings->formatted_check_in_time }}</p>
+                    <p class="text-sm text-gray-600">Keluar: {{ $settings->formatted_check_out_time }}</p>
+                    <div class="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500 space-y-0.5">
+                        <p>Batas Siswa: <span class="font-medium text-gray-700">{{ $settings->formatted_student_max_time }}</span></p>
+                        <p>Batas Guru: <span class="font-medium text-gray-700">{{ $settings->formatted_teacher_max_time }}</span></p>
+                        <p>Batas Role Lain: <span class="font-medium text-gray-700">{{ $settings->formatted_other_roles_max_time }}</span></p>
+                    </div>
                 </div>
                 <div>
                     <h4 class="font-medium text-gray-700">Lokasi</h4>

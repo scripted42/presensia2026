@@ -120,7 +120,7 @@ class MobileAttendanceController extends Controller
         }
 
         // Determine status
-        $checkInTime = now();
+        $checkInTime = now('Asia/Jakarta');
         $status = $this->determineStatus($user, $checkInTime, $settings);
 
         // Create attendance record
@@ -293,16 +293,22 @@ class MobileAttendanceController extends Controller
      */
     private function determineStatus($user, $checkInTime, $settings = null)
     {
-        $checkInTimeFormatted = $checkInTime->format('H:i:s');
+        if ($checkInTime instanceof \Carbon\Carbon) {
+            $checkInTimeInTz = $checkInTime->copy()->timezone('Asia/Jakarta');
+        } else {
+            $checkInTimeInTz = \Carbon\Carbon::parse($checkInTime, 'Asia/Jakarta');
+        }
+        $checkInTimeFormatted = $checkInTimeInTz->format('H:i:s');
         
         // Role-based time limits with special schedules and daily overrides
-        $maxTime = $this->getMaxCheckInTime($user, $checkInTime);
+        $maxTimeRaw = $this->getMaxCheckInTime($user, $checkInTimeInTz);
+        $maxTime = AttendanceSetting::normalizeTimeString($maxTimeRaw) ?: '06:30:00';
 
-        if ($checkInTimeFormatted <= $maxTime) {
-            return 'ontime';
-        } else {
-            return 'late';
-        }
+        $status = ($checkInTimeFormatted <= $maxTime) ? 'ontime' : 'late';
+
+        \Log::info("Mobile determineStatus: user={$user->id} ({$user->name}), type={$user->user_type}, checkIn={$checkInTimeFormatted}, maxTime={$maxTime} => status={$status}");
+
+        return $status;
     }
 
     /**
@@ -315,13 +321,13 @@ class MobileAttendanceController extends Controller
         // Priority 1: Daily Override (highest priority)
         $dailyOverrideTime = \App\Models\DailyOverride::getMaxCheckInTimeForDate($checkInTime, $user);
         if ($dailyOverrideTime) {
-            return $dailyOverrideTime;
+            return AttendanceSetting::normalizeTimeString($dailyOverrideTime);
         }
         
         // Priority 2: Special Schedule (e.g., Upacara Senin)
         $specialScheduleTime = \App\Models\SpecialSchedule::getMaxCheckInTimeForDate($checkInTime, $user);
         if ($specialScheduleTime) {
-            return $specialScheduleTime;
+            return AttendanceSetting::normalizeTimeString($specialScheduleTime);
         }
         
         // Priority 3: Regular settings
@@ -329,19 +335,23 @@ class MobileAttendanceController extends Controller
             ->where('is_active', true)
             ->first();
             
+        $isStudent = ($user->user_type === 'student') || (method_exists($user, 'hasRole') && $user->hasRole('student'));
+        $isTeacher = ($user->user_type === 'employee') || (method_exists($user, 'hasRole') && $user->hasRole(['teacher', 'employee', 'headmaster', 'tu', 'bk', 'kesiswaan']));
+
         if ($settings) {
-            // Gunakan setting dari database jika tersedia
-            if ($user->hasRole(['teacher'])) {
-                return $settings->teacher_max_time ? $settings->teacher_max_time->format('H:i:s') : '06:30:00';
-            } elseif ($user->hasRole(['student'])) {
-                return $settings->student_max_time ? $settings->student_max_time->format('H:i:s') : '06:30:00';
+            $checkInFallback = AttendanceSetting::normalizeTimeString($settings->check_in_time) ?: '06:30:00';
+
+            if ($isStudent) {
+                return AttendanceSetting::normalizeTimeString($settings->student_max_time) ?: $checkInFallback;
+            } elseif ($isTeacher) {
+                return AttendanceSetting::normalizeTimeString($settings->teacher_max_time) ?: $checkInFallback;
             } else {
-                return $settings->other_roles_max_time ? $settings->other_roles_max_time->format('H:i:s') : '07:00:00';
+                return AttendanceSetting::normalizeTimeString($settings->other_roles_max_time) ?: '07:00:00';
             }
         }
         
         // Fallback ke default jika tidak ada setting
-        if ($user->hasRole(['teacher', 'student'])) {
+        if ($isStudent || $isTeacher) {
             return '06:30:00';
         }
         
