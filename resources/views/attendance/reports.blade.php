@@ -88,44 +88,104 @@
         }
     }
     
-    /* Holiday styling */
-    .holiday-cell {
-        background: #fef2f2 !important;
-        border-left: 2px solid #ef4444 !important;
+    /* Clean column styling */
+    .holiday-col {
+        background-color: #fff1f2 !important;
     }
-    
-    .weekend-cell {
-        background: #fff7ed !important;
-        border-left: 2px solid #f97316 !important;
+    .weekend-col {
+        background-color: #f8fafc !important;
     }
-    
-    .holiday-badge {
-        background: #ef4444 !important;
-        color: white !important;
-        font-size: 9px !important;
-        padding: 1px 4px !important;
-        border-radius: 2px !important;
-        display: inline-block !important;
-        font-weight: 600;
-    }
-    
-    .weekend-badge {
-        background: #f97316 !important;
-        color: white !important;
-        font-size: 9px !important;
-        padding: 1px 4px !important;
-        border-radius: 2px !important;
-        display: inline-block !important;
-        font-weight: 600;
+    .today-col-cell {
+        background-color: #fefce8 !important;
     }
 
-    /* Minimal pill badges */
-    .att-badge { display:inline-flex; align-items:center; justify-content:center; padding:3px 8px; border-radius:9999px; border-width:1px; border-style:solid; font-size:10px; line-height:1; font-weight:600; min-width:64px; }
-    .att-ontime { color:#065f46; background:#ecfdf5; border-color:#10b981; }
-    .att-late { color:#92400e; background:#fffbeb; border-color:#eab308; }
-    .att-leave { color:#ffffff; background:#f97316; border-color:#f97316; }
-    .att-alpha { color:#991b1b; background:#fef2f2; border-color:#ef4444; }
-    .att-time { font-size:10px; margin-top:2px; opacity:.85; }
+    /* Clean, professional status tokens */
+    .token-ontime {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background-color: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    .token-late {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 5px;
+        border-radius: 6px;
+        background-color: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+        line-height: 1.1;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        white-space: nowrap;
+    }
+    .token-late-lbl {
+        font-size: 8px;
+        text-transform: uppercase;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: #b45309;
+    }
+    .token-late-time {
+        font-size: 10px;
+        font-weight: 700;
+    }
+    .token-leave {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .token-alpha {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background-color: #fef2f2;
+        color: #dc2626;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .token-future {
+        color: #cbd5e1;
+        font-size: 13px;
+        font-weight: 300;
+        user-select: none;
+    }
+    .token-weekend {
+        color: #cbd5e1;
+        font-size: 14px;
+        user-select: none;
+    }
+    .token-holiday {
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background-color: #ffe4e6;
+        color: #e11d48;
+        font-size: 9px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 </style>
 @endpush
 
@@ -177,16 +237,40 @@
         </div>
     </div>
 
-    <!-- Legend -->
-    <div class="bg-gray-50 rounded mb-4 p-3">
-        <div class="flex gap-4 text-xs">
-            <div class="flex items-center gap-1">
-                <div class="holiday-badge">LIBUR</div>
-                <span class="text-xs text-gray-500">Hari Libur</span>
+    <!-- Clean Minimalist Legend -->
+    <div class="bg-white border border-gray-200/80 rounded-xl mb-4 p-3 shadow-xs">
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-600">
+            <span class="font-semibold text-gray-800 text-[11px] uppercase tracking-wider">Keterangan:</span>
+            <div class="flex items-center gap-1.5">
+                <span class="token-ontime text-[9px] py-0.5 px-1.5">✓ 06:25</span>
+                <span>Hadir Tepat Waktu</span>
             </div>
-            <div class="flex items-center gap-1">
-                <div class="weekend-badge">WEEKEND</div>
-                <span class="text-xs text-gray-500">Sabtu/Minggu</span>
+            <div class="flex items-center gap-1.5">
+                <span class="token-late py-0 px-1.5">
+                    <span class="token-late-lbl text-[7px]">Telat</span>
+                    <span class="token-late-time text-[9px]">08:23</span>
+                </span>
+                <span>Terlambat</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="token-leave text-[10px] py-0.5 px-1.5">Izin/Sakit</span>
+                <span>Izin / Sakit / Cuti</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="token-alpha text-[10px] py-0.5 px-1.5">Alpha</span>
+                <span>Alpha (Hari Lewat)</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="w-3 text-center text-slate-400 font-bold">·</span>
+                <span class="text-gray-500">Weekend</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="token-holiday py-0 px-1">Libur</span>
+                <span class="text-gray-500">Hari Libur</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="w-3 text-center text-gray-300 font-bold">—</span>
+                <span class="text-gray-400">Belum Terjadi</span>
             </div>
         </div>
     </div>
@@ -329,13 +413,28 @@
                                 @endif
                             </th>
                             @for($day = 1; $day <= $endDate->day; $day++)
-                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20 date-column">{{ $day }}</th>
+                            @php
+                                $headerDate = \Carbon\Carbon::create($year, $month, $day);
+                                $headerDateKey = $headerDate->format('Y-m-d');
+                                $isHeaderHoliday = isset($holidays[$headerDateKey]);
+                                $isHeaderWeekend = $headerDate->isWeekend();
+                                $dayNameMap = ['Sun'=>'Min', 'Mon'=>'Sen', 'Tue'=>'Sel', 'Wed'=>'Rab', 'Thu'=>'Kam', 'Fri'=>'Jum', 'Sat'=>'Sab'];
+                                $shortDayName = $dayNameMap[$headerDate->format('D')] ?? $headerDate->format('D');
+                            @endphp
+                            <th class="px-1 py-2 text-center text-xs font-medium uppercase tracking-wider date-column {{ $isHeaderHoliday ? 'bg-rose-50 text-rose-600' : ($isHeaderWeekend ? 'bg-slate-100 text-slate-500' : 'text-gray-600') }}">
+                                <span class="block text-[9px] font-normal leading-tight {{ $isHeaderWeekend || $isHeaderHoliday ? 'opacity-85' : 'text-gray-400' }}">{{ $shortDayName }}</span>
+                                <span class="block text-xs font-bold leading-tight">{{ $day }}</span>
+                            </th>
                             @endfor
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($attendances as $userId => $userAttendances)
-                        @php $user = $userAttendances->first()->user; $userTypeLabel = $user->user_type === 'student' ? 'Siswa' : 'Pegawai'; @endphp
+                        @php 
+                            $user = $userAttendances->first()->user; 
+                            $userTypeLabel = $user->user_type === 'student' ? 'Siswa' : 'Pegawai';
+                            $todayDate = \Carbon\Carbon::today('Asia/Jakarta');
+                        @endphp
                         <tr>
                             <td class="px-2 py-1 text-center text-sm text-gray-600 freeze-no">{{ $loop->iteration }}</td>
                             <td class="px-3 py-1 whitespace-nowrap freeze-name">
@@ -358,52 +457,67 @@
                                 $date = \Carbon\Carbon::create($year, $month, $day);
                                 $dateKey = $date->format('Y-m-d');
                                 $attendance = $userAttendances->where(function($item) use ($dateKey) { return $item->date->format('Y-m-d') === $dateKey; })->first();
-                                // Overlay approved leave if no attendance record
                                 $overlayLeave = isset($leaveByUserDate[$userId][$dateKey]) ? $leaveByUserDate[$userId][$dateKey] : null;
                                 
-                                // Check if this date is a holiday
                                 $isHoliday = isset($holidays[$dateKey]);
                                 $holidayName = $isHoliday ? $holidays[$dateKey]->holiday_name : null;
                                 
-                                // Check if it's weekend (Saturday or Sunday)
                                 $isWeekend = $date->isWeekend();
-                                $weekendName = $isWeekend ? ($date->isSaturday() ? 'Hari Sabtu' : 'Hari Minggu') : null;
+                                $isFuture = $date->gt($todayDate);
+                                $isToday = $date->isSameDay($todayDate);
                                 
-                                $status = $attendance ? $attendance->status : ($overlayLeave ?: 'alpha');
+                                $status = $attendance ? $attendance->status : ($overlayLeave ?: null);
                                 $time = $attendance && $attendance->check_in ? $attendance->check_in->format('H:i') : '';
-                                // warna badge sesuai legenda (hex)
-                                $badgeMap = [
-                                    'ontime' => ['bg' => '#10b981', 'border' => '#10b981', 'text' => '#ffffff'],
-                                    'late'   => ['bg' => '#eab308', 'border' => '#eab308', 'text' => '#ffffff'],
-                                    'sick'   => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
-                                    'permit' => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
-                                    'duty'   => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
-                                    'leave'  => ['bg' => '#f97316', 'border' => '#f97316', 'text' => '#ffffff'],
-                                    'alpha'  => ['bg' => '#ef4444', 'border' => '#ef4444', 'text' => '#ffffff'],
-                                ];
-                                $labels = [ 'ontime'=>'Ontime', 'late'=>'Terlambat', 'sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti', 'alpha'=>'Alpha' ];
-                                $style = $badgeMap[$status] ?? $badgeMap['alpha'];
+                                
+                                $cellClass = 'bg-white';
+                                if ($isToday) {
+                                    $cellClass = 'today-col-cell';
+                                } elseif ($isHoliday) {
+                                    $cellClass = 'holiday-col';
+                                } elseif ($isWeekend) {
+                                    $cellClass = 'weekend-col';
+                                }
                             @endphp
-                            <td class="px-1 py-1 text-center date-cell {{ $isHoliday ? 'holiday-cell' : ($isWeekend ? 'weekend-cell' : 'bg-white') }}">
-                                @if($isHoliday)
-                                    <div class="holiday-badge">LIBUR</div>
-                                @elseif($isWeekend)
-                                    <div class="weekend-badge">WEEKEND</div>
-                                @else
+                            <td class="px-1 py-1.5 text-center date-cell {{ $cellClass }}">
+                                @if($attendance)
+                                    @if($status === 'late')
+                                        <div class="token-late" title="Terlambat ({{ $time }})">
+                                            <span class="token-late-lbl">Telat</span>
+                                            <span class="token-late-time">{{ $time }}</span>
+                                        </div>
+                                    @elseif($status === 'ontime')
+                                        <div class="token-ontime" title="Tepat Waktu ({{ $time }})">
+                                            <span>✓ {{ $time }}</span>
+                                        </div>
+                                    @elseif(in_array($status, ['sick', 'permit', 'duty', 'leave']))
+                                        @php
+                                            $labels = ['sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti'];
+                                        @endphp
+                                        <div class="token-leave" title="{{ $labels[$status] ?? 'Izin' }}">
+                                            {{ $labels[$status] ?? 'Izin' }}
+                                        </div>
+                                    @else
+                                        <div class="token-alpha" title="Alpha">
+                                            Alpha
+                                        </div>
+                                    @endif
+                                @elseif($overlayLeave)
                                     @php
-                                        $badgeClass = match($status){
-                                            'ontime' => 'att-badge att-ontime',
-                                            'late' => 'att-badge att-late',
-                                            'sick','permit','duty','leave' => 'att-badge att-leave',
-                                            default => 'att-badge att-alpha'
-                                        };
+                                        $labels = ['sick'=>'Sakit', 'permit'=>'Izin', 'duty'=>'Dinas Luar', 'leave'=>'Cuti'];
                                     @endphp
-                                    <div>
-                                        <span class="{{ $badgeClass }}">{{ $labels[$status] ?? 'Alpha' }}</span>
-                                        @if($attendance && in_array($status, ['ontime', 'late']) && $time)
-                                            <div class="att-time">{{ $time }}</div>
-                                        @endif
+                                    <div class="token-leave" title="{{ $labels[$overlayLeave] ?? 'Izin/Cuti' }}">
+                                        {{ $labels[$overlayLeave] ?? 'Izin' }}
                                     </div>
+                                @elseif($isHoliday)
+                                    <span class="token-holiday" title="{{ $holidayName }}">Libur</span>
+                                @elseif($isWeekend)
+                                    <span class="token-weekend">·</span>
+                                @elseif($isFuture)
+                                    <span class="token-future">—</span>
+                                @else
+                                    <span class="token-alpha" title="Alpha (Tidak Hadir)">
+                                        Alpha
+                                    </span>
                                 @endif
                             </td>
                             @endfor
