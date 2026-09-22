@@ -60,9 +60,10 @@
         z-index: 20 !important;
         background-color: #ffffff !important;
         box-shadow: 3px 0 5px -2px rgba(0, 0, 0, 0.08);
-        min-width: 220px !important;
-        max-width: 220px !important;
-        width: 220px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+        width: 240px !important;
+        overflow: hidden !important;
     }
     .attendance-table thead th.freeze-name {
         background-color: #f9fafb !important;
@@ -210,7 +211,7 @@
             todayColumn.style.color = '#b45309';
 
             setTimeout(() => {
-                const leftOffset = todayColumn.offsetLeft - 270;
+                const leftOffset = todayColumn.offsetLeft - 295;
                 tableContainer.scrollTo({ left: Math.max(0, leftOffset), behavior: 'smooth' });
             }, 300);
         }
@@ -403,7 +404,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12 freeze-no">No.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] freeze-name">
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider freeze-name">
                                 @if($type === 'employees')
                                     Pegawai
                                 @elseif($type === 'students')
@@ -437,16 +438,16 @@
                         @endphp
                         <tr>
                             <td class="px-2 py-1 text-center text-sm text-gray-600 freeze-no">{{ $loop->iteration }}</td>
-                            <td class="px-3 py-1 whitespace-nowrap freeze-name">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->user_type === 'student' ? '10B981' : '3B82F6' }}&color=fff" alt="{{ $user->name }}">
+                            <td class="px-3 py-2 freeze-name">
+                                <div class="flex items-center min-w-0 w-full">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background={{ $user->user_type === 'student' ? '10B981' : '3B82F6' }}&color=fff" alt="{{ $user->name }}">
                                     </div>
-                                    <div class="ml-4">
-                                        <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
+                                    <div class="ml-2.5 min-w-0 flex-1 overflow-hidden">
+                                        <p class="text-xs font-semibold text-gray-900 truncate" title="{{ $user->name }}">{{ $user->name }}</p>
                                         @if($type === 'all')
-                                        <p class="text-xs text-gray-500 mt-0.5">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $user->user_type === 'student' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">{{ $userTypeLabel }}</span>
+                                        <p class="text-[10px] text-gray-500 mt-0.5 truncate">
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium {{ $user->user_type === 'student' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">{{ $userTypeLabel }}</span>
                                         </p>
                                         @endif
                                     </div>
