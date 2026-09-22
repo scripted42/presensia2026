@@ -36,6 +36,7 @@ Route::prefix('mobile')->group(function () {
             Route::post('/check-out', [MobileAttendanceController::class, 'checkOut']);
             Route::get('/history', [MobileAttendanceController::class, 'history']);
             Route::get('/today', [MobileAttendanceController::class, 'todayStatus']);
+            Route::post('/scan-student', [MobileAttendanceController::class, 'scanStudent']);
         });
         
         // Settings routes

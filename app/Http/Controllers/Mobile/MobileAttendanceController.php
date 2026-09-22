@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Attendance;
 use App\Models\AttendanceSetting;
 use App\Models\QrCode;
+use App\Models\User;
 
 class MobileAttendanceController extends Controller
 {
@@ -341,6 +342,142 @@ class MobileAttendanceController extends Controller
         }
         
         return '07:00:00';
+    }
+
+    /**
+     * Process student scan by teacher/admin via mobile API.
+     */
+    public function scanStudent(Request $request)
+    {
+        $request->validate([
+            'qr_codes' => 'required|array|min:1',
+            'qr_codes.*' => 'string',
+        ]);
+
+        $currentUser = Auth::user();
+        $scannedStudents = [];
+        $duplicates = [];
+        $errors = [];
+        $successCount = 0;
+
+        foreach ($request->qr_codes as $qrCode) {
+            $result = $this->processQRCode($qrCode);
+            if ($result['success']) {
+                $scannedStudents[] = [
+                    'id' => $result['student']->id,
+                    'name' => $result['student']->name,
+                    'nis' => $result['student']->nis,
+                    'status' => $result['status'] ?? 'present',
+                ];
+                $successCount++;
+            } else {
+                if (($result['type'] ?? '') === 'duplicate') {
+                    $duplicates[] = $result['message'];
+                } else {
+                    $errors[] = $result['message'];
+                }
+            }
+        }
+
+        $duplicateCount = count($duplicates);
+        $errorCount = count($errors);
+        $totalCount = $successCount + $duplicateCount + $errorCount;
+
+        $msg = $successCount . ' siswa berhasil diabsensi';
+        if ($duplicateCount > 0) $msg .= ', ' . $duplicateCount . ' sudah tercatat';
+        if ($errorCount > 0) $msg .= ', ' . $errorCount . ' gagal';
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
+            'data' => [
+                'success_count' => $successCount,
+                'duplicate_count' => $duplicateCount,
+                'error_count' => $errorCount,
+                'total_count' => $totalCount,
+                'students' => $scannedStudents,
+                'duplicates' => $duplicates,
+                'errors' => $errors,
+            ]
+        ]);
+    }
+
+    /**
+     * Process individual QR code and create attendance.
+     */
+    private function processQRCode($qrCode)
+    {
+        $parsed = $this->parseQRCode($qrCode);
+        $nis = $parsed['nis'] ?? $qrCode;
+
+        $student = User::where(function($query) use ($nis, $qrCode) {
+            $query->where('nis', $nis)->orWhere('qr_code', $qrCode);
+        })
+        ->where('user_type', 'student')
+        ->where('school_id', Auth::user()->school_id)
+        ->first();
+
+        if (!$student) {
+            return [
+                'success' => false,
+                'type' => 'error',
+                'message' => 'Siswa dengan NIS/QR: ' . $nis . ' tidak ditemukan'
+            ];
+        }
+
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $existing = Attendance::where('user_id', $student->id)->where('date', $today)->first();
+
+        if ($existing) {
+            return [
+                'success' => false,
+                'type' => 'duplicate',
+                'message' => $student->name . ' sudah diabsensi hari ini'
+            ];
+        }
+
+        $checkInTime = Carbon::now('Asia/Jakarta');
+        $status = $this->determineStatus($student, $checkInTime);
+
+        Attendance::create([
+            'user_id' => $student->id,
+            'date' => $today,
+            'check_in' => $checkInTime,
+            'status' => $status,
+            'notes' => 'Absensi mobile oleh: ' . Auth::user()->name,
+            'latitude' => null,
+            'longitude' => null,
+            'location_name' => 'Scan oleh ' . Auth::user()->name,
+        ]);
+
+        return [
+            'success' => true,
+            'student' => $student,
+            'status' => $status
+        ];
+    }
+
+    /**
+     * Parse QR code to extract NIS and name.
+     */
+    private function parseQRCode($qrCode)
+    {
+        if (strpos($qrCode, '|') !== false) {
+            $parts = explode('|', $qrCode, 2);
+            return ['nis' => trim($parts[0]), 'name' => trim($parts[1])];
+        } elseif (strpos($qrCode, '_') !== false) {
+            $parts = explode('_', $qrCode, 2);
+            return ['nis' => trim($parts[0]), 'name' => trim($parts[1])];
+        } else {
+            $parsed = json_decode($qrCode, true);
+            if (is_array($parsed)) {
+                return [
+                    'nis' => $parsed['nis'] ?? $parsed['NIS'] ?? $qrCode,
+                    'name' => $parsed['name'] ?? $parsed['nama'] ?? 'Unknown'
+                ];
+            }
+            return ['nis' => $qrCode, 'name' => 'Unknown'];
+        }
     }
 }
 
