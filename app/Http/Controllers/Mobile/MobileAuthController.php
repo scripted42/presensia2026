@@ -95,6 +95,17 @@ class MobileAuthController extends Controller
         $token = $request->bearerToken();
         if ($token) {
             \Illuminate\Support\Facades\Cache::forget("mobile_token_{$token}");
+
+            try {
+                $tokenFile = storage_path('app/mobile_tokens.json');
+                if (file_exists($tokenFile)) {
+                    $tokens = json_decode(@file_get_contents($tokenFile), true) ?: [];
+                    unset($tokens[$token]);
+                    @file_put_contents($tokenFile, json_encode($tokens), LOCK_EX);
+                }
+            } catch (\Throwable $e) {
+                // Ignore
+            }
         }
 
         return response()->json([

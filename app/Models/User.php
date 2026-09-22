@@ -218,6 +218,22 @@ class User extends Authenticatable
         $plainToken = bin2hex(random_bytes(32));
         \Illuminate\Support\Facades\Cache::put("mobile_token_{$plainToken}", $this->id, now()->addDays(30));
 
+        // Persistent storage fallback so tokens survive `php artisan optimize:clear` or `cache:clear`
+        try {
+            $tokenFile = storage_path('app/mobile_tokens.json');
+            $tokens = [];
+            if (file_exists($tokenFile)) {
+                $tokens = json_decode(@file_get_contents($tokenFile), true) ?: [];
+            }
+            $tokens[$plainToken] = [
+                'user_id' => $this->id,
+                'expires_at' => now()->addDays(30)->timestamp,
+            ];
+            @file_put_contents($tokenFile, json_encode($tokens), LOCK_EX);
+        } catch (\Throwable $e) {
+            // Non-blocking fallback
+        }
+
         return (object) [
             'plainTextToken' => $plainToken,
         ];

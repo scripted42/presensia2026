@@ -28,8 +28,28 @@ class MobileAuthenticate
             ], 401);
         }
 
-        // Check if token exists in Cache
+        // 1. Check if token exists in Cache
         $userId = Cache::get("mobile_token_{$token}");
+
+        // 2. Fallback to persistent token file if cache was cleared by artisan optimize:clear
+        if (!$userId) {
+            try {
+                $tokenFile = storage_path('app/mobile_tokens.json');
+                if (file_exists($tokenFile)) {
+                    $tokens = json_decode(@file_get_contents($tokenFile), true) ?: [];
+                    if (isset($tokens[$token])) {
+                        $entry = $tokens[$token];
+                        if (($entry['expires_at'] ?? 0) > time()) {
+                            $userId = $entry['user_id'];
+                            // Restore to cache for fast lookups
+                            Cache::put("mobile_token_{$token}", $userId, now()->addDays(30));
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Ignore fallback error
+            }
+        }
 
         if (!$userId) {
             return response()->json([
