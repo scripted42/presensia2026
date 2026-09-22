@@ -56,9 +56,9 @@
                             <i data-lucide="camera" style="width:28px;height:28px;color:#3b82f6;"></i>
                         </div>
                         <h3 style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:8px;">Izin Akses Kamera</h3>
-                        <p style="font-size:13px;color:#64748b;margin-bottom:0;">Diperlukan untuk scan QR Code siswa</p>
+                        <p id="camPermissionMsg" style="font-size:13px;color:#64748b;margin-bottom:0;">Diperlukan untuk scan QR Code siswa. Pastikan izin kamera aktif pada peramban Anda.</p>
                         <div class="permission-buttons">
-                            <button id="requestPermission" style="background:#3b82f6;color:white;">Berikan Izin</button>
+                            <button id="requestPermission" style="background:#3b82f6;color:white;">Coba Lagi</button>
                             <button id="cancelPermission" style="background:#f1f5f9;color:#475569;">Batal</button>
                         </div>
                     </div>
@@ -438,6 +438,11 @@ body { overscroll-behavior: none; touch-action: pan-y; }
 </style>
 
 <script>
+// Auto redirect to HTTPS if accessed via HTTP on remote domain (required for camera access)
+if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    window.location.href = window.location.href.replace('http:', 'https:');
+}
+
 let capturedStudents = [];
 let html5Qrcode = null;
 let cameraActive = false;
@@ -488,44 +493,169 @@ function updateInstruction() {
     }
 }
 
-/* START SCANNER (Shows static overlay instead of replacing innerHTML) */
-function startScanner() {
-    const overlay = document.getElementById('cameraPermissionOverlay');
-    overlay.classList.remove('hidden');
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+/* PARSE & FORMAT CAMERA ERROR */
+function formatCameraError(err) {
+    let msg = '';
+    if (typeof err === 'string') {
+        msg = err;
+    } else if (err && err.message) {
+        msg = err.message;
+    } else if (err && err.name) {
+        msg = err.name;
+    } else {
+        try { msg = JSON.stringify(err); } catch(e) { msg = String(err); }
+    }
     
-    document.getElementById('requestPermission').onclick = () => {
-        overlay.classList.add('hidden');
-        startCameraStream();
-    };
-    document.getElementById('cancelPermission').onclick = () => {
-        overlay.classList.add('hidden');
-        resetCameraUI();
-    };
+    const lower = msg.toLowerCase();
+    if (lower.includes('notallowed') || lower.includes('permission') || lower.includes('denied')) {
+        return 'Izin kamera ditolak. Silakan izinkan kamera pada setelan peramban / ikon gembok.';
+    }
+    if (lower.includes('secure origin') || lower.includes('https') || lower.includes('notsupported')) {
+        return 'Kamera memerlukan HTTPS. Silakan akses alamat web melalui https://';
+    }
+    if (lower.includes('notfound') || lower.includes('no camera')) {
+        return 'Kamera tidak ditemukan pada perangkat Anda.';
+    }
+    if (lower.includes('notreadable') || lower.includes('could not start')) {
+        return 'Kamera sedang digunakan aplikasi lain atau sistem sibuk.';
+    }
+    if (lower.includes('overconstrained')) {
+        return 'Format kamera / lensa belakang tidak kompatibel.';
+    }
+    return msg || 'Gagal mengakses kamera.';
 }
 
-function startCameraStream() {
-    html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
-    const config = {
-        fps: 10,
-        qrbox: function(w, h) { const s = Math.min(w, h); return { width: Math.floor(s*.75), height: Math.floor(s*.75) }; },
-        videoConstraints: { facingMode: facingMode }
-    };
-    html5Qrcode.start({ facingMode: facingMode }, config, onScanSuccess, onScanFailure)
-        .then(() => {
+/* START SCANNER (Direct Camera Stream on Click) */
+function startScanner() {
+    startCameraStream();
+}
+
+/* ROBUST CAMERA STREAM START */
+async function startCameraStream() {
+    // 1. Validasi HTTPS
+    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        showToast('Kamera membutuhkan koneksi aman HTTPS. Mengalihkan...', 'warning');
+        setTimeout(() => {
+            window.location.href = window.location.href.replace('http:', 'https:');
+        }, 1200);
+        resetCameraUI();
+        return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Peramban tidak mendukung akses kamera (pastikan menggunakan HTTPS)', 'error');
+        resetCameraUI();
+        return;
+    }
+
+    // 2. Bersihkan instance Html5Qrcode lama
+    if (html5Qrcode) {
+        try {
+            if (html5Qrcode.isScanning) {
+                await html5Qrcode.stop();
+            }
+            html5Qrcode.clear();
+        } catch(e) {}
+        html5Qrcode = null;
+    }
+
+    const readerEl = document.getElementById('html5-qrcode-reader');
+    if (readerEl) readerEl.innerHTML = '';
+
+    try {
+        html5Qrcode = new Html5Qrcode("html5-qrcode-reader");
+        
+        const config = {
+            fps: 15,
+            qrbox: function(w, h) {
+                const s = Math.min(w, h);
+                const size = Math.floor(s * 0.75);
+                return { width: Math.max(180, size), height: Math.max(180, size) };
+            },
+            aspectRatio: 1.0
+        };
+
+        let started = false;
+
+        // Strategi 1: Gunakan facingMode
+        try {
+            await html5Qrcode.start({ facingMode: facingMode }, config, onScanSuccess, onScanFailure);
+            started = true;
+        } catch (err1) {
+            console.warn('Strategi 1 (facingMode) gagal, mencoba fallback deviceId:', err1);
+            
+            // Strategi 2: Deteksi kamera via getCameras()
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    let targetCam = cameras[0];
+                    if (facingMode === 'environment') {
+                        const backCam = cameras.slice().reverse().find(c => {
+                            const lbl = (c.label || '').toLowerCase();
+                            return lbl.includes('back') || lbl.includes('rear') || lbl.includes('belakang') || lbl.includes('environment') || lbl.includes('0');
+                        });
+                        targetCam = backCam || cameras[cameras.length - 1];
+                    }
+                    await html5Qrcode.start(targetCam.id, config, onScanSuccess, onScanFailure);
+                    started = true;
+                } else {
+                    throw err1;
+                }
+            } catch (err2) {
+                console.warn('Strategi 2 (deviceId) gagal, mencoba fallback user camera:', err2);
+                
+                // Strategi 3: Fallback ke user / kamera default apa pun yang ada
+                try {
+                    await html5Qrcode.start({ facingMode: "user" }, config, onScanSuccess, onScanFailure);
+                    started = true;
+                } catch (err3) {
+                    throw err1 || err2 || err3;
+                }
+            }
+        }
+
+        if (started) {
             cameraActive = true;
             renderScanButton();
             updateInstruction();
             document.getElementById('camIdlePlaceholder').classList.add('hidden');
             document.getElementById('qr-guide').classList.remove('hidden');
             document.getElementById('cameraControls').classList.remove('hidden');
+            const overlay = document.getElementById('cameraPermissionOverlay');
+            if (overlay) overlay.classList.add('hidden');
             showToast('Scanner aktif — arahkan QR ke bingkai', 'success');
-        })
-        .catch(err => { showToast('Gagal akses kamera: ' + err.message, 'error'); resetCameraUI(); });
+        }
+    } catch (err) {
+        console.error('Semua strategi start kamera gagal:', err);
+        const errMsg = formatCameraError(err);
+        showToast('Gagal akses kamera: ' + errMsg, 'error');
+        resetCameraUI();
+        
+        // Tampilkan modal izin jika diblokir
+        const lower = String(err).toLowerCase();
+        if (lower.includes('notallowed') || lower.includes('permission') || lower.includes('denied')) {
+            const overlay = document.getElementById('cameraPermissionOverlay');
+            const msgEl = document.getElementById('camPermissionMsg');
+            if (msgEl) msgEl.textContent = 'Izin kamera diblokir peramban. Buka ikon gembok / Pengaturan Situs untuk mengizinkan kamera.';
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+    }
 }
 
-function stopScanner() {
-    if (html5Qrcode) { html5Qrcode.stop().then(() => { html5Qrcode = null; }).catch(() => { html5Qrcode = null; }); }
+/* STOP SCANNER */
+async function stopScanner() {
+    if (html5Qrcode) { 
+        try {
+            if (html5Qrcode.isScanning) {
+                await html5Qrcode.stop();
+            }
+            html5Qrcode.clear();
+        } catch(e) {}
+        html5Qrcode = null; 
+    }
     cameraActive = false;
     renderScanButton();
     updateInstruction();
@@ -536,19 +666,42 @@ function stopScanner() {
     showToast('Scanner dihentikan', 'info');
 }
 
+/* RESET CAMERA UI */
 function resetCameraUI() {
     cameraActive = false;
     renderScanButton();
     updateInstruction();
-    document.getElementById('cameraPermissionOverlay').classList.add('hidden');
-    document.getElementById('camIdlePlaceholder').classList.remove('hidden');
-    document.getElementById('qr-guide').classList.add('hidden');
+    const overlay = document.getElementById('cameraPermissionOverlay');
+    if (overlay) overlay.classList.add('hidden');
+    const idle = document.getElementById('camIdlePlaceholder');
+    if (idle) idle.classList.remove('hidden');
+    const guide = document.getElementById('qr-guide');
+    if (guide) guide.classList.add('hidden');
+    const controls = document.getElementById('cameraControls');
+    if (controls) controls.classList.add('hidden');
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-/* INITIAL RUN */
+/* INITIAL RUN & EVENT LISTENERS */
 renderScanButton();
 updateInstruction();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const reqBtn = document.getElementById('requestPermission');
+    if (reqBtn) {
+        reqBtn.onclick = () => {
+            const overlay = document.getElementById('cameraPermissionOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            startCameraStream();
+        };
+    }
+    const cancelBtn = document.getElementById('cancelPermission');
+    if (cancelBtn) {
+        cancelBtn.onclick = () => {
+            resetCameraUI();
+        };
+    }
+});
 
 /* FLASH */
 document.getElementById('flashBtn').addEventListener('click', async () => {
@@ -562,10 +715,10 @@ document.getElementById('flashBtn').addEventListener('click', async () => {
 });
 
 /* SWITCH CAMERA */
-document.getElementById('switchCameraBtn').addEventListener('click', () => {
+document.getElementById('switchCameraBtn').addEventListener('click', async () => {
     facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    stopScanner();
-    setTimeout(() => startScanner(), 400);
+    await stopScanner();
+    setTimeout(() => startCameraStream(), 300);
 });
 
 /* SCAN CALLBACKS */
