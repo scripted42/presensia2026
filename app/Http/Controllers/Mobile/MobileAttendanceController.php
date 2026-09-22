@@ -361,21 +361,26 @@ class MobileAttendanceController extends Controller
         $successCount = 0;
 
         foreach ($request->qr_codes as $qrCode) {
-            $result = $this->processQRCode($qrCode);
-            if ($result['success']) {
-                $scannedStudents[] = [
-                    'id' => $result['student']->id,
-                    'name' => $result['student']->name,
-                    'nis' => $result['student']->nis,
-                    'status' => $result['status'] ?? 'present',
-                ];
-                $successCount++;
-            } else {
-                if (($result['type'] ?? '') === 'duplicate') {
-                    $duplicates[] = $result['message'];
+            try {
+                $result = $this->processQRCode($qrCode);
+                if ($result['success']) {
+                    $scannedStudents[] = [
+                        'id' => $result['student']->id,
+                        'name' => $result['student']->name,
+                        'nis' => $result['student']->nis,
+                        'status' => $result['status'] ?? 'present',
+                    ];
+                    $successCount++;
                 } else {
-                    $errors[] = $result['message'];
+                    if (($result['type'] ?? '') === 'duplicate') {
+                        $duplicates[] = $result['message'];
+                    } else {
+                        $errors[] = $result['message'];
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Scan student QR error: ' . $e->getMessage());
+                $errors[] = 'Gagal memproses QR ' . $qrCode . ': ' . $e->getMessage();
             }
         }
 
@@ -383,12 +388,22 @@ class MobileAttendanceController extends Controller
         $errorCount = count($errors);
         $totalCount = $successCount + $duplicateCount + $errorCount;
 
-        $msg = $successCount . ' siswa berhasil diabsensi';
-        if ($duplicateCount > 0) $msg .= ', ' . $duplicateCount . ' sudah tercatat';
-        if ($errorCount > 0) $msg .= ', ' . $errorCount . ' gagal';
+        $msgParts = [];
+        if ($successCount > 0) {
+            $msgParts[] = "{$successCount} siswa berhasil diabsensi";
+        }
+        if ($duplicateCount > 0) {
+            $msgParts[] = "{$duplicateCount} sudah tercatat";
+        }
+        if ($errorCount > 0) {
+            $msgParts[] = "{$errorCount} tidak ditemukan/gagal";
+        }
+        $msg = count($msgParts) > 0 ? implode(', ', $msgParts) : 'Tidak ada data absensi';
+
+        $isSuccess = $successCount > 0 || ($duplicateCount > 0 && $errorCount === 0);
 
         return response()->json([
-            'success' => true,
+            'success' => $isSuccess,
             'message' => $msg,
             'data' => [
                 'success_count' => $successCount,
@@ -399,7 +414,7 @@ class MobileAttendanceController extends Controller
                 'duplicates' => $duplicates,
                 'errors' => $errors,
             ]
-        ]);
+        ], $isSuccess ? 200 : 422);
     }
 
     /**
@@ -410,11 +425,17 @@ class MobileAttendanceController extends Controller
         $parsed = $this->parseQRCode($qrCode);
         $nis = $parsed['nis'] ?? $qrCode;
 
+        $schoolId = Auth::user()?->school_id;
+
         $student = User::where(function($query) use ($nis, $qrCode) {
-            $query->where('nis', $nis)->orWhere('qr_code', $qrCode);
+            $query->where('nis', $nis)
+                  ->orWhere('qr_code', $qrCode)
+                  ->orWhere('nisn', $nis);
         })
         ->where('user_type', 'student')
-        ->where('school_id', Auth::user()->school_id)
+        ->when($schoolId, function($q) use ($schoolId) {
+            $q->where('school_id', $schoolId);
+        })
         ->first();
 
         if (!$student) {
@@ -432,23 +453,27 @@ class MobileAttendanceController extends Controller
             return [
                 'success' => false,
                 'type' => 'duplicate',
-                'message' => $student->name . ' sudah diabsensi hari ini'
+                'message' => $student->name . ' (' . ($student->nis ?? 'NIS') . ') sudah diabsensi hari ini'
             ];
         }
 
         $checkInTime = Carbon::now('Asia/Jakarta');
         $status = $this->determineStatus($student, $checkInTime);
 
-        Attendance::create([
-            'user_id' => $student->id,
-            'date' => $today,
-            'check_in' => $checkInTime,
-            'status' => $status,
-            'notes' => 'Absensi mobile oleh: ' . Auth::user()->name,
-            'latitude' => null,
-            'longitude' => null,
-            'location_name' => 'Scan oleh ' . Auth::user()->name,
-        ]);
+        Attendance::updateOrCreate(
+            [
+                'user_id' => $student->id,
+                'date' => $today,
+            ],
+            [
+                'check_in' => $checkInTime->format('H:i:s'),
+                'status' => $status,
+                'notes' => 'Absensi mobile oleh: ' . (Auth::user()?->name ?? 'Petugas'),
+                'latitude' => null,
+                'longitude' => null,
+                'location_name' => 'Scan oleh ' . (Auth::user()?->name ?? 'Petugas'),
+            ]
+        );
 
         return [
             'success' => true,
