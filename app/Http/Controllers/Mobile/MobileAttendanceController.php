@@ -166,9 +166,11 @@ class MobileAttendanceController extends Controller
 
         // Validate request
         $request->validate([
+            'qr_code' => 'nullable|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'location_name' => 'required|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:12288',
         ]);
 
         $attendance = Attendance::where('user_id', $user->id)
@@ -185,13 +187,59 @@ class MobileAttendanceController extends Controller
         if ($attendance->check_out) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sudah melakukan check-out hari ini'
+                'message' => 'Anda sudah melakukan check-out hari ini'
             ], 400);
         }
 
+        // Validate QR code if provided
+        if ($request->qr_code) {
+            $qrCode = QrCode::where('code', $request->qr_code)
+                ->where('school_id', $user->school_id)
+                ->where('is_used', false)
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if (!$qrCode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR Code tidak valid atau sudah kedaluwarsa. Silakan scan ulang QR di layar sekolah.'
+                ], 400);
+            }
+
+            // Mark QR code as used
+            $qrCode->update(['is_used' => true, 'used_at' => now()]);
+        }
+
+        // Validate location radius if required
+        $settings = AttendanceSetting::where('school_id', $user->school_id)
+            ->where('is_active', true)
+            ->first();
+
+        if ($settings && $settings->require_location) {
+            $distance = $this->calculateDistance(
+                $request->latitude,
+                $request->longitude,
+                $settings->location_latitude,
+                $settings->location_longitude
+            );
+
+            if ($distance > $settings->radius_meters) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda berada di luar radius yang diizinkan. Jarak: ' . round($distance) . 'm dari sekolah (radius maksimal: ' . $settings->radius_meters . 'm)'
+                ], 400);
+            }
+        }
+
+        // Handle photo upload if present
+        if ($request->hasFile('photo')) {
+            $request->file('photo')->store('attendance_photos', 'public');
+        }
+
         // Update check-out
+        $checkOutTime = now('Asia/Jakarta');
         $attendance->update([
-            'check_out' => now(),
+            'check_out' => $checkOutTime->format('H:i:s'),
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'location_name' => $request->location_name,
@@ -199,7 +247,7 @@ class MobileAttendanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Check-out berhasil',
+            'message' => 'Check-out berhasil dicatat',
             'data' => [
                 'id' => $attendance->id,
                 'date' => $attendance->date,
