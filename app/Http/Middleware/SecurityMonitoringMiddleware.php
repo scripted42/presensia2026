@@ -20,8 +20,8 @@ class SecurityMonitoringMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $ipAddress = $request->ip();
-        $userAgent = $request->userAgent();
+        $ipAddress = $request->ip() ?: '127.0.0.1';
+        $userAgent = $request->userAgent() ?: ($request->header('User-Agent') ?: 'Presensia-Client/1.0');
         $macAddress = $this->getMacAddress($request);
         $schoolId = $this->getSchoolId($request);
 
@@ -58,8 +58,8 @@ class SecurityMonitoringMiddleware
      */
     private function detectAttacks(Request $request)
     {
-        $ipAddress = $request->ip();
-        $userAgent = $request->userAgent();
+        $ipAddress = $request->ip() ?: '127.0.0.1';
+        $userAgent = $request->userAgent() ?: ($request->header('User-Agent') ?: 'Presensia-Client/1.0');
         $schoolId = $this->getSchoolId($request);
 
         // Detect brute force attacks
@@ -200,44 +200,48 @@ class SecurityMonitoringMiddleware
      */
     private function logSecurityEvent(Request $request, $attackType, $severity, $description)
     {
-        $ipAddress = $request->ip();
-        $userAgent = $request->userAgent();
-        $macAddress = $this->getMacAddress($request);
-        $schoolId = $this->getSchoolId($request);
+        try {
+            $ipAddress = $request->ip() ?: '127.0.0.1';
+            $userAgent = $request->userAgent() ?: ($request->header('User-Agent') ?: 'Presensia-Client/1.0');
+            $macAddress = $this->getMacAddress($request);
+            $schoolId = $this->getSchoolId($request);
 
-        // Check if this is a repeated attack
-        $existingLog = SecurityLog::byIp($ipAddress)
-            ->byAttackType($attackType)
-            ->recent(24) // Last 24 hours
-            ->first();
+            // Check if this is a repeated attack
+            $existingLog = SecurityLog::byIp($ipAddress)
+                ->byAttackType($attackType)
+                ->recent(24) // Last 24 hours
+                ->first();
 
-        if ($existingLog) {
-            // Update existing log
-            $existingLog->update([
-                'attempt_count' => $existingLog->attempt_count + 1,
-                'last_attempt' => now(),
-                'description' => $description
-            ]);
-        } else {
-            // Create new log
-            SecurityLog::create([
-                'school_id' => $schoolId,
-                'ip_address' => $ipAddress,
-                'mac_address' => $macAddress,
-                'user_agent' => $userAgent,
-                'attack_type' => $attackType,
-                'severity' => $severity,
-                'description' => $description,
-                'request_data' => $this->sanitizeRequestData($request),
-                'attempt_count' => 1,
-                'first_attempt' => now(),
-                'last_attempt' => now()
-            ]);
-        }
+            if ($existingLog) {
+                // Update existing log
+                $existingLog->update([
+                    'attempt_count' => $existingLog->attempt_count + 1,
+                    'last_attempt' => now(),
+                    'description' => $description
+                ]);
+            } else {
+                // Create new log
+                SecurityLog::create([
+                    'school_id' => $schoolId,
+                    'ip_address' => $ipAddress,
+                    'mac_address' => $macAddress,
+                    'user_agent' => $userAgent,
+                    'attack_type' => $attackType,
+                    'severity' => $severity,
+                    'description' => $description,
+                    'request_data' => $this->sanitizeRequestData($request),
+                    'attempt_count' => 1,
+                    'first_attempt' => now(),
+                    'last_attempt' => now()
+                ]);
+            }
 
-        // Auto-ban for critical attacks
-        if ($severity === 'critical' && $attackType !== 'ddos') {
-            $this->autoBanIp($ipAddress, $macAddress, $schoolId, $attackType, $description);
+            // Auto-ban for critical attacks
+            if ($severity === 'critical' && $attackType !== 'ddos') {
+                $this->autoBanIp($ipAddress, $macAddress, $schoolId, $attackType, $description);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('SecurityLog error: ' . $e->getMessage());
         }
     }
 
@@ -246,28 +250,32 @@ class SecurityMonitoringMiddleware
      */
     private function logAuditTrail(Request $request)
     {
-        $user = Auth::user();
-        $schoolId = $this->getSchoolId($request);
-        $ipAddress = $request->ip();
-        $userAgent = $request->userAgent();
-        $macAddress = $this->getMacAddress($request);
+        try {
+            $user = Auth::user();
+            $schoolId = $this->getSchoolId($request);
+            $ipAddress = $request->ip() ?: '127.0.0.1';
+            $userAgent = $request->userAgent() ?: ($request->header('User-Agent') ?: 'Presensia-Client/1.0');
+            $macAddress = $this->getMacAddress($request);
 
-        // Determine action based on route
-        $action = $this->getActionFromRoute($request);
-        $resourceType = $this->getResourceTypeFromRoute($request);
+            // Determine action based on route
+            $action = $this->getActionFromRoute($request);
+            $resourceType = $this->getResourceTypeFromRoute($request);
 
-        AuditTrail::create([
-            'school_id' => $schoolId,
-            'user_id' => $user ? $user->id : null,
-            'action' => $action,
-            'resource_type' => $resourceType,
-            'resource_id' => $this->getResourceIdFromRoute($request),
-            'ip_address' => $ipAddress,
-            'user_agent' => $userAgent,
-            'mac_address' => $macAddress,
-            'description' => $this->getActionDescription($request, $action),
-            'status' => 'success'
-        ]);
+            AuditTrail::create([
+                'school_id' => $schoolId,
+                'user_id' => $user ? $user->id : null,
+                'action' => $action,
+                'resource_type' => $resourceType,
+                'resource_id' => $this->getResourceIdFromRoute($request),
+                'ip_address' => $ipAddress,
+                'user_agent' => $userAgent,
+                'mac_address' => $macAddress,
+                'description' => $this->getActionDescription($request, $action),
+                'status' => 'success'
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('AuditTrail error: ' . $e->getMessage());
+        }
     }
 
     /**
