@@ -26,6 +26,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/login', [MobileAuthController::class, 'login']);
         Route::post('/logout', [MobileAuthController::class, 'logout'])->middleware('mobile.auth');
         Route::get('/me', [MobileAuthController::class, 'me'])->middleware('mobile.auth');
+        Route::post('/change-password', [MobileAuthController::class, 'changePassword'])->middleware('mobile.auth');
     });
     
     // Protected routes (require authentication)

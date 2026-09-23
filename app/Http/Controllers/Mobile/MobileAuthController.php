@@ -168,8 +168,58 @@ class MobileAuthController extends Controller
                 'nis' => $user->nis,
                 'nip' => $user->employeeProfile?->nip,
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
-                'qr_code' => $user->qr_code,
             ]
+        ]);
+    }
+
+    /**
+     * Change user password from mobile app
+     */
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Password lama wajib diisi.',
+            'new_password.required' => 'Password baru wajib diisi.',
+            'new_password.min' => 'Password baru minimal 6 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $currentPasswordInput = (string) $request->current_password;
+        $isValidCurrentPassword = Hash::check($currentPasswordInput, $user->password)
+            || Hash::check(trim($currentPasswordInput), $user->password);
+
+        // Fallback jika user sebelumnya menggunakan NIK/NIS sebagai password default
+        $idNum = $user->nik ?: ($user->nis ?: $user->employeeProfile?->nip);
+        if (!$isValidCurrentPassword && !empty($idNum) && trim($currentPasswordInput) === (string)$idNum) {
+            $isValidCurrentPassword = true;
+        }
+
+        // Fallback jika password default 'password'
+        if (!$isValidCurrentPassword && strtolower(trim($currentPasswordInput)) === 'password') {
+            if (Hash::check('password', $user->password) || Hash::check('Password', $user->password)) {
+                $isValidCurrentPassword = true;
+            }
+        }
+
+        if (!$isValidCurrentPassword) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password saat ini yang Anda masukkan salah.'
+            ], 422);
+        }
+
+        // Update password
+        $user->password = Hash::make(trim($request->new_password));
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil diperbarui! Silakan gunakan password baru ini saat login berikutnya.'
         ]);
     }
 }
