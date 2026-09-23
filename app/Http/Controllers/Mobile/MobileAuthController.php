@@ -27,12 +27,36 @@ class MobileAuthController extends Controller
             'password.required' => 'Password wajib diisi.'
         ]);
 
-        $user = User::where(function ($query) use ($loginIdentifier) {
+        $cleanDigits = preg_replace('/[^0-9]/', '', $loginIdentifier);
+
+        $user = User::where(function ($query) use ($loginIdentifier, $cleanDigits) {
                 $query->where('nis', $loginIdentifier)
                       ->orWhere('nik', $loginIdentifier)
-                      ->orWhere('email', $loginIdentifier);
+                      ->orWhere('email', $loginIdentifier)
+                      ->orWhere('name', $loginIdentifier)
+                      ->orWhere('name', 'like', '%' . $loginIdentifier . '%');
+
+                if (!empty($cleanDigits)) {
+                    $query->orWhereRaw("REPLACE(REPLACE(REPLACE(nik, ' ', ''), '-', ''), '.', '') = ?", [$cleanDigits])
+                          ->orWhereRaw("REPLACE(REPLACE(REPLACE(nis, ' ', ''), '-', ''), '.', '') = ?", [$cleanDigits]);
+                }
+
+                $query->orWhereHas('employeeProfile', function ($q) use ($loginIdentifier, $cleanDigits) {
+                    $q->where('nip', $loginIdentifier)
+                      ->orWhere('nik', $loginIdentifier)
+                      ->orWhere('nuptk', $loginIdentifier);
+
+                    if (!empty($cleanDigits)) {
+                        $q->orWhereRaw("REPLACE(REPLACE(REPLACE(nip, ' ', ''), '-', ''), '.', '') = ?", [$cleanDigits])
+                          ->orWhereRaw("REPLACE(REPLACE(REPLACE(nik, ' ', ''), '-', ''), '.', '') = ?", [$cleanDigits])
+                          ->orWhereRaw("REPLACE(REPLACE(REPLACE(nuptk, ' ', ''), '-', ''), '.', '') = ?", [$cleanDigits]);
+                    }
+                });
             })
-            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('is_active', true)
+                  ->orWhereNull('is_active');
+            })
             ->first();
 
         $passwordInput = (string) $request->password;
@@ -49,11 +73,19 @@ class MobileAuthController extends Controller
                 $isValidPassword = true;
             }
 
-            // Fallback: Jika pegawai login dengan password = NIK-nya sendiri, sinkronkan ke DB jika belum sesuai
-            if (!$isValidPassword && !$user->hasRole('student') && !empty($user->nik) && trim($passwordInput) === (string)$user->nik) {
-                $user->password = Hash::make((string)$user->nik);
+            // Fallback: Jika pegawai login dengan password = NIK/NIP-nya sendiri, sinkronkan ke DB jika belum sesuai
+            $employeeNum = $user->nik ?: ($user->employeeProfile?->nip ?: $user->employeeProfile?->nik);
+            if (!$isValidPassword && !$user->hasRole('student') && !empty($employeeNum) && trim($passwordInput) === (string)$employeeNum) {
+                $user->password = Hash::make((string)$employeeNum);
                 $user->save();
                 $isValidPassword = true;
+            }
+
+            // Fallback: Jika input password 'password', cek juga variasi case
+            if (!$isValidPassword && strtolower(trim($passwordInput)) === 'password') {
+                if (Hash::check('password', $user->password) || Hash::check('Password', $user->password)) {
+                    $isValidPassword = true;
+                }
             }
         }
 
