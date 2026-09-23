@@ -292,11 +292,13 @@ class MobileAttendanceController extends Controller
         return response()->json([
             'success' => true,
             'data' => $attendances->map(function ($attendance) {
+                $checkInWib = $attendance->check_in ? Carbon::parse($attendance->check_in)->timezone('Asia/Jakarta')->format('H:i') : null;
+                $checkOutWib = $attendance->check_out ? Carbon::parse($attendance->check_out)->timezone('Asia/Jakarta')->format('H:i') : null;
                 return [
                     'id' => $attendance->id,
-                    'date' => $attendance->date,
-                    'check_in' => $attendance->check_in,
-                    'check_out' => $attendance->check_out,
+                    'date' => $attendance->date ? Carbon::parse($attendance->date)->format('Y-m-d') : null,
+                    'check_in' => $checkInWib,
+                    'check_out' => $checkOutWib,
                     'status' => $attendance->status,
                     'status_label' => $attendance->status_label,
                     'location_name' => $attendance->location_name,
@@ -319,23 +321,26 @@ class MobileAttendanceController extends Controller
             ->where('date', $today)
             ->first();
 
+        $checkInWib = $attendance && $attendance->check_in ? Carbon::parse($attendance->check_in)->timezone('Asia/Jakarta')->format('H:i') : null;
+        $checkOutWib = $attendance && $attendance->check_out ? Carbon::parse($attendance->check_out)->timezone('Asia/Jakarta')->format('H:i') : null;
+
         return response()->json([
             'success' => true,
             'data' => [
                 'has_checked_in' => $attendance && $attendance->check_in ? true : false,
                 'has_checked_out' => $attendance && $attendance->check_out ? true : false,
-                'check_in' => $attendance ? $attendance->check_in : null,
-                'check_out' => $attendance ? $attendance->check_out : null,
-                'check_in_time' => $attendance ? $attendance->check_in : null,
-                'check_out_time' => $attendance ? $attendance->check_out : null,
+                'check_in' => $checkInWib,
+                'check_out' => $checkOutWib,
+                'check_in_time' => $checkInWib,
+                'check_out_time' => $checkOutWib,
                 'status' => $attendance ? $attendance->status : null,
                 'status_label' => $attendance ? $attendance->status_label : null,
                 'location_name' => $attendance ? $attendance->location_name : null,
                 'photo_url' => $attendance && $attendance->photo ? asset('storage/' . $attendance->photo) : null,
                 'attendance' => $attendance ? [
                     'id' => $attendance->id,
-                    'check_in' => $attendance->check_in,
-                    'check_out' => $attendance->check_out,
+                    'check_in' => $checkInWib,
+                    'check_out' => $checkOutWib,
                     'status' => $attendance->status,
                     'status_label' => $attendance->status_label,
                     'location_name' => $attendance->location_name,
@@ -699,8 +704,8 @@ class MobileAttendanceController extends Controller
                     $alphaCount++;
                 }
 
-                $checkIn = $attendance->check_in ? Carbon::parse($attendance->check_in)->format('H:i') : null;
-                $checkOut = $attendance->check_out ? Carbon::parse($attendance->check_out)->format('H:i') : null;
+                $checkIn = $attendance->check_in ? Carbon::parse($attendance->check_in)->timezone('Asia/Jakarta')->format('H:i') : null;
+                $checkOut = $attendance->check_out ? Carbon::parse($attendance->check_out)->timezone('Asia/Jakarta')->format('H:i') : null;
                 $notes = $attendance->notes;
                 if (!empty($attendance->photo)) {
                     $photoUrl = asset('storage/' . $attendance->photo);
