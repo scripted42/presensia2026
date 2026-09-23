@@ -322,14 +322,25 @@ class MobileAttendanceController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'has_checked_in' => $attendance ? true : false,
+                'has_checked_in' => $attendance && $attendance->check_in ? true : false,
                 'has_checked_out' => $attendance && $attendance->check_out ? true : false,
+                'check_in' => $attendance ? $attendance->check_in : null,
+                'check_out' => $attendance ? $attendance->check_out : null,
                 'check_in_time' => $attendance ? $attendance->check_in : null,
                 'check_out_time' => $attendance ? $attendance->check_out : null,
                 'status' => $attendance ? $attendance->status : null,
                 'status_label' => $attendance ? $attendance->status_label : null,
                 'location_name' => $attendance ? $attendance->location_name : null,
                 'photo_url' => $attendance && $attendance->photo ? asset('storage/' . $attendance->photo) : null,
+                'attendance' => $attendance ? [
+                    'id' => $attendance->id,
+                    'check_in' => $attendance->check_in,
+                    'check_out' => $attendance->check_out,
+                    'status' => $attendance->status,
+                    'status_label' => $attendance->status_label,
+                    'location_name' => $attendance->location_name,
+                    'photo_url' => $attendance->photo ? asset('storage/' . $attendance->photo) : null,
+                ] : null,
             ]
         ]);
     }
