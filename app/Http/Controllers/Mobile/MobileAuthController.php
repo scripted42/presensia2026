@@ -110,6 +110,7 @@ class MobileAuthController extends Controller
                     'phone' => $user->phone,
                     'nik' => $user->nik,
                     'nis' => $user->nis,
+                    'class_name' => $user->user_type === 'student' ? ($user->studentClasses()->first()?->name ?? null) : null,
                     'user_type' => $user->user_type,
                     'school_id' => $user->school_id,
                     'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
@@ -154,6 +155,7 @@ class MobileAuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
+        $className = $user->user_type === 'student' ? ($user->studentClasses()->first()?->name ?? null) : null;
         
         return response()->json([
             'success' => true,
@@ -166,8 +168,46 @@ class MobileAuthController extends Controller
                 'school_id' => $user->school_id,
                 'nik' => $user->nik,
                 'nis' => $user->nis,
+                'class_name' => $className,
                 'nip' => $user->employeeProfile?->nip,
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+            ]
+        ]);
+    }
+
+    /**
+     * Get student QR code data and image
+     */
+    public function getStudentQr(Request $request)
+    {
+        $user = $request->user();
+        if ($user->user_type !== 'student') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kartu QR hanya tersedia untuk akun siswa.'
+            ], 403);
+        }
+
+        $className = $user->studentClasses()->first()?->name ?? $user->class_name ?? 'Siswa';
+        $payload = ($user->nis ?? '') . '|' . $user->name;
+
+        $qrController = new \App\Http\Controllers\QrManagementController();
+        $png = $qrController->getOrGenerateQrImage($user, 500);
+        $base64 = 'data:image/png;base64,' . base64_encode($png);
+
+        $filename = $qrController->getQrFilename($user);
+        $schoolId = $user->school_id ?: 1;
+        $fileUrl = asset("storage/qrcodes/school_{$schoolId}/{$filename}");
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'qr_image' => $base64,
+                'qr_url' => $fileUrl,
+                'payload' => $payload,
+                'name' => $user->name,
+                'nis' => $user->nis,
+                'class_name' => $className,
             ]
         ]);
     }

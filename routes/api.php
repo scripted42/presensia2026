@@ -63,6 +63,11 @@ Route::prefix('mobile')->group(function () {
             Route::get('/monthly', [MobileReportController::class, 'monthly']);
             Route::get('/export', [MobileReportController::class, 'export']);
         });
+
+        // Student specific routes
+        Route::prefix('student')->group(function () {
+            Route::get('/qr-code', [MobileAuthController::class, 'getStudentQr']);
+        });
     });
 });
 
