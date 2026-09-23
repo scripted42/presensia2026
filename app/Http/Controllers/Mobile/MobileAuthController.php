@@ -108,6 +108,8 @@ class MobileAuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
+                    'nik' => $user->nik,
+                    'nis' => $user->nis,
                     'user_type' => $user->user_type,
                     'school_id' => $user->school_id,
                     'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
@@ -162,6 +164,9 @@ class MobileAuthController extends Controller
                 'phone' => $user->phone,
                 'user_type' => $user->user_type,
                 'school_id' => $user->school_id,
+                'nik' => $user->nik,
+                'nis' => $user->nis,
+                'nip' => $user->employeeProfile?->nip,
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
                 'qr_code' => $user->qr_code,
             ]
