@@ -791,14 +791,32 @@ class MobileAttendanceController extends Controller
                 $studentCount = $students->count();
                 if ($studentCount === 0) continue;
 
-                $totalAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])->count();
-                $ontimeAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])
-                    ->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+                $classAttendances = \App\Models\Attendance::whereIn('user_id', $students)
+                    ->whereBetween('date', [$startDate, $endDate])->get();
+                $totalAtt = $classAttendances->count();
+                $ontimeAtt = $classAttendances->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
 
-                // Murni hitung dari riwayat absensi nyata
+                // Hitung akumulasi XP kelas berdasarkan formula ketepatan jam absensi riil
+                $classXp = 0;
+                foreach ($classAttendances as $att) {
+                    if (!$att->check_in) {
+                        if (in_array($att->status, ['sick', 'permit'])) $classXp += 10;
+                        continue;
+                    }
+                    $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
+                    if ($checkInTime < '06:30:00') {
+                        $classXp += 100; // Early Bird: Absen sebelum 06.30 pagi
+                    } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
+                        $classXp += 70;  // Tepat waktu standar
+                    } elseif ($att->status === 'late') {
+                        $classXp += 20;  // Terlambat hadir
+                    } elseif (in_array($att->status, ['sick', 'permit'])) {
+                        $classXp += 10;  // Izin / Sakit
+                    }
+                }
+
                 $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
                 $streak = $totalAtt > 0 ? $ontimeAtt : 0;
-                $points = $totalAtt > 0 ? ($ontimeAtt * 50) : 0;
 
                 $classLeaderboard[] = [
                     'class_id' => $cls->id,
@@ -809,7 +827,8 @@ class MobileAttendanceController extends Controller
                     'rate' => $rate . '%',
                     'rate_num' => $rate,
                     'streak' => $streak,
-                    'points' => number_format($points, 0, ',', '.') . ' XP',
+                    'points' => number_format($classXp, 0, ',', '.') . ' XP',
+                    'points_num' => $classXp,
                     'isMyClass' => $myClassId === $cls->id,
                     'total_attendance' => $totalAtt,
                 ];
@@ -819,12 +838,12 @@ class MobileAttendanceController extends Controller
             $activeClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] > 0));
             $inactiveClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] === 0));
 
-            // Urutkan kelas aktif berdasarkan rate_num descending, lalu total_attendance descending
+            // Urutkan kelas aktif berdasarkan rate_num descending, lalu total XP (points_num) descending
             usort($activeClasses, function ($a, $b) {
                 if ($b['rate_num'] !== $a['rate_num']) {
                     return $b['rate_num'] <=> $a['rate_num'];
                 }
-                return $b['total_attendance'] <=> $a['total_attendance'];
+                return $b['points_num'] <=> $a['points_num'];
             });
 
             // Beri nomor peringkat HANYA untuk kelas yang sudah ada presensi
@@ -881,10 +900,40 @@ class MobileAttendanceController extends Controller
 
                 $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
                 $r = round(($on / $tot) * 100, 1);
-                $points = $on * 50; // 50 XP per kehadiran tepat waktu
-                $streak = $on;      // Streak riil dari jumlah kehadiran tepat waktu
 
-                $badgeTitle = $r >= 95 ? 'Disiplin Emas' : ($r >= 75 ? 'Pejuang Pagi' : 'Konsisten');
+                // Hitung XP individu murni dari catatan jam absensi
+                $stdXp = 0;
+                $earlyCount = 0;
+                foreach ($attList as $att) {
+                    if (!$att->check_in) {
+                        if (in_array($att->status, ['sick', 'permit'])) $stdXp += 10;
+                        continue;
+                    }
+                    $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
+                    if ($checkInTime < '06:30:00') {
+                        $stdXp += 100; // Hadir pagi sebelum 06.30 (+100 XP)
+                        $earlyCount++;
+                    } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
+                        $stdXp += 70;  // Tepat waktu (+70 XP)
+                    } elseif ($att->status === 'late') {
+                        $stdXp += 20;  // Terlambat (+20 XP)
+                    } elseif (in_array($att->status, ['sick', 'permit'])) {
+                        $stdXp += 10;  // Izin / Sakit (+10 XP)
+                    }
+                }
+
+                $streak = $on;
+
+                // Tentukan gelar / badge berdasarkan kedisiplinan riil
+                if ($earlyCount > 0 && $r >= 90) {
+                    $badgeTitle = 'Disiplin Emas';
+                } elseif ($earlyCount > 0) {
+                    $badgeTitle = 'Early Bird';
+                } elseif ($r >= 75) {
+                    $badgeTitle = 'Pejuang Pagi';
+                } else {
+                    $badgeTitle = 'Konsisten';
+                }
 
                 $studentLeaderboard[] = [
                     'user_id' => $std->id,
@@ -894,14 +943,21 @@ class MobileAttendanceController extends Controller
                     'nis' => $std->nis ?: '-',
                     'rate' => $r . '%',
                     'rate_num' => $r,
-                    'points' => number_format($points, 0, ',', '.') . ' XP',
+                    'points' => number_format($stdXp, 0, ',', '.') . ' XP',
+                    'points_num' => $stdXp,
                     'streak' => $streak,
                     'badgeTitle' => $badgeTitle,
                     'isMe' => $currentUser->id === $std->id,
                 ];
             }
 
-            usort($studentLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
+            // Urutkan siswa berdasarkan total XP terbanyak (points_num), lalu rate ketepatan waktu
+            usort($studentLeaderboard, function ($a, $b) {
+                if ($b['points_num'] !== $a['points_num']) {
+                    return $b['points_num'] <=> $a['points_num'];
+                }
+                return $b['rate_num'] <=> $a['rate_num'];
+            });
             $sRank = 1;
             $topStudents = array_slice($studentLeaderboard, 0, 20);
             foreach ($topStudents as &$s) { $s['rank'] = $sRank++; }
