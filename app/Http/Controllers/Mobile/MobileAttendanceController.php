@@ -794,7 +794,11 @@ class MobileAttendanceController extends Controller
             $ontimeAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])
                 ->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
 
-            $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 98.0;
+            // Murni hitung dari riwayat absensi nyata
+            $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
+            $streak = $totalAtt > 0 ? $ontimeAtt : 0;
+            $points = $totalAtt > 0 ? ($ontimeAtt * 50) : 0;
+
             $classLeaderboard[] = [
                 'class_id' => $cls->id,
                 'name' => 'Kelas ' . $cls->name,
@@ -803,34 +807,59 @@ class MobileAttendanceController extends Controller
                 'studentsCount' => $studentCount,
                 'rate' => $rate . '%',
                 'rate_num' => $rate,
-                'streak' => max(5, intval($rate / 4)),
-                'points' => number_format(round($rate * 30), 0, ',', '.') . ' XP',
+                'streak' => $streak,
+                'points' => number_format($points, 0, ',', '.') . ' XP',
                 'isMyClass' => $myClassId === $cls->id,
+                'total_attendance' => $totalAtt,
             ];
         }
 
-        usort($classLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
+        // Sort classes: kelas dengan presensi di atas, disusul persentase tertinggi
+        usort($classLeaderboard, function ($a, $b) {
+            if ($b['total_attendance'] !== $a['total_attendance']) {
+                return $b['total_attendance'] <=> $a['total_attendance'];
+            }
+            return $b['rate_num'] <=> $a['rate_num'];
+        });
+
         $rank = 1;
         foreach ($classLeaderboard as &$item) {
             $item['rank'] = $rank;
-            $item['badge'] = $rank === 1 ? '☆ ' . $item['rate'] . ' Juara 1' : $item['rate'] . ' Tepat';
-            $item['badgeColor'] = $rank === 1 ? '#FEF3C7' : ($rank === 2 ? '#EFF6FF' : ($rank === 3 ? '#FFF7ED' : '#F1F5F9'));
-            $item['textColor'] = $rank === 1 ? '#B45309' : ($rank === 2 ? '#1D4ED8' : ($rank === 3 ? '#C2410C' : '#023C69'));
-            if ($rank > 3) $item['bonusXP'] = '+' . (100 - min(80, $rank * 5)) . ' XP';
+            if ($item['total_attendance'] > 0) {
+                $item['badge'] = $rank === 1 ? '☆ ' . $item['rate'] . ' Juara 1' : $item['rate'] . ' Tepat';
+                $item['badgeColor'] = $rank === 1 ? '#FEF3C7' : ($rank === 2 ? '#EFF6FF' : ($rank === 3 ? '#FFF7ED' : '#F1F5F9'));
+                $item['textColor'] = $rank === 1 ? '#B45309' : ($rank === 2 ? '#1D4ED8' : ($rank === 3 ? '#C2410C' : '#023C69'));
+                if ($rank > 3) $item['bonusXP'] = '+' . max(10, 100 - min(80, $rank * 5)) . ' XP';
+            } else {
+                $item['badge'] = 'Belum Ada Presensi';
+                $item['badgeColor'] = '#F1F5F9';
+                $item['textColor'] = '#94A3B8';
+                $item['bonusXP'] = '0 XP';
+            }
             $rank++;
         }
         unset($item);
 
+        // Hanya cari siswa yang SUDAH memiliki riwayat absensi bulan ini
         $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
             ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+            ->whereHas('attendances', fn($q) => $q->whereBetween('date', [$startDate, $endDate]))
             ->with(['studentClasses', 'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate])])
-            ->take(60)->get();
+            ->get();
 
         $studentLeaderboard = [];
         foreach ($topStudentsRaw as $std) {
-            $tot = $std->attendances->count();
-            $on = $std->attendances->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
-            $r = $tot > 0 ? round(($on / $tot) * 100, 1) : 100.0;
+            $attList = $std->attendances;
+            $tot = $attList->count();
+            if ($tot === 0) continue;
+
+            $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+            $r = round(($on / $tot) * 100, 1);
+            $points = $on * 50; // 50 XP per kehadiran tepat waktu
+            $streak = $on;      // Streak riil dari jumlah kehadiran tepat waktu
+
+            $badgeTitle = $r >= 95 ? 'Disiplin Emas' : ($r >= 75 ? 'Pejuang Pagi' : 'Konsisten');
+
             $studentLeaderboard[] = [
                 'user_id' => $std->id,
                 'name' => $std->name,
@@ -839,9 +868,9 @@ class MobileAttendanceController extends Controller
                 'nis' => $std->nis ?: '-',
                 'rate' => $r . '%',
                 'rate_num' => $r,
-                'points' => number_format(1200 + ($on * 25), 0, ',', '.') . ' XP',
-                'streak' => max(10, $on + 5),
-                'badgeTitle' => $r >= 98 ? 'Disiplin Emas' : 'Pejuang Pagi',
+                'points' => number_format($points, 0, ',', '.') . ' XP',
+                'streak' => $streak,
+                'badgeTitle' => $badgeTitle,
                 'isMe' => $currentUser->id === $std->id,
             ];
         }
