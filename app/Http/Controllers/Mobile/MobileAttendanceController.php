@@ -779,37 +779,60 @@ class MobileAttendanceController extends Controller
             $startDate = $now->copy()->startOfMonth()->toDateString();
             $endDate = $now->copy()->endOfMonth()->toDateString();
 
+            // 1. Ambil seluruh kelas beserta hitungan siswa dalam 1 query cepat
             $classes = \App\Models\SchoolClass::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->withCount(['students' => fn($q) => $q->where('user_type', 'student')->where('is_active', true)])
                 ->orderBy('level', 'asc')->orderBy('name', 'asc')->get();
 
             $myClassId = $currentUser->user_type === 'student' ? ($currentUser->studentClasses->first()->id ?? null) : null;
-            $classLeaderboard = [];
 
+            // 2. Ambil seluruh riwayat absensi siswa bulan ini dalam 1 query cepat
+            $monthAttendances = \App\Models\Attendance::whereBetween('date', [$startDate, $endDate])
+                ->whereHas('user', fn($q) => $q->where('user_type', 'student')->where('is_active', true)->when($schoolId, fn($sq) => $sq->where('school_id', $schoolId)))
+                ->with(['user.studentClasses' => fn($q) => $q->select('classes.id', 'classes.name', 'classes.level')])
+                ->get();
+
+            // Petakan data absensi per class_id dan per user_id di memori (eksekusi super cepat < 1ms)
+            $classAttMap = [];
+            $userAttMap = [];
+
+            foreach ($monthAttendances as $att) {
+                $user = $att->user;
+                if (!$user) continue;
+
+                $userAttMap[$user->id][] = $att;
+                $userClass = $user->studentClasses->first();
+                if ($userClass) {
+                    $classAttMap[$userClass->id][] = $att;
+                }
+            }
+
+            // Hitung akumulasi statistik & XP tiap kelas
+            $classLeaderboard = [];
             foreach ($classes as $cls) {
-                $students = User::where('user_type', 'student')->where('is_active', true)
-                    ->whereHas('studentClasses', fn($q) => $q->where('classes.id', $cls->id))->pluck('id');
-                $studentCount = $students->count();
+                $studentCount = $cls->students_count ?? 0;
                 if ($studentCount === 0) continue;
 
-                $classAttendances = \App\Models\Attendance::whereIn('user_id', $students)
-                    ->whereBetween('date', [$startDate, $endDate])->get();
-                $totalAtt = $classAttendances->count();
-                $ontimeAtt = $classAttendances->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
-
-                // Hitung akumulasi XP kelas berdasarkan formula ketepatan jam absensi riil
+                $classAttendances = $classAttMap[$cls->id] ?? [];
+                $totalAtt = count($classAttendances);
+                $ontimeAtt = 0;
                 $classXp = 0;
+
                 foreach ($classAttendances as $att) {
+                    $isOnTime = in_array($att->status, ['ontime', 'present', 'tepat_waktu']);
+                    if ($isOnTime) $ontimeAtt++;
+
                     if (!$att->check_in) {
                         if ($att->status === 'alpha') {
                             $classXp -= 50; // Penalti Alpha (-50 XP)
                         }
-                        // Sakit / Izin = 0 XP (Netral, tidak menambah/mengurangi)
+                        // Sakit / Izin = 0 XP (Netral)
                         continue;
                     }
                     $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
                     if ($checkInTime < '06:30:00') {
                         $classXp += 100; // Early Bird: Absen sebelum 06.30 pagi (+100 XP)
-                    } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
+                    } elseif ($isOnTime || $checkInTime <= '06:45:00') {
                         $classXp += 70;  // Tepat waktu standar (+70 XP)
                     } elseif ($att->status === 'late' || $checkInTime > '06:45:00') {
                         $classXp -= 20;  // Penalti Terlambat (-20 XP)
@@ -817,7 +840,7 @@ class MobileAttendanceController extends Controller
                         $classXp -= 50;  // Penalti Alpha (-50 XP)
                     }
                 }
-                $classXp = max(0, $classXp); // Poin tidak minus di bawah 0
+                $classXp = max(0, $classXp); // Poin minimal 0 XP
 
                 $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
                 $streak = $totalAtt > 0 ? $ontimeAtt : 0;
@@ -889,26 +912,24 @@ class MobileAttendanceController extends Controller
             // Gabungkan kelas aktif di atas, kelas belum aktif di bawah
             $finalClassLeaderboard = array_merge($activeClasses, $inactiveClasses);
 
-            // Hanya cari siswa yang SUDAH memiliki riwayat absensi bulan ini
-            $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
-                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
-                ->whereHas('attendances', fn($q) => $q->whereBetween('date', [$startDate, $endDate]))
-                ->with(['studentClasses', 'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate])])
-                ->get();
-
+            // Hitung data Top Siswa dari hasil mapping absensi di memory
             $studentLeaderboard = [];
-            foreach ($topStudentsRaw as $std) {
-                $attList = $std->attendances;
-                $tot = $attList->count();
+            foreach ($userAttMap as $userId => $attList) {
+                $firstAtt = $attList[0] ?? null;
+                $std = $firstAtt ? $firstAtt->user : null;
+                if (!$std) continue;
+
+                $tot = count($attList);
                 if ($tot === 0) continue;
 
-                $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
-                $r = round(($on / $tot) * 100, 1);
-
-                // Hitung XP individu murni dari catatan jam absensi (dengan penalti terlambat & alpha)
+                $on = 0;
                 $stdXp = 0;
                 $earlyCount = 0;
+
                 foreach ($attList as $att) {
+                    $isOnTime = in_array($att->status, ['ontime', 'present', 'tepat_waktu']);
+                    if ($isOnTime) $on++;
+
                     if (!$att->check_in) {
                         if ($att->status === 'alpha') {
                             $stdXp -= 50; // Penalti Alpha (-50 XP)
@@ -916,11 +937,12 @@ class MobileAttendanceController extends Controller
                         // Sakit / Izin = 0 XP (Netral)
                         continue;
                     }
+
                     $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
                     if ($checkInTime < '06:30:00') {
                         $stdXp += 100; // Hadir pagi sebelum 06.30 (+100 XP)
                         $earlyCount++;
-                    } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
+                    } elseif ($isOnTime || $checkInTime <= '06:45:00') {
                         $stdXp += 70;  // Tepat waktu (+70 XP)
                     } elseif ($att->status === 'late' || $checkInTime > '06:45:00') {
                         $stdXp -= 20;  // Penalti Terlambat (-20 XP)
@@ -929,7 +951,7 @@ class MobileAttendanceController extends Controller
                     }
                 }
                 $stdXp = max(0, $stdXp); // Poin minimal 0 XP
-
+                $r = round(($on / $tot) * 100, 1);
                 $streak = $on;
 
                 // Tentukan gelar / badge berdasarkan kedisiplinan riil
@@ -943,11 +965,13 @@ class MobileAttendanceController extends Controller
                     $badgeTitle = 'Konsisten';
                 }
 
+                $stdClass = $std->studentClasses->first();
+
                 $studentLeaderboard[] = [
                     'user_id' => $std->id,
                     'name' => $std->name,
-                    'class' => $std->studentClasses->first()->name ?? '-',
-                    'grade' => (string) ($std->studentClasses->first()->level ?? '7'),
+                    'class' => $stdClass->name ?? '-',
+                    'grade' => (string) ($stdClass->level ?? '7'),
                     'nis' => $std->nis ?: '-',
                     'rate' => $r . '%',
                     'rate_num' => $r,
