@@ -772,152 +772,160 @@ class MobileAttendanceController extends Controller
      */
     public function leaderboard(Request $request)
     {
-        $currentUser = Auth::user();
-        $schoolId = $currentUser->school_id ?? null;
-        $now = Carbon::now('Asia/Jakarta');
-        $startDate = $now->copy()->startOfMonth()->toDateString();
-        $endDate = $now->copy()->endOfMonth()->toDateString();
+        try {
+            $currentUser = Auth::user();
+            $schoolId = $currentUser->school_id ?? null;
+            $now = Carbon::now('Asia/Jakarta');
+            $startDate = $now->copy()->startOfMonth()->toDateString();
+            $endDate = $now->copy()->endOfMonth()->toDateString();
 
-        $classes = \App\Models\SchoolClass::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
-            ->orderBy('level', 'asc')->orderBy('name', 'asc')->get();
+            $classes = \App\Models\SchoolClass::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->orderBy('level', 'asc')->orderBy('name', 'asc')->get();
 
-        $myClassId = $currentUser->user_type === 'student' ? ($currentUser->studentClasses->first()->id ?? null) : null;
-        $classLeaderboard = [];
+            $myClassId = $currentUser->user_type === 'student' ? ($currentUser->studentClasses->first()->id ?? null) : null;
+            $classLeaderboard = [];
 
-        foreach ($classes as $cls) {
-            $students = User::where('user_type', 'student')->where('is_active', true)
-                ->whereHas('studentClasses', fn($q) => $q->where('classes.id', $cls->id))->pluck('id');
-            $studentCount = $students->count();
-            if ($studentCount === 0) continue;
+            foreach ($classes as $cls) {
+                $students = User::where('user_type', 'student')->where('is_active', true)
+                    ->whereHas('studentClasses', fn($q) => $q->where('classes.id', $cls->id))->pluck('id');
+                $studentCount = $students->count();
+                if ($studentCount === 0) continue;
 
-            $totalAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])->count();
-            $ontimeAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])
-                ->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+                $totalAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])->count();
+                $ontimeAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])
+                    ->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
 
-            // Murni hitung dari riwayat absensi nyata
-            $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
-            $streak = $totalAtt > 0 ? $ontimeAtt : 0;
-            $points = $totalAtt > 0 ? ($ontimeAtt * 50) : 0;
+                // Murni hitung dari riwayat absensi nyata
+                $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
+                $streak = $totalAtt > 0 ? $ontimeAtt : 0;
+                $points = $totalAtt > 0 ? ($ontimeAtt * 50) : 0;
 
-            $classLeaderboard[] = [
-                'class_id' => $cls->id,
-                'name' => 'Kelas ' . $cls->name,
-                'initial' => preg_replace('/[^0-9A-Za-z]/', '', $cls->name) ?: 'KLS',
-                'grade' => (string) ($cls->level ?? '7'),
-                'studentsCount' => $studentCount,
-                'rate' => $rate . '%',
-                'rate_num' => $rate,
-                'streak' => $streak,
-                'points' => number_format($points, 0, ',', '.') . ' XP',
-                'isMyClass' => $myClassId === $cls->id,
-                'total_attendance' => $totalAtt,
-            ];
-        }
-
-        // Filter kelas: hanya yang memiliki data presensi yang berhak masuk peringkat juara
-        $activeClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] > 0));
-        $inactiveClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] === 0));
-
-        // Urutkan kelas aktif berdasarkan rate_num descending, lalu total_attendance descending
-        usort($activeClasses, function ($a, $b) {
-            if ($b['rate_num'] !== $a['rate_num']) {
-                return $b['rate_num'] <=> $a['rate_num'];
+                $classLeaderboard[] = [
+                    'class_id' => $cls->id,
+                    'name' => 'Kelas ' . $cls->name,
+                    'initial' => preg_replace('/[^0-9A-Za-z]/', '', $cls->name) ?: 'KLS',
+                    'grade' => (string) ($cls->level ?? '7'),
+                    'studentsCount' => $studentCount,
+                    'rate' => $rate . '%',
+                    'rate_num' => $rate,
+                    'streak' => $streak,
+                    'points' => number_format($points, 0, ',', '.') . ' XP',
+                    'isMyClass' => $myClassId === $cls->id,
+                    'total_attendance' => $totalAtt,
+                ];
             }
-            return $b['total_attendance'] <=> $a['total_attendance'];
-        });
 
-        // Beri nomor peringkat HANYA untuk kelas yang sudah ada presensi
-        $rank = 1;
-        foreach ($activeClasses as &$item) {
-            $item['rank'] = $rank;
-            if ($rank === 1) {
-                $item['badge'] = '☆ ' . $item['rate'] . ' Juara 1';
-                $item['badgeColor'] = '#FEF3C7';
-                $item['textColor'] = '#B45309';
-            } elseif ($rank === 2) {
-                $item['badge'] = $item['rate'] . ' Juara 2';
-                $item['badgeColor'] = '#EFF6FF';
-                $item['textColor'] = '#1D4ED8';
-            } elseif ($rank === 3) {
-                $item['badge'] = $item['rate'] . ' Juara 3';
-                $item['badgeColor'] = '#FFF7ED';
-                $item['textColor'] = '#C2410C';
-            } else {
-                $item['badge'] = $item['rate'];
+            // Filter kelas: hanya yang memiliki data presensi yang berhak masuk peringkat juara
+            $activeClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] > 0));
+            $inactiveClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] === 0));
+
+            // Urutkan kelas aktif berdasarkan rate_num descending, lalu total_attendance descending
+            usort($activeClasses, function ($a, $b) {
+                if ($b['rate_num'] !== $a['rate_num']) {
+                    return $b['rate_num'] <=> $a['rate_num'];
+                }
+                return $b['total_attendance'] <=> $a['total_attendance'];
+            });
+
+            // Beri nomor peringkat HANYA untuk kelas yang sudah ada presensi
+            $rank = 1;
+            foreach ($activeClasses as &$item) {
+                $item['rank'] = $rank;
+                if ($rank === 1) {
+                    $item['badge'] = '☆ ' . $item['rate'] . ' Juara 1';
+                    $item['badgeColor'] = '#FEF3C7';
+                    $item['textColor'] = '#B45309';
+                } elseif ($rank === 2) {
+                    $item['badge'] = $item['rate'] . ' Juara 2';
+                    $item['badgeColor'] = '#EFF6FF';
+                    $item['textColor'] = '#1D4ED8';
+                } elseif ($rank === 3) {
+                    $item['badge'] = $item['rate'] . ' Juara 3';
+                    $item['badgeColor'] = '#FFF7ED';
+                    $item['textColor'] = '#C2410C';
+                } else {
+                    $item['badge'] = $item['rate'];
+                    $item['badgeColor'] = '#F1F5F9';
+                    $item['textColor'] = '#023C69';
+                    $item['bonusXP'] = '+' . max(10, 100 - min(80, $rank * 5)) . ' XP';
+                }
+                $rank++;
+            }
+            unset($item);
+
+            // Kelas yang belum pernah presensi TIDAK mendapat ranking juara
+            foreach ($inactiveClasses as &$item) {
+                $item['rank'] = null;
+                $item['badge'] = 'Belum Ada Presensi';
                 $item['badgeColor'] = '#F1F5F9';
-                $item['textColor'] = '#023C69';
-                $item['bonusXP'] = '+' . max(10, 100 - min(80, $rank * 5)) . ' XP';
+                $item['textColor'] = '#94A3B8';
+                $item['bonusXP'] = '0 XP';
             }
-            $rank++;
+            unset($item);
+
+            // Gabungkan kelas aktif di atas, kelas belum aktif di bawah
+            $finalClassLeaderboard = array_merge($activeClasses, $inactiveClasses);
+
+            // Hanya cari siswa yang SUDAH memiliki riwayat absensi bulan ini
+            $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
+                ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+                ->whereHas('attendances', fn($q) => $q->whereBetween('date', [$startDate, $endDate]))
+                ->with(['studentClasses', 'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate])])
+                ->get();
+
+            $studentLeaderboard = [];
+            foreach ($topStudentsRaw as $std) {
+                $attList = $std->attendances;
+                $tot = $attList->count();
+                if ($tot === 0) continue;
+
+                $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+                $r = round(($on / $tot) * 100, 1);
+                $points = $on * 50; // 50 XP per kehadiran tepat waktu
+                $streak = $on;      // Streak riil dari jumlah kehadiran tepat waktu
+
+                $badgeTitle = $r >= 95 ? 'Disiplin Emas' : ($r >= 75 ? 'Pejuang Pagi' : 'Konsisten');
+
+                $studentLeaderboard[] = [
+                    'user_id' => $std->id,
+                    'name' => $std->name,
+                    'class' => $std->studentClasses->first()->name ?? '-',
+                    'grade' => (string) ($std->studentClasses->first()->level ?? '7'),
+                    'nis' => $std->nis ?: '-',
+                    'rate' => $r . '%',
+                    'rate_num' => $r,
+                    'points' => number_format($points, 0, ',', '.') . ' XP',
+                    'streak' => $streak,
+                    'badgeTitle' => $badgeTitle,
+                    'isMe' => $currentUser->id === $std->id,
+                ];
+            }
+
+            usort($studentLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
+            $sRank = 1;
+            $topStudents = array_slice($studentLeaderboard, 0, 20);
+            foreach ($topStudents as &$s) { $s['rank'] = $sRank++; }
+            unset($s);
+
+            $myClass = $myClassId ? collect($finalClassLeaderboard)->firstWhere('class_id', $myClassId) : null;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'period_label' => 'Bulan ' . $now->translatedFormat('F Y'),
+                    'updated_at' => $now->format('H:i') . ' WIB',
+                    'classes' => $finalClassLeaderboard,
+                    'students' => $topStudents,
+                    'my_class' => $myClass,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Leaderboard error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memuat data leaderboard: ' . $e->getMessage(),
+            ], 500);
         }
-        unset($item);
-
-        // Kelas yang belum pernah presensi TIDAK mendapat ranking juara
-        foreach ($inactiveClasses as &$item) {
-            $item['rank'] = null;
-            $item['badge'] = 'Belum Ada Presensi';
-            $item['badgeColor'] = '#F1F5F9';
-            $item['textColor'] = '#94A3B8';
-            $item['bonusXP'] = '0 XP';
-        }
-        unset($item);
-
-        // Gabungkan kelas aktif di atas, kelas belum aktif di bawah
-        $finalClassLeaderboard = array_merge($activeClasses, $inactiveClasses);
-
-        // Hanya cari siswa yang SUDAH memiliki riwayat absensi bulan ini
-        $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
-            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
-            ->whereHas('attendances', fn($q) => $q->whereBetween('date', [$startDate, $endDate]))
-            ->with(['studentClasses', 'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate])])
-            ->get();
-
-        $studentLeaderboard = [];
-        foreach ($topStudentsRaw as $std) {
-            $attList = $std->attendances;
-            $tot = $attList->count();
-            if ($tot === 0) continue;
-
-            $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
-            $r = round(($on / $tot) * 100, 1);
-            $points = $on * 50; // 50 XP per kehadiran tepat waktu
-            $streak = $on;      // Streak riil dari jumlah kehadiran tepat waktu
-
-            $badgeTitle = $r >= 95 ? 'Disiplin Emas' : ($r >= 75 ? 'Pejuang Pagi' : 'Konsisten');
-
-            $studentLeaderboard[] = [
-                'user_id' => $std->id,
-                'name' => $std->name,
-                'class' => $std->studentClasses->first()->name ?? '-',
-                'grade' => (string) ($std->studentClasses->first()->level ?? '7'),
-                'nis' => $std->nis ?: '-',
-                'rate' => $r . '%',
-                'rate_num' => $r,
-                'points' => number_format($points, 0, ',', '.') . ' XP',
-                'streak' => $streak,
-                'badgeTitle' => $badgeTitle,
-                'isMe' => $currentUser->id === $std->id,
-            ];
-        }
-
-        usort($studentLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
-        $sRank = 1;
-        $topStudents = array_slice($studentLeaderboard, 0, 20);
-        foreach ($topStudents as &$s) { $s['rank'] = $sRank++; }
-        unset($s);
-
-        $myClass = $myClassId ? collect($finalClassLeaderboard)->firstWhere('class_id', $myClassId) : null;
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'period_label' => 'Bulan ' . $now->translatedFormat('F Y'),
-                'updated_at' => $now->format('H:i') . ' WIB',
-                'classes' => $finalClassLeaderboard,
-                'students' => $topStudents,
-                'my_class' => $myClass,
-            ]
-        ]);
     }
 }
 
