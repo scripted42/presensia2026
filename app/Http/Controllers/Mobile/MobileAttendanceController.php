@@ -800,20 +800,24 @@ class MobileAttendanceController extends Controller
                 $classXp = 0;
                 foreach ($classAttendances as $att) {
                     if (!$att->check_in) {
-                        if (in_array($att->status, ['sick', 'permit'])) $classXp += 10;
+                        if ($att->status === 'alpha') {
+                            $classXp -= 50; // Penalti Alpha (-50 XP)
+                        }
+                        // Sakit / Izin = 0 XP (Netral, tidak menambah/mengurangi)
                         continue;
                     }
                     $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
                     if ($checkInTime < '06:30:00') {
-                        $classXp += 100; // Early Bird: Absen sebelum 06.30 pagi
+                        $classXp += 100; // Early Bird: Absen sebelum 06.30 pagi (+100 XP)
                     } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
-                        $classXp += 70;  // Tepat waktu standar
-                    } elseif ($att->status === 'late') {
-                        $classXp += 20;  // Terlambat hadir
-                    } elseif (in_array($att->status, ['sick', 'permit'])) {
-                        $classXp += 10;  // Izin / Sakit
+                        $classXp += 70;  // Tepat waktu standar (+70 XP)
+                    } elseif ($att->status === 'late' || $checkInTime > '06:45:00') {
+                        $classXp -= 20;  // Penalti Terlambat (-20 XP)
+                    } elseif ($att->status === 'alpha') {
+                        $classXp -= 50;  // Penalti Alpha (-50 XP)
                     }
                 }
+                $classXp = max(0, $classXp); // Poin tidak minus di bawah 0
 
                 $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 0.0;
                 $streak = $totalAtt > 0 ? $ontimeAtt : 0;
@@ -901,12 +905,15 @@ class MobileAttendanceController extends Controller
                 $on = $attList->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
                 $r = round(($on / $tot) * 100, 1);
 
-                // Hitung XP individu murni dari catatan jam absensi
+                // Hitung XP individu murni dari catatan jam absensi (dengan penalti terlambat & alpha)
                 $stdXp = 0;
                 $earlyCount = 0;
                 foreach ($attList as $att) {
                     if (!$att->check_in) {
-                        if (in_array($att->status, ['sick', 'permit'])) $stdXp += 10;
+                        if ($att->status === 'alpha') {
+                            $stdXp -= 50; // Penalti Alpha (-50 XP)
+                        }
+                        // Sakit / Izin = 0 XP (Netral)
                         continue;
                     }
                     $checkInTime = Carbon::parse($att->check_in, 'Asia/Jakarta')->format('H:i:s');
@@ -915,12 +922,13 @@ class MobileAttendanceController extends Controller
                         $earlyCount++;
                     } elseif (in_array($att->status, ['ontime', 'present', 'tepat_waktu']) || $checkInTime <= '06:45:00') {
                         $stdXp += 70;  // Tepat waktu (+70 XP)
-                    } elseif ($att->status === 'late') {
-                        $stdXp += 20;  // Terlambat (+20 XP)
-                    } elseif (in_array($att->status, ['sick', 'permit'])) {
-                        $stdXp += 10;  // Izin / Sakit (+10 XP)
+                    } elseif ($att->status === 'late' || $checkInTime > '06:45:00') {
+                        $stdXp -= 20;  // Penalti Terlambat (-20 XP)
+                    } elseif ($att->status === 'alpha') {
+                        $stdXp -= 50;  // Penalti Alpha (-50 XP)
                     }
                 }
+                $stdXp = max(0, $stdXp); // Poin minimal 0 XP
 
                 $streak = $on;
 
