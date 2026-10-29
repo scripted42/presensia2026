@@ -23,6 +23,15 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Halaman Unduh Aplikasi Mobile Presensia SMPN 14 Surabaya
+Route::get('/unduh-aplikasi', function () {
+    $apkFilename = 'Presensia-SMPN14-v1.0.0.apk';
+    $apkPath = public_path('downloads/' . $apkFilename);
+    $apkSize = file_exists($apkPath) ? round(filesize($apkPath) / (1024 * 1024), 1) . ' MB' : '48 MB';
+    $downloadUrl = url('/downloads/' . $apkFilename);
+    return view('download_app', compact('downloadUrl', 'apkFilename', 'apkSize'));
+})->name('mobile.download');
+
 // Super Admin routes (separate from main app)
 Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.admin'])->group(function () {
     Route::get('/', [SuperAdminController::class, 'index'])->name('index');
