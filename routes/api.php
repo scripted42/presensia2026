@@ -41,6 +41,7 @@ Route::prefix('mobile')->group(function () {
             Route::post('/scan-student', [MobileAttendanceController::class, 'scanStudent']);
             Route::get('/students-history', [MobileAttendanceController::class, 'studentsHistory']);
             Route::get('/classes', [MobileAttendanceController::class, 'getClasses']);
+            Route::get('/leaderboard', [MobileAttendanceController::class, 'leaderboard']);
         });
         
         // Leave / Permission routes

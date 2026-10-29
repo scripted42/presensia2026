@@ -766,6 +766,105 @@ class MobileAttendanceController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Get student & class discipline leaderboard for SMPN 14 Surabaya.
+     */
+    public function leaderboard(Request $request)
+    {
+        $currentUser = Auth::user();
+        $schoolId = $currentUser->school_id ?? null;
+        $now = Carbon::now('Asia/Jakarta');
+        $startDate = $now->copy()->startOfMonth()->toDateString();
+        $endDate = $now->copy()->endOfMonth()->toDateString();
+
+        $classes = \App\Models\SchoolClass::when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+            ->orderBy('level', 'asc')->orderBy('name', 'asc')->get();
+
+        $myClassId = $currentUser->user_type === 'student' ? ($currentUser->studentClasses->first()->id ?? null) : null;
+        $classLeaderboard = [];
+
+        foreach ($classes as $cls) {
+            $students = User::where('user_type', 'student')->where('is_active', true)
+                ->whereHas('studentClasses', fn($q) => $q->where('classes.id', $cls->id))->pluck('id');
+            $studentCount = $students->count();
+            if ($studentCount === 0) continue;
+
+            $totalAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])->count();
+            $ontimeAtt = \App\Models\Attendance::whereIn('user_id', $students)->whereBetween('date', [$startDate, $endDate])
+                ->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+
+            $rate = $totalAtt > 0 ? round(($ontimeAtt / $totalAtt) * 100, 1) : 98.0;
+            $classLeaderboard[] = [
+                'class_id' => $cls->id,
+                'name' => 'Kelas ' . $cls->name,
+                'initial' => preg_replace('/[^0-9A-Za-z]/', '', $cls->name) ?: 'KLS',
+                'grade' => (string) ($cls->level ?? '7'),
+                'studentsCount' => $studentCount,
+                'rate' => $rate . '%',
+                'rate_num' => $rate,
+                'streak' => max(5, intval($rate / 4)),
+                'points' => number_format(round($rate * 30), 0, ',', '.') . ' XP',
+                'isMyClass' => $myClassId === $cls->id,
+            ];
+        }
+
+        usort($classLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
+        $rank = 1;
+        foreach ($classLeaderboard as &$item) {
+            $item['rank'] = $rank;
+            $item['badge'] = $rank === 1 ? '☆ ' . $item['rate'] . ' Juara 1' : $item['rate'] . ' Tepat';
+            $item['badgeColor'] = $rank === 1 ? '#FEF3C7' : ($rank === 2 ? '#EFF6FF' : ($rank === 3 ? '#FFF7ED' : '#F1F5F9'));
+            $item['textColor'] = $rank === 1 ? '#B45309' : ($rank === 2 ? '#1D4ED8' : ($rank === 3 ? '#C2410C' : '#023C69'));
+            if ($rank > 3) $item['bonusXP'] = '+' . (100 - min(80, $rank * 5)) . ' XP';
+            $rank++;
+        }
+        unset($item);
+
+        $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
+            ->when($schoolId, fn($q) => $q->where('school_id', $schoolId))
+            ->with(['studentClasses', 'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate])])
+            ->take(60)->get();
+
+        $studentLeaderboard = [];
+        foreach ($topStudentsRaw as $std) {
+            $tot = $std->attendances->count();
+            $on = $std->attendances->whereIn('status', ['ontime', 'present', 'tepat_waktu'])->count();
+            $r = $tot > 0 ? round(($on / $tot) * 100, 1) : 100.0;
+            $studentLeaderboard[] = [
+                'user_id' => $std->id,
+                'name' => $std->name,
+                'class' => $std->studentClasses->first()->name ?? '-',
+                'grade' => (string) ($std->studentClasses->first()->level ?? '7'),
+                'nis' => $std->nis ?: '-',
+                'rate' => $r . '%',
+                'rate_num' => $r,
+                'points' => number_format(1200 + ($on * 25), 0, ',', '.') . ' XP',
+                'streak' => max(10, $on + 5),
+                'badgeTitle' => $r >= 98 ? 'Disiplin Emas' : 'Pejuang Pagi',
+                'isMe' => $currentUser->id === $std->id,
+            ];
+        }
+
+        usort($studentLeaderboard, fn($a, $b) => $b['rate_num'] <=> $a['rate_num']);
+        $sRank = 1;
+        $topStudents = array_slice($studentLeaderboard, 0, 20);
+        foreach ($topStudents as &$s) { $s['rank'] = $sRank++; }
+        unset($s);
+
+        $myClass = $myClassId ? collect($classLeaderboard)->firstWhere('class_id', $myClassId) : null;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'period_label' => 'Bulan ' . $now->translatedFormat('F Y'),
+                'updated_at' => $now->format('H:i') . ' WIB',
+                'classes' => $classLeaderboard,
+                'students' => $topStudents,
+                'my_class' => $myClass,
+            ]
+        ]);
+    }
 }
 
 
