@@ -814,31 +814,56 @@ class MobileAttendanceController extends Controller
             ];
         }
 
-        // Sort classes: kelas dengan presensi di atas, disusul persentase tertinggi
-        usort($classLeaderboard, function ($a, $b) {
-            if ($b['total_attendance'] !== $a['total_attendance']) {
-                return $b['total_attendance'] <=> $a['total_attendance'];
+        // Filter kelas: hanya yang memiliki data presensi yang berhak masuk peringkat juara
+        $activeClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] > 0));
+        $inactiveClasses = array_values(array_filter($classLeaderboard, fn($c) => $c['total_attendance'] === 0));
+
+        // Urutkan kelas aktif berdasarkan rate_num descending, lalu total_attendance descending
+        usort($activeClasses, function ($a, $b) {
+            if ($b['rate_num'] !== $a['rate_num']) {
+                return $b['rate_num'] <=> $a['rate_num'];
             }
-            return $b['rate_num'] <=> $a['rate_num'];
+            return $b['total_attendance'] <=> $a['total_attendance'];
         });
 
+        // Beri nomor peringkat HANYA untuk kelas yang sudah ada presensi
         $rank = 1;
-        foreach ($classLeaderboard as &$item) {
+        foreach ($activeClasses as &$item) {
             $item['rank'] = $rank;
-            if ($item['total_attendance'] > 0) {
-                $item['badge'] = $rank === 1 ? '☆ ' . $item['rate'] . ' Juara 1' : $item['rate'] . ' Tepat';
-                $item['badgeColor'] = $rank === 1 ? '#FEF3C7' : ($rank === 2 ? '#EFF6FF' : ($rank === 3 ? '#FFF7ED' : '#F1F5F9'));
-                $item['textColor'] = $rank === 1 ? '#B45309' : ($rank === 2 ? '#1D4ED8' : ($rank === 3 ? '#C2410C' : '#023C69'));
-                if ($rank > 3) $item['bonusXP'] = '+' . max(10, 100 - min(80, $rank * 5)) . ' XP';
+            if ($rank === 1) {
+                $item['badge'] = '☆ ' . $item['rate'] . ' Juara 1';
+                $item['badgeColor'] = '#FEF3C7';
+                $item['textColor'] = '#B45309';
+            } elseif ($rank === 2) {
+                $item['badge'] = $item['rate'] . ' Juara 2';
+                $item['badgeColor'] = '#EFF6FF';
+                $item['textColor'] = '#1D4ED8';
+            } elseif ($rank === 3) {
+                $item['badge'] = $item['rate'] . ' Juara 3';
+                $item['badgeColor'] = '#FFF7ED';
+                $item['textColor'] = '#C2410C';
             } else {
-                $item['badge'] = 'Belum Ada Presensi';
+                $item['badge'] = $item['rate'];
                 $item['badgeColor'] = '#F1F5F9';
-                $item['textColor'] = '#94A3B8';
-                $item['bonusXP'] = '0 XP';
+                $item['textColor'] = '#023C69';
+                $item['bonusXP'] = '+' . max(10, 100 - min(80, $rank * 5)) . ' XP';
             }
             $rank++;
         }
         unset($item);
+
+        // Kelas yang belum pernah presensi TIDAK mendapat ranking juara
+        foreach ($inactiveClasses as &$item) {
+            $item['rank'] = null;
+            $item['badge'] = 'Belum Ada Presensi';
+            $item['badgeColor'] = '#F1F5F9';
+            $item['textColor'] = '#94A3B8';
+            $item['bonusXP'] = '0 XP';
+        }
+        unset($item);
+
+        // Gabungkan kelas aktif di atas, kelas belum aktif di bawah
+        $finalClassLeaderboard = array_merge($activeClasses, $inactiveClasses);
 
         // Hanya cari siswa yang SUDAH memiliki riwayat absensi bulan ini
         $topStudentsRaw = User::where('user_type', 'student')->where('is_active', true)
@@ -881,14 +906,14 @@ class MobileAttendanceController extends Controller
         foreach ($topStudents as &$s) { $s['rank'] = $sRank++; }
         unset($s);
 
-        $myClass = $myClassId ? collect($classLeaderboard)->firstWhere('class_id', $myClassId) : null;
+        $myClass = $myClassId ? collect($finalClassLeaderboard)->firstWhere('class_id', $myClassId) : null;
 
         return response()->json([
             'success' => true,
             'data' => [
                 'period_label' => 'Bulan ' . $now->translatedFormat('F Y'),
                 'updated_at' => $now->format('H:i') . ' WIB',
-                'classes' => $classLeaderboard,
+                'classes' => $finalClassLeaderboard,
                 'students' => $topStudents,
                 'my_class' => $myClass,
             ]
