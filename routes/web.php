@@ -28,7 +28,8 @@ Route::get('/unduh-aplikasi', function () {
     $apkFilename = 'Presensia-SMPN14-v1.0.0.apk';
     $apkPath = public_path('downloads/' . $apkFilename);
     $apkSize = file_exists($apkPath) ? round(filesize($apkPath) / (1024 * 1024), 1) . ' MB' : '48 MB';
-    $downloadUrl = url('/downloads/' . $apkFilename);
+    $cacheBuster = file_exists($apkPath) ? filemtime($apkPath) : '1.0.0';
+    $downloadUrl = url('/downloads/' . $apkFilename) . '?v=' . $cacheBuster;
     return view('download_app', compact('downloadUrl', 'apkFilename', 'apkSize'));
 })->name('mobile.download');
 
