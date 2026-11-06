@@ -230,7 +230,10 @@
                     <p class="text-xs text-gray-500 mt-1">{{ $startDate->format('F Y') }}</p>
                 </div>
                 <div class="flex space-x-3">
-                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
+                    <a href="{{ route('archive.index', ['key' => 'smpn14-surabaya']) }}" target="_blank" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium flex items-center shadow-xs">
+                        <i class="fas fa-folder-open mr-2"></i>Portal Arsip Cepat (Tanpa Login)
+                    </a>
+                    <a href="{{ route('dashboard') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center">
                         <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
                 </div>

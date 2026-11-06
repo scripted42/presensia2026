@@ -17,6 +17,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\SpecialScheduleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AttendanceArchiveController;
 
 // Public routes
 Route::get('/', function () {
@@ -32,6 +33,14 @@ Route::get('/unduh-aplikasi', function () {
     $downloadUrl = url('/downloads/' . $apkFilename) . '?v=' . $cacheBuster;
     return view('download_app', compact('downloadUrl', 'apkFilename', 'apkSize'));
 })->name('mobile.download');
+
+// Arsip & Rekap Absensi Siswa (Akses Publik Cepat via Token / Tanpa Login)
+Route::prefix('arsip-absensi')->name('archive.')->group(function () {
+    Route::get('/', [AttendanceArchiveController::class, 'index'])->name('index');
+    Route::get('/{year}/{month}', [AttendanceArchiveController::class, 'folder'])->whereNumber('year')->whereNumber('month')->name('folder');
+    Route::get('/{year}/{month}/download', [AttendanceArchiveController::class, 'downloadMonthly'])->whereNumber('year')->whereNumber('month')->name('download.monthly');
+    Route::get('/{year}/{month}/{day}/download', [AttendanceArchiveController::class, 'downloadDaily'])->whereNumber('year')->whereNumber('month')->whereNumber('day')->name('download.daily');
+});
 
 // Super Admin routes (separate from main app)
 Route::prefix('super-admin')->name('super-admin.')->middleware(['auth','super.admin'])->group(function () {
