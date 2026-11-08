@@ -112,12 +112,72 @@ class AttendanceArchiveController extends Controller
             ];
         }
 
+        // Agregasi statistik absensi per bulan untuk grafik (6 bulan terakhir)
+        $chartStart = $now->copy()->subMonths(5)->startOfMonth();
+        $chartEnd = $now->copy()->endOfMonth();
+
+        $chartQuery = Attendance::selectRaw('
+                DATE_FORMAT(date, "%Y-%m") as ym,
+                SUM(CASE WHEN status = "ontime" THEN 1 ELSE 0 END) as ontime_count,
+                SUM(CASE WHEN status = "late" THEN 1 ELSE 0 END) as late_count,
+                SUM(CASE WHEN status IN ("sick", "permit", "duty", "leave") THEN 1 ELSE 0 END) as leave_count,
+                SUM(CASE WHEN status = "alpha" THEN 1 ELSE 0 END) as alpha_count,
+                COUNT(*) as total_attendance
+            ')
+            ->whereBetween('date', [$chartStart->format('Y-m-d'), $chartEnd->format('Y-m-d')]);
+
+        if ($school && User::where('school_id', $school->id)->exists()) {
+            $chartQuery->whereHas('user', fn($q) => $q->where('school_id', $school->id));
+        }
+
+        $attSummary = $chartQuery->groupBy('ym')->get()->keyBy('ym');
+
+        $chartLabels = [];
+        $chartOntime = [];
+        $chartLate = [];
+        $chartLeave = [];
+        $chartAlpha = [];
+        $chartTotals = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $mDate = $now->copy()->subMonths($i);
+            $ymKey = $mDate->format('Y-m');
+            $chartLabels[] = $mDate->translatedFormat('M Y');
+
+            $stat = $attSummary->get($ymKey);
+            $ontime = (int) ($stat->ontime_count ?? 0);
+            $late = (int) ($stat->late_count ?? 0);
+            $leave = (int) ($stat->leave_count ?? 0);
+            $alpha = (int) ($stat->alpha_count ?? 0);
+            $total = (int) ($stat->total_attendance ?? 0);
+
+            $chartOntime[] = $ontime;
+            $chartLate[] = $late;
+            $chartLeave[] = $leave;
+            $chartAlpha[] = $alpha;
+            $chartTotals[] = $total;
+        }
+
+        $chartData = [
+            'labels' => $chartLabels,
+            'ontime' => $chartOntime,
+            'late' => $chartLate,
+            'leave' => $chartLeave,
+            'alpha' => $chartAlpha,
+            'totals' => $chartTotals,
+            'grand_total' => array_sum($chartTotals),
+            'grand_ontime' => array_sum($chartOntime),
+            'grand_late' => array_sum($chartLate),
+            'grand_leave' => array_sum($chartLeave),
+        ];
+
         return view('archive.index', [
             'needsAuth' => false,
             'isFolder' => false,
             'school' => $school,
             'months' => $months,
             'key' => $key,
+            'chartData' => $chartData,
             'today' => [
                 'year' => $now->year,
                 'month' => $now->month,
