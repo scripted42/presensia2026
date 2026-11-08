@@ -198,20 +198,23 @@ class AttendanceArchiveController extends Controller
         $dateStr = sprintf('%04d-%02d-%02d', $year, $month, $day);
         $dateObj = Carbon::createFromFormat('Y-m-d', $dateStr, 'Asia/Jakarta');
 
-        // Ambil semua siswa aktif sekolah
-        $students = $this->getActiveStudents($school->id);
+        // Ambil semua siswa untuk arsip (dengan query fleksibel & jaring pengaman attendance)
+        $students = $this->getStudentsForArchive($school->id, $dateStr);
 
         // Ambil data absensi pada tanggal tersebut
-        $attendances = Attendance::where('date', $dateStr)
-            ->whereIn('user_id', $students->pluck('id'))
+        $attendances = Attendance::where(function ($q) use ($dateStr) {
+                $q->whereDate('date', $dateStr)
+                  ->orWhere('date', $dateStr);
+            })
             ->get()
             ->keyBy('user_id');
 
         // Ambil data izin/sakit pada tanggal tersebut
-        $leaves = LeaveRequest::whereIn('user_id', $students->pluck('id'))
-            ->where('status', 'approved')
-            ->where('start_date', '<=', $dateStr)
-            ->where('end_date', '>=', $dateStr)
+        $leaves = LeaveRequest::where('status', 'approved')
+            ->where(function ($q) use ($dateStr) {
+                $q->whereDate('start_date', '<=', $dateStr)
+                  ->whereDate('end_date', '>=', $dateStr);
+            })
             ->get()
             ->keyBy('user_id');
 
@@ -232,9 +235,9 @@ class AttendanceArchiveController extends Controller
             $att = $attendances->get($student->id);
             $leave = $leaves->get($student->id);
 
-            $nis = $student->nis ?: ($student->nisn ?: '-');
+            $nis = $student->nis ?: ($student->studentProfile?->nis ?: ($student->nisn ?: ($student->studentProfile?->nisn ?: '-')));
             $nama = $student->name;
-            $kelas = $student->studentClasses->first()?->name ?? '-';
+            $kelas = $student->studentClasses->first()?->name ?? ($student->studentProfile?->class_name ?? '-');
 
             $jamMasuk = '-';
             $status = 'Alpha';
@@ -251,7 +254,12 @@ class AttendanceArchiveController extends Controller
                 }
                 $keterangan = $leave->reason ?: 'Izin disetujui';
             } elseif ($att && $att->check_in) {
-                $jamMasuk = Carbon::parse($att->check_in)->timezone('Asia/Jakarta')->format('H:i:s');
+                if ($att->check_in instanceof \Carbon\Carbon) {
+                    $jamMasuk = $att->check_in->timezone('Asia/Jakarta')->format('H:i:s');
+                } else {
+                    $jamMasuk = (string) $att->check_in;
+                }
+
                 $attStatus = $att->status;
 
                 if (!in_array($attStatus, ['ontime', 'late'])) {
@@ -266,7 +274,16 @@ class AttendanceArchiveController extends Controller
                     $stats['ontime']++;
                 }
                 $keterangan = $att->notes ?: 'Hadir scan';
-            } elseif ($att && in_array($att->status, ['sick', 'permit', 'leave'])) {
+            } elseif ($att && in_array($att->status, ['ontime', 'late'])) {
+                if ($att->status === 'late') {
+                    $status = 'Terlambat';
+                    $stats['late']++;
+                } else {
+                    $status = 'Hadir (Tepat Waktu)';
+                    $stats['ontime']++;
+                }
+                $keterangan = $att->notes ?: 'Hadir';
+            } elseif ($att && in_array($att->status, ['sick', 'permit', 'leave', 'duty'])) {
                 if ($att->status === 'sick') {
                     $status = 'Sakit';
                     $stats['sick']++;
@@ -324,19 +341,17 @@ class AttendanceArchiveController extends Controller
 
         $endDate = Carbon::create($year, $month, $maxDay, 23, 59, 59, 'Asia/Jakarta');
 
-        $students = $this->getActiveStudents($school->id);
+        $students = $this->getStudentsForArchive($school->id, null, $startDate, $endDate);
 
         // Ambil absensi satu bulan
         $attendances = Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->whereIn('user_id', $students->pluck('id'))
             ->get()
             ->groupBy(function ($item) {
                 return Carbon::parse($item->date)->format('Y-m-d');
             });
 
         // Ambil izin satu bulan
-        $leaves = LeaveRequest::whereIn('user_id', $students->pluck('id'))
-            ->where('status', 'approved')
+        $leaves = LeaveRequest::where('status', 'approved')
             ->where(function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
                     ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -391,9 +406,9 @@ class AttendanceArchiveController extends Controller
                 $att = $dailyAttendances->get($student->id);
                 $leaveInfo = $leaveMap[$student->id][$dateStr] ?? null;
 
-                $nis = $student->nis ?: ($student->nisn ?: '-');
+                $nis = $student->nis ?: ($student->studentProfile?->nis ?: ($student->nisn ?: ($student->studentProfile?->nisn ?: '-')));
                 $nama = $student->name;
-                $kelas = $student->studentClasses->first()?->name ?? '-';
+                $kelas = $student->studentClasses->first()?->name ?? ($student->studentProfile?->class_name ?? '-');
 
                 $jamMasuk = '-';
                 $status = 'Alpha';
@@ -410,7 +425,12 @@ class AttendanceArchiveController extends Controller
                     }
                     $keterangan = $leaveInfo['reason'] ?: 'Izin disetujui';
                 } elseif ($att && $att->check_in) {
-                    $jamMasuk = Carbon::parse($att->check_in)->timezone('Asia/Jakarta')->format('H:i:s');
+                    if ($att->check_in instanceof \Carbon\Carbon) {
+                        $jamMasuk = $att->check_in->timezone('Asia/Jakarta')->format('H:i:s');
+                    } else {
+                        $jamMasuk = (string) $att->check_in;
+                    }
+
                     $attStatus = $att->status;
 
                     if (!in_array($attStatus, ['ontime', 'late'])) {
@@ -425,7 +445,16 @@ class AttendanceArchiveController extends Controller
                         $stats['ontime']++;
                     }
                     $keterangan = $att->notes ?: 'Hadir scan';
-                } elseif ($att && in_array($att->status, ['sick', 'permit', 'leave'])) {
+                } elseif ($att && in_array($att->status, ['ontime', 'late'])) {
+                    if ($att->status === 'late') {
+                        $status = 'Terlambat';
+                        $stats['late']++;
+                    } else {
+                        $status = 'Hadir (Tepat Waktu)';
+                        $stats['ontime']++;
+                    }
+                    $keterangan = $att->notes ?: 'Hadir';
+                } elseif ($att && in_array($att->status, ['sick', 'permit', 'leave', 'duty'])) {
                     if ($att->status === 'sick') {
                         $status = 'Sakit';
                         $stats['sick']++;
@@ -465,22 +494,77 @@ class AttendanceArchiveController extends Controller
     }
 
     /**
-     * Dapatkan daftar siswa aktif dengan relasi kelas
+     * Dapatkan daftar siswa untuk laporan arsip.
+     * Menggunakan query yang fleksibel & jaring pengaman attendance
+     * agar seluruh data siswa dan absensi yang ada pasti termuat.
      */
-    protected function getActiveStudents($schoolId)
+    protected function getStudentsForArchive($schoolId, $dateStr = null, $startDate = null, $endDate = null)
     {
-        $students = User::where('school_id', $schoolId)
-            ->where('user_type', 'student')
-            ->where('is_active', true)
-            ->with(['studentClasses' => function ($q) {
+        // 1. Query dasar siswa
+        $query = User::query();
+
+        if ($schoolId && User::where('school_id', $schoolId)->exists()) {
+            $query->where('school_id', $schoolId);
+        }
+
+        // PENTING: Jangan filter 'is_active = true' agar siswa dengan nilai null/0 tetap masuk
+        $query->where(function ($q) {
+            $q->where('user_type', 'student')
+              ->orWhereHas('roles', function ($rq) {
+                  $rq->where('name', 'student');
+              })
+              ->orWhereHas('studentClasses');
+        });
+
+        $students = $query->with(['studentClasses' => function ($q) {
+            $q->orderBy('classes.level')->orderBy('classes.name');
+        }, 'roles', 'studentProfile'])->get();
+
+        // 2. Fallback jika masih kosong: cari semua siswa tanpa filter school_id
+        if ($students->isEmpty()) {
+            $students = User::where(function ($q) {
+                $q->where('user_type', 'student')
+                  ->orWhereHas('roles', function ($rq) {
+                      $rq->where('name', 'student');
+                  })
+                  ->orWhereHas('studentClasses');
+            })->with(['studentClasses' => function ($q) {
                 $q->orderBy('classes.level')->orderBy('classes.name');
-            }])
-            ->get();
+            }, 'roles', 'studentProfile'])->get();
+        }
+
+        // 3. JARING PENGAMAN UTAMA:
+        // Cek data attendance pada tanggal / periode ini.
+        // Jika ada siswa yang melakukan absensi, pastikan user pemilik absensi tersebut 100% masuk dalam list siswa!
+        $attQuery = Attendance::query();
+        if ($dateStr) {
+            $attQuery->where(function ($q) use ($dateStr) {
+                $q->whereDate('date', $dateStr)
+                  ->orWhere('date', $dateStr);
+            });
+        } elseif ($startDate && $endDate) {
+            $attQuery->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+        }
+
+        $attUserIds = $attQuery->pluck('user_id')->filter()->unique();
+        if ($attUserIds->isNotEmpty()) {
+            $attUsers = User::whereIn('id', $attUserIds)
+                ->where(function ($q) {
+                    $q->where('user_type', '!=', 'admin')
+                      ->orWhereNull('user_type');
+                })
+                ->with(['studentClasses' => function ($q) {
+                    $q->orderBy('classes.level')->orderBy('classes.name');
+                }, 'roles', 'studentProfile'])
+                ->get();
+
+            $students = $students->concat($attUsers)->unique('id');
+        }
 
         return $students->sortBy([
             function ($a, $b) {
-                $classA = $a->studentClasses->first()?->name ?? 'ZZZ';
-                $classB = $b->studentClasses->first()?->name ?? 'ZZZ';
+                $classA = $a->studentClasses->first()?->name ?? ($a->studentProfile?->class_name ?? 'ZZZ');
+                $classB = $b->studentClasses->first()?->name ?? ($b->studentProfile?->class_name ?? 'ZZZ');
                 return strnatcasecmp($classA, $classB);
             },
             ['name', 'asc'],
