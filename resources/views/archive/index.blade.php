@@ -5,13 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ isset($school) ? $school->name : 'Presensia' }} - Arsip Laporan Absensi</title>
     
-    <!-- Google Fonts: Baloo 2, Inter, Manrope (Identik dengan Desain Presensia) -->
+    <!-- Google Fonts: Baloo 2 (heading), Inter (body), Manrope (numeric/metrics) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Framework: Tailwind CSS v3 Engine (Sama dengan Stack Presensia) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"Baloo 2"', 'system-ui', 'sans-serif'],
+                        body: ['"Inter"', 'system-ui', 'sans-serif'],
+                        numeric: ['"Manrope"', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- DaisyUI Components -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
     
     <!-- Lucide Icons (SVG) -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -41,15 +72,138 @@
             font-family: var(--font-numeric);
         }
 
+        /* Banner Hero Akses Cepat */
         .hero-banner {
             background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 55%, #4338CA 100%) !important;
             color: #FFFFFF !important;
         }
 
+        /* Tombol Unduh Hero Banner */
+        .btn-download-hero {
+            background-color: #10B981 !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.625rem !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22) !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease-in-out !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        .btn-download-hero:hover {
+            background-color: #059669 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3) !important;
+        }
+        .btn-download-hero * {
+            color: #FFFFFF !important;
+        }
+
+        /* Tombol Unduh Rekap Bulanan (.xlsx) - Kontras Tinggi dan Solid */
+        .btn-download-monthly {
+            background-color: #059669 !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            border-radius: 1rem !important;
+            border: 1px solid #047857 !important;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .btn-download-monthly:hover {
+            background-color: #047857 !important;
+            box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45) !important;
+            transform: translateY(-1px) !important;
+        }
+        .btn-download-monthly * {
+            color: #FFFFFF !important;
+        }
+
+        /* Tombol Unduh di Tabel Harian (Hari Ini - Hijau) */
+        .btn-download-today {
+            background-color: #059669 !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.375rem !important;
+            padding: 0.45rem 0.85rem !important;
+            border-radius: 0.75rem !important;
+            font-size: 0.75rem !important;
+            text-decoration: none !important;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3) !important;
+            transition: all 0.15s ease-in-out !important;
+        }
+        .btn-download-today:hover {
+            background-color: #047857 !important;
+            color: #FFFFFF !important;
+        }
+        .btn-download-today * {
+            color: #FFFFFF !important;
+        }
+
+        /* Tombol Unduh di Tabel Harian (Standar - Abu-abu Netral) */
+        .btn-download-standard {
+            background-color: #F1F5F9 !important;
+            color: #334155 !important;
+            font-weight: 600 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.375rem !important;
+            padding: 0.45rem 0.85rem !important;
+            border-radius: 0.75rem !important;
+            font-size: 0.75rem !important;
+            border: 1px solid #E2E8F0 !important;
+            text-decoration: none !important;
+            transition: all 0.15s ease-in-out !important;
+        }
+        .btn-download-standard:hover {
+            background-color: #E2E8F0 !important;
+            color: #0F172A !important;
+        }
+
+        /* Badge Bulan Berjalan - Ramping, Presisi, Tidak Membengkak */
+        .badge-current-month {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+            padding: 4px 9px !important;
+            border-radius: 9999px !important;
+            background-color: #EFF6FF !important;
+            color: #1D4ED8 !important;
+            border: 1px solid #BFDBFE !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+        .badge-dot-pulse {
+            display: inline-block !important;
+            width: 6px !important;
+            height: 6px !important;
+            border-radius: 9999px !important;
+            background-color: #2563EB !important;
+            animation: pingDot 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes pingDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Card Folder Animasi */
         .folder-card {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .folder-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
@@ -58,9 +212,8 @@
         .file-row {
             transition: background-color 0.15s ease-in-out;
         }
-
         .file-row:hover {
-            background-color: #F1F5F9;
+            background-color: #F8FAFC;
         }
 
         /* Styling Icon Lucide */
@@ -74,7 +227,7 @@
 <body class="min-h-screen flex flex-col justify-between">
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-2xs">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
             <div class="flex items-center space-x-3.5">
                 <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
@@ -93,8 +246,8 @@
 
             <!-- Tanggal Jam Server & Status Akses -->
             <div class="hidden sm:flex items-center gap-4 text-xs">
-                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
-                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
                     <span>Akses Aman</span>
                 </div>
                 <div class="flex flex-col items-end text-gray-500">
@@ -133,11 +286,11 @@
                 <form method="GET" action="{{ route('archive.index') }}" class="space-y-4">
                     <div>
                         <input type="text" name="key" value="{{ request('key') }}" placeholder="Masukkan Kunci Akses..." required autofocus
-                            class="w-full px-4 py-3 rounded-xl border border-gray-300 text-center font-mono text-sm tracking-wide focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden">
+                            class="w-full px-4 py-3 rounded-xl border border-gray-300 text-center font-mono text-sm tracking-wide focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
                     <button type="submit" 
                         class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
-                        <i data-lucide="key-round" class="w-4 h-4"></i>
+                        <i data-lucide="key-round" class="w-4 h-4 text-white"></i>
                         <span>Buka Arsip Laporan</span>
                     </button>
                 </form>
@@ -145,7 +298,7 @@
         @else
 
             <!-- Breadcrumbs Navigation -->
-            <div class="flex items-center justify-between flex-wrap gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-xs">
                 <nav class="flex items-center text-sm font-semibold text-gray-600">
                     <a href="{{ route('archive.index', ['key' => $key]) }}" class="hover:text-blue-600 flex items-center gap-1.5 text-gray-800">
                         <i data-lucide="folder" class="w-4 h-4 text-amber-500"></i>
@@ -188,7 +341,7 @@
                     </div>
                     <div class="shrink-0 w-full md:w-auto z-10">
                         <a href="{{ route('archive.download.daily', ['year' => $today['year'], 'month' => $today['month'], 'day' => $today['day'], 'key' => $key]) }}"
-                           class="w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 text-sm">
+                           class="btn-download-hero w-full md:w-auto px-6 py-4 text-sm">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             <span>Unduh Rekap Hari Ini (.xlsx)</span>
                         </a>
@@ -196,7 +349,7 @@
                 </div>
 
                 <!-- ================= BAR CHART PRESENSI BULANAN ================= -->
-                <div class="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-6 mb-8">
+                <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 mb-8">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
                         <div>
                             <div class="flex items-center gap-2">
@@ -214,15 +367,15 @@
 
                         <!-- KPI Indicator Badges -->
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/50">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                                 Tepat Waktu: <strong class="font-numeric">{{ number_format($chartData['grand_ontime'] ?? 0) }}</strong>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200/50">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
                                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                                 Terlambat: <strong class="font-numeric">{{ number_format($chartData['grand_late'] ?? 0) }}</strong>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200/50">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200">
                                 <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                                 Izin/Sakit: <strong class="font-numeric">{{ number_format($chartData['grand_leave'] ?? 0) }}</strong>
                             </span>
@@ -250,13 +403,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     @foreach($months as $m)
                         <a href="{{ route('archive.folder', ['year' => $m['year'], 'month' => $m['month'], 'key' => $key]) }}" 
-                           class="folder-card bg-white p-5 rounded-3xl border {{ $m['is_current'] ? 'border-blue-400 ring-2 ring-blue-100 shadow-sm' : 'border-gray-200 shadow-2xs' }} block group">
-                            <div class="flex items-start justify-between mb-3.5">
-                                <div class="w-12 h-12 rounded-2xl {{ $m['is_current'] ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-500' }} flex items-center justify-center">
-                                    <i data-lucide="{{ $m['is_current'] ? 'folder-open' : 'folder' }}" class="w-6 h-6"></i>
+                           class="folder-card bg-white p-5 rounded-3xl border {{ $m['is_current'] ? 'border-blue-400 ring-2 ring-blue-100 shadow-sm' : 'border-gray-200 shadow-xs' }} block group">
+                            <div class="flex items-center justify-between mb-3.5">
+                                <div class="w-10 h-10 rounded-xl {{ $m['is_current'] ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-500' }} flex items-center justify-center shrink-0">
+                                    <i data-lucide="{{ $m['is_current'] ? 'folder-open' : 'folder' }}" class="w-5 h-5"></i>
                                 </div>
                                 @if($m['is_current'])
-                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                                    <span class="badge-current-month">
+                                        <span class="badge-dot-pulse"></span>
                                         Bulan Berjalan
                                     </span>
                                 @endif
@@ -282,12 +436,12 @@
                 <!-- Card 1: Rekap Keseluruhan 1 Bulan Penuh -->
                 <div class="bg-white rounded-3xl border-2 border-emerald-500 shadow-sm p-6 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i data-lucide="file-spreadsheet" class="w-7 h-7 text-emerald-600"></i>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="file-spreadsheet" class="w-6 h-6 text-emerald-600"></i>
                         </div>
                         <div>
                             <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-1">
-                                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                                <i data-lucide="sparkles" class="w-3 h-3 text-emerald-700"></i>
                                 Rekap Keseluruhan 1 Bulan
                             </div>
                             <h3 class="font-heading text-xl sm:text-2xl font-bold text-gray-900">
@@ -300,7 +454,7 @@
                     </div>
                     <div class="w-full md:w-auto shrink-0">
                         <a href="{{ route('archive.download.monthly', ['year' => $year, 'month' => $month, 'key' => $key]) }}"
-                           class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition text-sm">
+                           class="btn-download-monthly w-full md:w-auto px-6 py-3.5 text-sm">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             <span>Unduh Rekap Bulanan (.xlsx)</span>
                         </a>
@@ -308,7 +462,7 @@
                 </div>
 
                 <!-- Section: Rekap Harian -->
-                <div class="bg-white rounded-3xl border border-gray-200 shadow-2xs overflow-hidden">
+                <div class="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <h3 class="font-heading font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
@@ -376,7 +530,7 @@
                                         </td>
                                         <td class="py-3.5 px-5 text-right whitespace-nowrap">
                                             <a href="{{ route('archive.download.daily', ['year' => $year, 'month' => $month, 'day' => $d['day'], 'key' => $key]) }}"
-                                               class="inline-flex items-center gap-1.5 px-3.5 py-2 {{ $d['is_today'] ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm' : 'bg-gray-100 hover:bg-gray-200 text-gray-700' }} text-xs font-bold rounded-xl transition">
+                                               class="{{ $d['is_today'] ? 'btn-download-today' : 'btn-download-standard' }}">
                                                 <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                                 <span>Unduh</span>
                                             </a>
@@ -403,7 +557,7 @@
     <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-400">
         <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <p>&copy; {{ date('Y') }} Presensia — Sistem Presensi Digital Terintegrasi.</p>
-            <p class="text-[11px] text-gray-400">SMP Negeri 14 Surabaya</p>
+            <p class="text-[11px] text-gray-400">{{ isset($school) ? $school->name : 'SMP Negeri 14 Surabaya' }}</p>
         </div>
     </footer>
 
