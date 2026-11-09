@@ -47,9 +47,17 @@ class AttendanceArchiveController extends Controller
         ]));
 
         if (in_array(strtolower($key), $validKeys, true)) {
-            $school = School::where('name', 'like', '%SMPN 14%')
-                ->orWhere('name', 'like', '%14%')
-                ->first() ?: School::where('is_active', true)->first();
+            $school = School::where(function ($q) {
+                    $q->where('name', 'like', '%SMPN 14%')
+                      ->orWhere('name', 'like', '%SMP%14%')
+                      ->orWhere('name', 'like', '%14%');
+                })
+                ->withCount('users')
+                ->orderByDesc('is_active')
+                ->orderByDesc('users_count')
+                ->first()
+                ?: School::where('is_active', true)->withCount('users')->orderByDesc('users_count')->first()
+                ?: School::withCount('users')->orderByDesc('users_count')->first();
 
             if ($school) {
                 session(['attendance_archive_key' => $key, 'attendance_archive_school_id' => $school->id]);
@@ -116,21 +124,33 @@ class AttendanceArchiveController extends Controller
         $chartStart = $now->copy()->subMonths(5)->startOfMonth();
         $chartEnd = $now->copy()->endOfMonth();
 
-        $chartQuery = Attendance::selectRaw('
-                DATE_FORMAT(date, "%Y-%m") as ym,
-                SUM(CASE WHEN status = "ontime" THEN 1 ELSE 0 END) as ontime_count,
-                SUM(CASE WHEN status = "late" THEN 1 ELSE 0 END) as late_count,
-                SUM(CASE WHEN status IN ("sick", "permit", "duty", "leave") THEN 1 ELSE 0 END) as leave_count,
-                SUM(CASE WHEN status = "alpha" THEN 1 ELSE 0 END) as alpha_count,
-                COUNT(*) as total_attendance
-            ')
-            ->whereBetween('date', [$chartStart->format('Y-m-d'), $chartEnd->format('Y-m-d')]);
+        $fetchChartSummary = function (?int $filterSchoolId = null) use ($chartStart, $chartEnd) {
+            $q = Attendance::selectRaw("
+                    DATE_FORMAT(date, '%Y-%m') as ym,
+                    SUM(CASE WHEN status = 'ontime' OR (status NOT IN ('late', 'sick', 'permit', 'duty', 'leave', 'alpha') AND check_in IS NOT NULL) THEN 1 ELSE 0 END) as ontime_count,
+                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late_count,
+                    SUM(CASE WHEN status IN ('sick', 'permit', 'duty', 'leave') THEN 1 ELSE 0 END) as leave_count,
+                    SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha_count,
+                    COUNT(*) as total_attendance
+                ")
+                ->where('date', '>=', $chartStart->format('Y-m-d'))
+                ->where('date', '<=', $chartEnd->format('Y-m-d') . ' 23:59:59');
 
-        if ($school && User::where('school_id', $school->id)->exists()) {
-            $chartQuery->whereHas('user', fn($q) => $q->where('school_id', $school->id));
+            if ($filterSchoolId) {
+                $q->whereHas('user', fn($uq) => $uq->where('school_id', $filterSchoolId));
+            }
+
+            return $q->groupBy('ym')->get()->keyBy('ym');
+        };
+
+        $attSummary = ($school && User::where('school_id', $school->id)->exists())
+            ? $fetchChartSummary($school->id)
+            : $fetchChartSummary(null);
+
+        // Jaring pengaman: jika hasil query terfilter school_id kosong, ambil seluruh data attendance yang tersedia
+        if ($attSummary->isEmpty()) {
+            $attSummary = $fetchChartSummary(null);
         }
-
-        $attSummary = $chartQuery->groupBy('ym')->get()->keyBy('ym');
 
         $chartLabels = [];
         $chartOntime = [];

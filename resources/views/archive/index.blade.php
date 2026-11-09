@@ -385,6 +385,14 @@
                     <!-- Canvas Chart.js -->
                     <div class="relative w-full" style="min-height: 260px; max-height: 320px;">
                         <canvas id="monthlyAttendanceChart"></canvas>
+                        @if(($chartData['grand_total'] ?? 0) === 0)
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <div class="bg-slate-50/90 border border-slate-200 rounded-2xl px-5 py-3 text-center shadow-xs">
+                                    <p class="text-xs font-semibold text-slate-600">Belum ada record absensi pada rentang 6 bulan ini.</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Grafik akan otomatis tampil setelah ada siswa yang melakukan scan absensi.</p>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
