@@ -224,17 +224,17 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
 
     <!-- Top Navigation Bar -->
     <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-            <div class="flex items-center space-x-3.5">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-3.5 min-w-0">
                 <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
                     <i data-lucide="file-spreadsheet" class="w-5 h-5 text-white"></i>
                 </div>
-                <div>
-                    <h1 class="font-heading text-lg sm:text-xl font-bold text-gray-900 leading-tight">
+                <div class="min-w-0">
+                    <h1 class="font-heading text-lg sm:text-xl font-bold text-gray-900 leading-tight truncate">
                         {{ isset($school) ? $school->name : 'Presensia' }}
                     </h1>
                     <p class="text-xs text-gray-500 font-medium flex items-center gap-1.5">
@@ -442,20 +442,20 @@
                 <!-- ================= FOLDER VIEW (ISI BULAN TERPILIH) ================= -->
 
                 <!-- Card 1: Rekap Keseluruhan 1 Bulan Penuh -->
-                <div class="bg-white rounded-3xl border-2 border-emerald-500 shadow-sm p-6 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i data-lucide="file-spreadsheet" class="w-6 h-6 text-emerald-600"></i>
+                <div class="bg-white rounded-3xl border-2 border-emerald-500 shadow-sm p-4 sm:p-6 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 overflow-hidden">
+                    <div class="flex items-start gap-3 sm:gap-4 w-full min-w-0">
+                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600"></i>
                         </div>
-                        <div>
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-1">
-                                <i data-lucide="sparkles" class="w-3 h-3 text-emerald-700"></i>
-                                Rekap Keseluruhan 1 Bulan
+                        <div class="min-w-0 flex-1">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
+                                <i data-lucide="sparkles" class="w-3 h-3 text-emerald-700 shrink-0"></i>
+                                <span>Rekap Keseluruhan 1 Bulan</span>
                             </div>
-                            <h3 class="font-heading text-xl sm:text-2xl font-bold text-gray-900">
-                                {{ $monthly_filename }}
+                            <h3 class="font-heading text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-snug break-words" style="overflow-wrap: anywhere;">
+                                {!! str_replace('_', '_<wbr>', e($monthly_filename)) !!}
                             </h3>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1 leading-relaxed">
                                 Berisi rekapitulasi lengkap seluruh siswa selama bulan {{ $month_label }} (No, Tanggal, NIS, Nama, Kelas, Jam Masuk, Status, Keterangan).
                             </p>
                         </div>
@@ -471,10 +471,10 @@
 
                 <!-- Section: Rekap Harian -->
                 <div class="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <h3 class="font-heading font-bold text-gray-900 text-base sm:text-lg flex items-center gap-2">
-                                <i data-lucide="calendar-days" class="w-4 h-4 text-blue-600"></i>
+                                <i data-lucide="calendar-days" class="w-4 h-4 text-blue-600 shrink-0"></i>
                                 <span>Berkas Rekap Harian (Bulan {{ $month_label }})</span>
                             </h3>
                             <p class="text-xs text-gray-500">Klik tombol unduh pada tanggal yang diinginkan.</p>
@@ -484,8 +484,64 @@
                         </span>
                     </div>
 
-                    <!-- File Listing Table -->
-                    <div class="overflow-x-auto">
+                    <!-- Mobile Card List View (< 768px) -->
+                    <div class="block md:hidden divide-y divide-gray-100">
+                        @forelse($days as $d)
+                            <div class="p-4 flex items-center justify-between gap-3 {{ $d['is_today'] ? 'bg-amber-50/40' : '' }}">
+                                <div class="flex items-start gap-3 min-w-0 flex-1">
+                                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center flex-wrap gap-1.5 mb-0.5">
+                                            <a href="{{ route('archive.download.daily', ['year' => $year, 'month' => $month, 'day' => $d['day'], 'key' => $key]) }}"
+                                               class="text-xs font-bold text-gray-900 hover:text-blue-600 break-words leading-snug" style="overflow-wrap: anywhere;">
+                                                {!! str_replace('_', '_<wbr>', e($d['filename'])) !!}
+                                            </a>
+                                            @if($d['is_today'])
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-red-100 text-red-600 animate-pulse font-numeric shrink-0">
+                                                    LIVE
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="text-[11px] text-gray-500 mb-1.5">{{ $d['date_formatted'] }}</p>
+                                        <div>
+                                            @if($d['is_today'])
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    Hari Ini
+                                                </span>
+                                            @elseif($d['is_weekend'])
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-gray-100 text-gray-600">
+                                                    <i data-lucide="sun" class="w-2.5 h-2.5 text-amber-500"></i>
+                                                    Weekend
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                                    <i data-lucide="check-circle-2" class="w-2.5 h-2.5 text-blue-500"></i>
+                                                    Tersedia
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="shrink-0">
+                                    <a href="{{ route('archive.download.daily', ['year' => $year, 'month' => $month, 'day' => $d['day'], 'key' => $key]) }}"
+                                       class="{{ $d['is_today'] ? 'btn-download-today' : 'btn-download-standard' }}">
+                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                        <span>Unduh</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-12 text-center text-gray-400 text-xs">
+                                Belum ada berkas pada bulan ini.
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <!-- Desktop File Listing Table (>= 768px) -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-gray-100/70 text-gray-500 uppercase text-[10px] tracking-wider font-bold border-b border-gray-200">
                                 <tr>
